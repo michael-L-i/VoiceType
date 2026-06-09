@@ -16,6 +16,15 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+if [[ -f "$ROOT/.env.local" ]]; then
+    echo "▸ Loading local release config from .env.local…"
+    set -a
+    # shellcheck disable=SC1091
+    source "$ROOT/.env.local"
+    set +a
+fi
+
 RAW="${1:?usage: Scripts/release.sh <version>   (e.g. 0.1.1)}"
 VERSION="${RAW#v}"
 TAG="v$VERSION"
