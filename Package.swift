@@ -19,6 +19,10 @@ let package = Package(
         // specific master commit (its README points consumers at branch commits).
         .package(url: "https://github.com/exPHAT/SwiftWhisper",
                  revision: "c340197966ebd264f3135d3955874b40f8ed58bc"),
+        // Sparkle: in-app auto-updates via a signed appcast (EdDSA). Standard
+        // updater for non-App-Store Mac apps.
+        .package(url: "https://github.com/sparkle-project/Sparkle",
+                 from: "2.6.0"),
     ],
     targets: [
         // Pure, UI-agnostic, dependency-free core logic. Fully unit-testable.
@@ -34,6 +38,7 @@ let package = Package(
             dependencies: [
                 "VoiceTypeKit",
                 .product(name: "SwiftWhisper", package: "SwiftWhisper"),
+                .product(name: "Sparkle", package: "Sparkle"),
             ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),

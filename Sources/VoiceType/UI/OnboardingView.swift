@@ -37,6 +37,13 @@ struct OnboardingView: View {
         }
         .padding(28)
         .frame(width: 460)
+        .background(alignment: .top) {
+            LinearGradient(colors: [VT.tint.opacity(0.16), .clear],
+                           startPoint: .top, endPoint: .bottom)
+                .frame(height: 160)
+                .frame(maxHeight: .infinity, alignment: .top)
+                .ignoresSafeArea()
+        }
     }
 
     private var header: some View {
@@ -44,7 +51,7 @@ struct OnboardingView: View {
             HStack(spacing: 12) {
                 Image(systemName: "waveform.circle.fill")
                     .font(.system(size: 34))
-                    .foregroundStyle(.tint)
+                    .foregroundStyle(VT.tint)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Welcome to VoiceType")
                         .font(.title2.weight(.semibold))
