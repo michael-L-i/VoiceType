@@ -1,8 +1,8 @@
 import SwiftUI
 import VoiceTypeKit
 
-/// The dropdown shown from the menu-bar icon. The settings/onboarding milestone
-/// (task #6) expands this with full preferences and a guided permissions flow.
+/// The dropdown shown from the menu-bar icon: live status, the last result, the
+/// hotkey reminder, and the doors to Settings and the setup walkthrough.
 struct MenuContent: View {
     @Bindable var coordinator: DictationCoordinator
 
@@ -13,8 +13,8 @@ struct MenuContent: View {
         if !coordinator.permissionsGranted {
             Divider()
             Text("⚠︎ Needs Microphone, Speech & Accessibility access")
-            Button("Grant Access…") {
-                Task { await coordinator.requestAllPermissions() }
+            Button("Set Up VoiceType…") {
+                coordinator.wantsOnboarding = true
             }
         }
 
@@ -35,6 +35,16 @@ struct MenuContent: View {
         Text("Hold \(coordinator.settings.hotkey.trigger.displayName) to dictate")
             .font(.caption)
             .foregroundStyle(.secondary)
+
+        Divider()
+        SettingsLink {
+            Text("Settings…")
+        }
+        .keyboardShortcut(",")
+
+        Button("Setup & Permissions…") {
+            coordinator.wantsOnboarding = true
+        }
 
         Divider()
         Button("Quit VoiceType") {
