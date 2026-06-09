@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+out/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# audio / model artifacts must never be committed
+*.wav
+*.mp3
+*.m4a
+models/
+.aros/
