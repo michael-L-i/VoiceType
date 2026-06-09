@@ -1,4 +1,5 @@
-# Release — build VoiceType.dmg and publish it to a GitHub Release on tag push.
+# Release — on tag push, build the DMG (human download) + the signed Sparkle
+# ZIP/appcast (auto-update) and publish all three to a GitHub Release.
 #
 # CAVEAT: VoiceType targets macOS 26 and needs the macOS 26 SDK (Xcode 26) to
 # compile — it uses Apple's on-device `SpeechTranscriber` and `FoundationModels`,
@@ -7,7 +8,12 @@
 # you point it at a self-hosted macOS 26 runner). The setup below is correct
 # regardless: it selects the newest stable Xcode available on the runner.
 #
-# The DMG is unsigned / not notarized (no Apple Developer account). On first
+# REQUIRED SECRET: SPARKLE_PRIVATE_KEY — the EdDSA private key that signs updates
+# (export it once with Sparkle's `generate_keys -x`). Without it the appcast
+# can't be signed and clients reject the update. The matching public key is
+# pinned in Info.plist as SUPublicEDKey; the private key is NEVER committed.
+#
+# The DMG/ZIP are unsigned / not notarized (no Apple Developer account). On first
 # launch users right-click the app -> Open -> Open once. See README.
 name: Release
 
@@ -31,13 +37,18 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Build DMG
-        run: ./Scripts/make-dmg.sh
+      - name: Build DMG + signed Sparkle update
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: ./Scripts/release.sh "${GITHUB_REF_NAME#v}"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: VoiceType.dmg
+          files: |
+            VoiceType.dmg
+            VoiceType.zip
+            appcast.xml
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

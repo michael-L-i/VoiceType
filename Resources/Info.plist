@@ -27,5 +27,17 @@
     <string>VoiceType listens while you hold the dictation key. Audio stays on your device.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
     <string>VoiceType converts your speech to text using Apple's on-device model.</string>
+    <!-- Sparkle auto-updates: signed appcast served from the latest GitHub
+         release. SUPublicEDKey verifies every update's EdDSA signature; the
+         matching private key lives only in the maintainer's Keychain / a CI
+         secret and is never committed. -->
+    <key>SUFeedURL</key>
+    <string>https://github.com/michael-L-i/VoiceType/releases/latest/download/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>AsC+tvEsbLpvnzz128pWnWzf7Zc8r9fQCNSZZaMkuSo=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUScheduledCheckInterval</key>
+    <integer>86400</integer>
 </dict>
 </plist>
