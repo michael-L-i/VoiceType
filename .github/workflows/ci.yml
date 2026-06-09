@@ -1,0 +1,34 @@
+# CI — build + test VoiceType on macOS.
+#
+# CAVEAT: VoiceType targets macOS 26 and needs the macOS 26 SDK (Xcode 26) to
+# compile — it uses Apple's on-device `SpeechTranscriber` and `FoundationModels`,
+# which only exist in that SDK. GitHub-hosted runners may not ship Xcode 26 yet,
+# so this workflow will only go green once `macos-latest` provides Xcode 26 (or
+# you point it at a self-hosted macOS 26 runner). The setup below is correct
+# regardless: it selects the newest stable Xcode available on the runner.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select newest stable Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Swift version
+        run: swift --version
+
+      - name: Build
+        run: swift build
+
+      - name: Test
+        run: swift test

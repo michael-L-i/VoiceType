@@ -1,0 +1,43 @@
+# Release — build VoiceType.dmg and publish it to a GitHub Release on tag push.
+#
+# CAVEAT: VoiceType targets macOS 26 and needs the macOS 26 SDK (Xcode 26) to
+# compile — it uses Apple's on-device `SpeechTranscriber` and `FoundationModels`,
+# which only exist in that SDK. GitHub-hosted runners may not ship Xcode 26 yet,
+# so this workflow will only succeed once `macos-latest` provides Xcode 26 (or
+# you point it at a self-hosted macOS 26 runner). The setup below is correct
+# regardless: it selects the newest stable Xcode available on the runner.
+#
+# The DMG is unsigned / not notarized (no Apple Developer account). On first
+# launch users right-click the app -> Open -> Open once. See README.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select newest stable Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build DMG
+        run: ./Scripts/make-dmg.sh
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: VoiceType.dmg
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
