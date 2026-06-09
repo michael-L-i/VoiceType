@@ -14,6 +14,11 @@ final class DictationCoordinator {
     private(set) var lastResult: PipelineResult?
     private(set) var inputLevel: Float = 0
     private(set) var history = DictationHistory()
+
+    /// Drives the onboarding window. Set true to request it (first launch, or the
+    /// menu's "Set Up VoiceType…"); the SwiftUI window bridge observes this.
+    var wantsOnboarding = false
+
     var settings: AppSettings {
         didSet { applySettingsChange(from: oldValue) }
     }
@@ -24,8 +29,10 @@ final class DictationCoordinator {
     private let injector: TextInjector = PasteboardInjector()
 
     // Resolved availability, refreshed on launch and when settings change.
-    private var availableTranscription: Set<TranscriptionEngineKind> = [.appleOnDevice]
-    private var availableCleanup: Set<CleanupEngineKind> = [.ruleBased, .none]
+    // Exposed read-only so the Settings UI can show which engines are ready vs.
+    // need setup, without being able to mutate the resolver's view of the world.
+    private(set) var availableTranscription: Set<TranscriptionEngineKind> = [.appleOnDevice]
+    private(set) var availableCleanup: Set<CleanupEngineKind> = [.ruleBased, .none]
     private var isProcessing = false
     private var resetTask: Task<Void, Never>?
 
@@ -57,6 +64,51 @@ final class DictationCoordinator {
         Permissions.requestAccessibility()
         await refreshAvailability()
     }
+
+    /// Request a single permission (used by the onboarding flow's per-row Grant
+    /// buttons) and refresh engine availability afterwards.
+    func request(_ permission: Permission) async {
+        switch permission {
+        case .microphone: _ = await Permissions.requestMicrophone()
+        case .speech: _ = await Permissions.requestSpeech()
+        case .accessibility: Permissions.requestAccessibility()
+        }
+        await refreshAvailability()
+    }
+
+    /// Deep-link to the relevant System Settings privacy pane when a grant was
+    /// denied (the system won't re-prompt, so we send the user there).
+    func openSystemSettings(for permission: Permission) {
+        let anchor: String
+        switch permission {
+        case .microphone: anchor = "Privacy_Microphone"
+        case .speech: anchor = "Privacy_SpeechRecognition"
+        case .accessibility: anchor = "Privacy_Accessibility"
+        }
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(anchor)") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    // MARK: - Secrets
+
+    /// Whether a Groq API key is present in the Keychain. Read-only; the key
+    /// itself never leaves the Keychain through this surface.
+    var hasGroqKey: Bool {
+        guard let key = KeychainStore.shared.groqAPIKey else { return false }
+        return !key.isEmpty
+    }
+
+    /// Save (or clear, when empty) the Groq API key in the Keychain, then
+    /// re-resolve which engines are usable so the UI updates immediately.
+    func saveGroqKey(_ key: String) {
+        KeychainStore.shared.groqAPIKey = key
+        Task { await refreshAvailability() }
+    }
+
+    // MARK: - History
+
+    func clearHistory() { history.clear() }
 
     // MARK: - Push-to-talk
 
