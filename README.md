@@ -12,7 +12,25 @@ on-device by default; any cloud path is opt-in and clearly labeled.
 
 ## Status
 
-Early. This repo is being scaffolded — see `specs/ROADMAP.md` for what's next.
+Working prototype. Native **Swift 6 / SwiftUI** menu-bar app for macOS 26.
+Hold the dictation key → speak → clean text is inserted into the focused app.
+
+### Build & run
+
+```bash
+swift test              # run the VoiceTypeKit unit tests
+./Scripts/build-app.sh  # build VoiceType.app (ad-hoc signed)
+open VoiceType.app      # launch the menu-bar agent
+```
+
+On first launch, VoiceType walks you through three grants — **Microphone**,
+**Speech Recognition**, and **Accessibility** — then lives in the menu bar.
+Hold **Right Option** (configurable) and speak; release to insert.
+
+- **Transcription:** Apple on-device `SpeechTranscriber` by default, with a local
+  `whisper.cpp` fallback and opt-in Groq cloud.
+- **Cleanup:** Apple `FoundationModels` on-device, falling back to deterministic
+  rules, with opt-in Groq cloud. Cloud is off by default and clearly gated.
 
 ## How this repo is run
 
@@ -21,18 +39,28 @@ loop**: triage → review → merge/escalate), with a human supplying **taste** 
 editing `specs/`. It links the [`@aros/*`](../agent-repo-os) framework during
 local dev. See [`CLAUDE.md`](./CLAUDE.md) for the operating rules.
 
-## Architecture (proposed)
+## Architecture
 
-Electron + TypeScript + React shell · global push-to-talk hotkey · mic capture ·
-pluggable transcription (local `whisper.cpp` by default, opt-in cloud) · fast
-formatting cleanup pass. Details live in `CLAUDE.md` and evolve via `specs/`.
+Native **Swift 6 / SwiftUI** menu-bar app (macOS 26). Global push-to-talk hotkey ·
+AVAudioEngine mic capture · pluggable on-device transcription (Apple
+`SpeechTranscriber`, `whisper.cpp` fallback, opt-in Groq cloud) · pluggable
+cleanup (Apple `FoundationModels`, rule-based floor, opt-in Groq cloud) ·
+paste/Accessibility text injection. Details live in `CLAUDE.md` and evolve via
+`specs/`.
 
 ## Repo layout
 
 ```
 VoiceType/
-├── CLAUDE.md     # operating rules for the agent
-├── specs/        # the human's surface — product direction (do not let the agent edit)
+├── CLAUDE.md          # operating rules for the agent
+├── Package.swift      # SwiftPM: VoiceTypeKit (core) + VoiceType (app)
+├── Sources/
+│   ├── VoiceTypeKit/  # pure, tested core: protocols, pipeline, cleanup, resolver
+│   └── VoiceType/      # app: menu bar, hotkey, audio, engines, injection, UI
+├── Tests/             # VoiceTypeKit unit tests
+├── Scripts/build-app.sh
+├── Resources/         # Info.plist + entitlements
+├── specs/             # the human's surface — product direction (agent doesn't edit)
 │   ├── CONSTITUTION.md
 │   ├── TASTE.md
 │   └── ROADMAP.md
