@@ -26,6 +26,10 @@ final class DictationCoordinator {
     /// Installed by the AppDelegate to present the onboarding window on demand.
     var onRequestOnboarding: (@MainActor () -> Void)?
 
+    /// Installed by the AppDelegate to trigger a Sparkle update check.
+    var onCheckForUpdates: (@MainActor () -> Void)?
+    func checkForUpdates() { onCheckForUpdates?() }
+
     var settings: AppSettings {
         didSet { applySettingsChange(from: oldValue) }
     }
