@@ -32,6 +32,23 @@ Hold **Right Option** (configurable) and speak; release to insert.
 - **Cleanup:** Apple `FoundationModels` on-device, falling back to deterministic
   rules, with opt-in Groq cloud. Cloud is off by default and clearly gated.
 
+## Download & install
+
+1. Grab **`VoiceType.dmg`** from the
+   [latest release](../../releases/latest).
+2. Open the DMG and drag **VoiceType** into your **Applications** folder.
+3. **First launch:** VoiceType is open-source and not yet notarized by Apple
+   (no Developer account), so a normal double-click gets blocked by Gatekeeper.
+   The one-time fix: **right-click VoiceType → Open → Open**. macOS remembers
+   your choice, so every launch after that is a plain double-click.
+
+On first run, grant the three permissions VoiceType asks for — **Microphone**,
+**Speech Recognition**, and **Accessibility** — then hold **Right Option** and
+speak; release to insert the cleaned-up text into whatever app is focused.
+
+> Requires **macOS 26**. Everything runs on-device by default; any cloud path is
+> opt-in and clearly labeled.
+
 ## How this repo is run
 
 VoiceType is a standalone product repo run day-to-day by an agent (the **outer
