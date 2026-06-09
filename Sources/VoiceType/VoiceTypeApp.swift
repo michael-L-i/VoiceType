@@ -15,7 +15,7 @@ struct VoiceTypeApp: App {
         } label: {
             Image(systemName: appDelegate.coordinator.menuBarSymbol)
         }
-        .menuBarExtraStyle(.menu)
+        .menuBarExtraStyle(.window)
 
         // Preferences. macOS gives this the standard ⌘, and window chrome.
         Settings {
@@ -28,10 +28,14 @@ struct VoiceTypeApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let coordinator = DictationCoordinator()
     private var onboardingWindow: NSWindow?
+    private var hud: RecordingHUDController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Menu-bar agent: no Dock icon, no app switcher entry.
         NSApp.setActivationPolicy(.accessory)
+
+        // The floating recording pill. Created once; it observes state itself.
+        hud = RecordingHUDController(coordinator: coordinator)
 
         // Present onboarding via AppKit so it works no matter which SwiftUI
         // scenes happen to be mounted (a SwiftUI Window can't open itself).
