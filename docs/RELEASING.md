@@ -9,6 +9,36 @@ VoiceType ships two things per release:
 
 ## One-time setup: the signing key
 
+### Apple Developer ID + notarization
+
+Public downloads should be signed with a Developer ID Application certificate
+and notarized by Apple. Confirm the certificate is installed:
+
+```bash
+security find-identity -v -p codesigning
+```
+
+Store notarization credentials once using an app-specific password from your
+Apple ID account:
+
+```bash
+xcrun notarytool store-credentials "voicetype-notary" \
+    --apple-id "you@example.com" \
+    --team-id "RDYDWP5W98" \
+    --password "app-specific-password"
+```
+
+Copy `.env.example` to `.env.local` and keep the local file private:
+
+```bash
+cp .env.example .env.local
+```
+
+`Scripts/release.sh` loads `.env.local` automatically. Without those variables,
+the scripts keep using ad-hoc signing for local builds.
+
+## One-time setup: the Sparkle signing key
+
 Sparkle verifies every update with an EdDSA signature. Generate the key pair once:
 
 ```bash
@@ -40,8 +70,9 @@ rm sparkle_private_key.txt   # never commit this
    Scripts/release.sh 0.1.2
    ```
 
-   This stamps the bundle version, builds the DMG, zips + signs the app, and
-   writes `appcast.xml` (enclosure URL → the `v0.1.2` release assets).
+   This stamps the bundle version, builds the DMG, signs/notarizes when the
+   Developer ID environment variables are set, zips + signs the app, and writes
+   `appcast.xml` (enclosure URL → the `v0.1.2` release assets).
 
 2. Publish the GitHub Release with all three artifacts:
 
@@ -65,6 +96,5 @@ offer to install it.
   or lower number won't be offered. `release.sh` handles the stamping.
 - **The first auto-update-capable build is 0.1.1.** Earlier builds (0.1.0) have no
   updater and must be replaced manually.
-- Updates are unsigned/un-notarized like the initial download. Sparkle still
-  installs them (the EdDSA signature is the security gate); notarizing later makes
-  the experience friction-free.
+- Keep `.env.local` populated for public releases so both the human download and
+  Sparkle payload are built from the notarized app.
