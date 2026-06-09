@@ -122,6 +122,17 @@ private struct TranscriptionTab: View {
                 ready: coordinator.availableTranscription.contains(.whisperCpp),
                 readyText: "Ready. Runs entirely on-device.",
                 pendingText: "Requires a one-time model download before first use.")
+            if !coordinator.whisperModelDownloaded {
+                if let progress = coordinator.whisperDownloadProgress {
+                    ProgressView(value: progress) {
+                        Text("Downloading model… \(Int(progress * 100))%").font(.caption)
+                    }
+                } else {
+                    Button("Download Whisper model (~150 MB)") {
+                        coordinator.downloadWhisperModel()
+                    }
+                }
+            }
         case .groqCloud:
             CloudEngineStatusRow(
                 cloudEnabled: coordinator.settings.cloudEnabled,

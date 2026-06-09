@@ -62,30 +62,46 @@ write it (the one exception is automated write-back from an approved escalation)
 When a request touches direction, public API, or UX in a way `specs/` doesn't
 settle: **ask one sharp question, then stop.** Never guess on taste.
 
-## Architecture (starting proposal — refine in specs/ROADMAP.md)
+## Architecture (locked — native Swift)
 
-This is the intended shape, not yet built. Keep it simple; don't over-engineer.
+> **Shell decision (human-approved, 2026-06-08):** native **Swift 6 / SwiftUI**,
+> overriding the earlier Electron proposal. Rationale: Mac-only + latency-first +
+> direct Apple Intelligence access (on-device `SpeechTranscriber` and
+> `FoundationModels`), which Electron can't reach without a Swift sidecar anyway.
+> `specs/ROADMAP.md` and `specs/CONSTITUTION.md` still mention Electron/TS — those
+> are the human's surface, so update them there when convenient.
 
-- **Shell:** Electron + TypeScript + React (macOS first, Windows later).
-- **Global hotkey + injection:** capture a system-wide push-to-talk key; inject
-  resulting text into the focused app via the accessibility/paste path.
-- **Audio capture:** stream mic audio while the key is held.
-- **Transcription:** pluggable. Default to a local model (e.g. `whisper.cpp`) for
-  the privacy promise; allow an opt-in cloud provider for speed/quality.
-- **Cleanup pass:** a small LLM/formatting step for punctuation, casing, and
-  filler removal. Must be fast and degrade gracefully if unavailable.
+Keep it simple; don't over-engineer.
+
+- **Shell:** SwiftPM menu-bar app (no Dock icon). `VoiceTypeKit` is the pure,
+  dependency-free, unit-tested core (protocols, models, pipeline, rule cleanup,
+  resolver); the `VoiceType` executable holds the app, system engines, and UI.
+  Build the bundle with `Scripts/build-app.sh`.
+- **Global hotkey + injection:** `HotkeyMonitor` (global `flagsChanged`,
+  push-to-talk, default Right Option) → `PasteboardInjector` (⌘V + clipboard
+  restore). Both gated on Accessibility consent.
+- **Audio capture:** `AudioCaptureService` (AVAudioEngine, mono 16 kHz).
+- **Transcription:** pluggable `TranscriptionEngine`. Default Apple on-device
+  `SpeechTranscriber`; `whisper.cpp` local fallback; opt-in Groq cloud.
+- **Cleanup pass:** pluggable `CleanupEngine`. Default Apple `FoundationModels`
+  on-device; deterministic `RuleBasedCleanup` floor; opt-in Groq cloud. Always
+  degrades to raw text rather than failing.
+- **Selection policy:** `EngineResolver` (in Kit) enforces consent + availability
+  fallback; `EngineFactory` (in app) maps kinds → concrete engines.
 
 Privacy invariant: **audio and transcripts stay local by default.** Any path that
 sends data off-device is opt-in, clearly labeled, and gated behind explicit
-consent.
+consent (the master "Enable cloud" toggle).
 
 ## Code standards
 
-- TypeScript everywhere. Match existing patterns before introducing new ones.
+- Swift 6 everywhere (language mode v5 for now). Match existing patterns before
+  introducing new ones. Keep `VoiceTypeKit` pure and framework-free so it stays
+  testable.
 - Ship the smallest thing that is genuinely good. Opinionated over configurable —
   a setting is a decision you failed to make.
 - Keep solutions simple and focused. No speculative abstraction.
-- Type-check (`npx tsc --noEmit`) and lint before pushing.
+- Build (`swift build`) and test (`swift test`) before pushing.
 
 ## Safety
 

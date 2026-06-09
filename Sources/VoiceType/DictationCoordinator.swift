@@ -15,9 +15,16 @@ final class DictationCoordinator {
     private(set) var inputLevel: Float = 0
     private(set) var history = DictationHistory()
 
-    /// Drives the onboarding window. Set true to request it (first launch, or the
-    /// menu's "Set Up VoiceType…"); the SwiftUI window bridge observes this.
-    var wantsOnboarding = false
+    /// Set true to request the onboarding window (first launch, or the menu's
+    /// "Set Up VoiceType…"). The AppDelegate installs `onRequestOnboarding` to
+    /// actually present it via AppKit, which works regardless of what SwiftUI
+    /// scenes are currently mounted.
+    var wantsOnboarding = false {
+        didSet { if wantsOnboarding { onRequestOnboarding?() } }
+    }
+
+    /// Installed by the AppDelegate to present the onboarding window on demand.
+    var onRequestOnboarding: (@MainActor () -> Void)?
 
     var settings: AppSettings {
         didSet { applySettingsChange(from: oldValue) }
@@ -109,6 +116,33 @@ final class DictationCoordinator {
     // MARK: - History
 
     func clearHistory() { history.clear() }
+
+    // MARK: - Whisper model
+
+    /// Whether the local Whisper model is present on disk.
+    var whisperModelDownloaded: Bool { WhisperModelManager().isModelDownloaded() }
+
+    /// Download progress in 0...1 while a download is in flight; nil otherwise.
+    private(set) var whisperDownloadProgress: Double?
+
+    /// Fetch the local Whisper model (one-time). Safe to call repeatedly; it
+    /// no-ops if already downloading or present, and refreshes availability so
+    /// the Whisper engine becomes selectable as soon as it lands.
+    func downloadWhisperModel() {
+        guard whisperDownloadProgress == nil else { return }
+        whisperDownloadProgress = 0
+        Task { [weak self] in
+            do {
+                try await WhisperModelManager().downloadModelIfNeeded(progress: { fraction in
+                    Task { @MainActor in self?.whisperDownloadProgress = fraction }
+                })
+                await self?.refreshAvailability()
+            } catch {
+                Log.engine.error("whisper model download failed: \(error.localizedDescription, privacy: .public)")
+            }
+            self?.whisperDownloadProgress = nil
+        }
+    }
 
     // MARK: - Push-to-talk
 

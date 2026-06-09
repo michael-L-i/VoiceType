@@ -21,67 +21,21 @@ struct VoiceTypeApp: App {
         Settings {
             SettingsView(coordinator: appDelegate.coordinator)
         }
-
-        // First-run / re-openable permissions walkthrough. Opening is driven by
-        // `coordinator.wantsOnboarding`, which the window bridge observes so both
-        // the AppDelegate (first launch) and the menu can request it.
-        Window("Welcome to VoiceType", id: WindowID.onboarding) {
-            OnboardingView(coordinator: appDelegate.coordinator) {
-                appDelegate.coordinator.wantsOnboarding = false
-                dismissWindow(WindowID.onboarding)
-            }
-            .background(OnboardingWindowBridge(coordinator: appDelegate.coordinator))
-        }
-        .windowResizability(.contentSize)
-        .windowStyle(.hiddenTitleBar)
-        .defaultPosition(.center)
-    }
-}
-
-/// Stable identifiers for the on-demand windows.
-enum WindowID {
-    static let onboarding = "onboarding"
-}
-
-/// Bridges `coordinator.wantsOnboarding` to SwiftUI's `openWindow`, which is only
-/// reachable from a `View` environment. Lives invisibly inside the onboarding
-/// scene so it is always mounted.
-private struct OnboardingWindowBridge: View {
-    @Bindable var coordinator: DictationCoordinator
-    @Environment(\.openWindow) private var openWindow
-
-    var body: some View {
-        Color.clear
-            .onChange(of: coordinator.wantsOnboarding) { _, wants in
-                if wants {
-                    NSApp.activate(ignoringOtherApps: true)
-                    openWindow(id: WindowID.onboarding)
-                }
-            }
-            .onAppear {
-                if coordinator.wantsOnboarding {
-                    NSApp.activate(ignoringOtherApps: true)
-                    openWindow(id: WindowID.onboarding)
-                }
-            }
-    }
-}
-
-/// Close a SwiftUI-managed window by id (no environment dismiss available from
-/// the AppDelegate, so we reach through AppKit).
-@MainActor func dismissWindow(_ id: String) {
-    for window in NSApp.windows where window.identifier?.rawValue.contains(id) == true {
-        window.close()
     }
 }
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let coordinator = DictationCoordinator()
+    private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Menu-bar agent: no Dock icon, no app switcher entry.
         NSApp.setActivationPolicy(.accessory)
+
+        // Present onboarding via AppKit so it works no matter which SwiftUI
+        // scenes happen to be mounted (a SwiftUI Window can't open itself).
+        coordinator.onRequestOnboarding = { [weak self] in self?.showOnboarding() }
         coordinator.start()
 
         // First-run: guide the user through the required grants in a proper
@@ -90,5 +44,48 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             coordinator.wantsOnboarding = true
         }
         Log.app.info("VoiceType launched")
+    }
+
+    /// Create (or re-focus) the onboarding window, hosting the SwiftUI view.
+    private func showOnboarding() {
+        if let window = onboardingWindow {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+
+        let root = OnboardingView(coordinator: coordinator) { [weak self] in
+            self?.coordinator.wantsOnboarding = false
+            self?.onboardingWindow?.close()
+        }
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 560),
+            styleMask: [.titled, .closable, .fullSizeContentView],
+            backing: .buffered, defer: false)
+        window.title = "Welcome to VoiceType"
+        window.titlebarAppearsTransparent = true
+        window.isReleasedWhenClosed = false
+        window.center()
+        window.contentView = NSHostingView(rootView: root)
+        window.delegate = onboardingDelegate
+        onboardingWindow = window
+
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    // Reset the onboarding flag when the user closes the window directly.
+    private lazy var onboardingDelegate = OnboardingWindowDelegate { [weak self] in
+        self?.coordinator.wantsOnboarding = false
+    }
+}
+
+/// Tracks manual closes of the onboarding window so `wantsOnboarding` stays in
+/// sync (otherwise re-requesting it after a manual close would no-op).
+private final class OnboardingWindowDelegate: NSObject, NSWindowDelegate {
+    private let onClose: @MainActor () -> Void
+    init(onClose: @escaping @MainActor () -> Void) { self.onClose = onClose }
+    func windowWillClose(_ notification: Notification) {
+        MainActor.assumeIsolated { onClose() }
     }
 }
