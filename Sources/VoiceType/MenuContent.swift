@@ -26,6 +26,14 @@ struct MenuContent: View {
 
             Divider().padding(.horizontal, -VT.Space.m)
 
+            Button {
+                coordinator.checkForUpdates()
+            } label: {
+                Label("Check for Updates…", systemImage: "arrow.triangle.2.circlepath")
+                    .font(.callout)
+            }
+            .buttonStyle(.borderless)
+
             footer
         }
         .padding(VT.Space.m)
@@ -99,11 +107,7 @@ struct MenuContent: View {
         HStack(spacing: VT.Space.s) {
             Image(systemName: "keyboard")
                 .foregroundStyle(.secondary)
-            Text("Hold ")
-                .foregroundStyle(.secondary)
-            + Text(coordinator.settings.hotkey.trigger.displayName)
-                .foregroundStyle(.primary).bold()
-            + Text(" to dictate")
+            Text("Hold \(Text(coordinator.settings.hotkey.trigger.displayName).bold().foregroundColor(.primary)) to dictate")
                 .foregroundStyle(.secondary)
             Spacer()
         }

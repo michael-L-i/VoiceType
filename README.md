@@ -46,6 +46,12 @@ never leaves your Mac unless you choose to turn on a cloud engine.
 
 > Requires **macOS 26** or later (Apple Silicon).
 
+**Updates are automatic.** VoiceType checks for new versions in the background
+(and on demand via **Check for Updates…** in the menu) and installs them in place
+with [Sparkle](https://sparkle-project.org) — every update is cryptographically
+signed and verified. No need to re-download. _(Auto-update works from v0.1.1
+onward; the very first build, v0.1.0, has to be replaced once by hand.)_
+
 ## Using it
 
 Hold **Right Option (⌥)** anywhere and start talking. A frosted pill appears

@@ -29,6 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let coordinator = DictationCoordinator()
     private var onboardingWindow: NSWindow?
     private var hud: RecordingHUDController?
+    private var updater: UpdaterController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Menu-bar agent: no Dock icon, no app switcher entry.
@@ -36,6 +37,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // The floating recording pill. Created once; it observes state itself.
         hud = RecordingHUDController(coordinator: coordinator)
+
+        // Auto-updates. Starts Sparkle's scheduled background checks.
+        let updater = UpdaterController()
+        self.updater = updater
+        coordinator.onCheckForUpdates = { updater.checkForUpdates() }
 
         // Present onboarding via AppKit so it works no matter which SwiftUI
         // scenes happen to be mounted (a SwiftUI Window can't open itself).

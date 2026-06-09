@@ -1,0 +1,70 @@
+# Releasing VoiceType
+
+VoiceType ships two things per release:
+
+- **`VoiceType.dmg`** — the human download (drag-to-Applications).
+- **`VoiceType.zip` + `appcast.xml`** — the [Sparkle](https://sparkle-project.org)
+  auto-update payload and its signed feed. Installed copies poll the appcast and
+  update themselves in place.
+
+## One-time setup: the signing key
+
+Sparkle verifies every update with an EdDSA signature. Generate the key pair once:
+
+```bash
+swift build   # resolves Sparkle so its tools exist under .build/artifacts
+.build/artifacts/sparkle/Sparkle/bin/generate_keys
+```
+
+This stores the **private key in your login Keychain** and prints the **public
+key**, which is already pinned in `Resources/Info.plist` as `SUPublicEDKey`. If
+you regenerate the key, update that value.
+
+For CI, export the private key and add it as the repo secret
+**`SPARKLE_PRIVATE_KEY`**:
+
+```bash
+.build/artifacts/sparkle/Sparkle/bin/generate_keys -x sparkle_private_key.txt
+# paste the file's contents into GitHub → Settings → Secrets → SPARKLE_PRIVATE_KEY
+rm sparkle_private_key.txt   # never commit this
+```
+
+> The private key is the trust root for updates. Keep it out of the repo. The
+> public key in `Info.plist` is safe to publish.
+
+## Cut a release
+
+1. Pick the next version and build the signed artifacts locally:
+
+   ```bash
+   Scripts/release.sh 0.1.2
+   ```
+
+   This stamps the bundle version, builds the DMG, zips + signs the app, and
+   writes `appcast.xml` (enclosure URL → the `v0.1.2` release assets).
+
+2. Publish the GitHub Release with all three artifacts:
+
+   ```bash
+   gh release create v0.1.2 --target main \
+       --title "VoiceType 0.1.2" --notes "What changed…" \
+       VoiceType.dmg VoiceType.zip appcast.xml
+   ```
+
+   Or just `git push origin v0.1.2` and let `.github/workflows/release.yml` do
+   steps 1–2 (once GitHub runners provide Xcode 26 — see the caveat in that file).
+
+That's it. Because the app's `SUFeedURL` points at
+`releases/latest/download/appcast.xml`, every existing install will discover the
+new version on its next check (or via **Check for Updates…** in the menu) and
+offer to install it.
+
+## Notes
+
+- **Bump the version every release.** Sparkle compares `CFBundleVersion`; an equal
+  or lower number won't be offered. `release.sh` handles the stamping.
+- **The first auto-update-capable build is 0.1.1.** Earlier builds (0.1.0) have no
+  updater and must be replaced manually.
+- Updates are unsigned/un-notarized like the initial download. Sparkle still
+  installs them (the EdDSA signature is the security gate); notarizing later makes
+  the experience friction-free.
