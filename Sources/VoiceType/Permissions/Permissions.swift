@@ -28,7 +28,7 @@ enum Permission: String, CaseIterable, Sendable {
     }
 }
 
-enum PermissionStatus: Sendable { case granted, denied, notDetermined }
+enum PermissionStatus: Sendable, Equatable { case granted, denied, notDetermined }
 
 enum Permissions {
     // MARK: - Microphone
