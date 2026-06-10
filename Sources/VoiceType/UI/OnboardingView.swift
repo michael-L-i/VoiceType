@@ -81,6 +81,14 @@ struct OnboardingView: View {
             .font(.callout)
             .foregroundStyle(.secondary)
 
+            Label {
+                Text("VoiceType has no Dock icon — it lives in your menu bar. Look for the \(Image(systemName: "mic")) up top.")
+            } icon: {
+                Image(systemName: "menubar.arrow.up.rectangle")
+            }
+            .font(.callout)
+            .foregroundStyle(.secondary)
+
             HStack {
                 Spacer()
                 Button(coordinator.permissionsGranted ? "Start Dictating" : "Continue") {
