@@ -56,6 +56,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.app.info("VoiceType launched")
     }
 
+    /// A faceless agent shows nothing when "opened" again from Finder or
+    /// Spotlight, which reads as the app being broken. Treat a reopen as a
+    /// request to see the app: surface the welcome window, which shows the
+    /// hotkey, permission status, and that VoiceType is alive in the menu bar.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag { coordinator.wantsOnboarding = true }
+        return false
+    }
+
     /// Create (or re-focus) the onboarding window, hosting the SwiftUI view.
     private func showOnboarding() {
         if let window = onboardingWindow {
