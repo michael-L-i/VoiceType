@@ -37,6 +37,21 @@ struct OnboardingView: View {
         }
         .padding(28)
         .frame(width: 460)
+        // Accessibility (and a System Settings toggle for any permission) is
+        // granted outside the app, so no callback fires when it changes. Poll
+        // while the window is up and re-render the moment a status flips —
+        // otherwise rows stay on "Grant" until the user clicks something.
+        .task {
+            var last = Permission.allCases.map { Permissions.status(for: $0) }
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                let now = Permission.allCases.map { Permissions.status(for: $0) }
+                if now != last {
+                    last = now
+                    refreshTick += 1
+                }
+            }
+        }
         .background(alignment: .top) {
             LinearGradient(colors: [VT.tint.opacity(0.16), .clear],
                            startPoint: .top, endPoint: .bottom)
