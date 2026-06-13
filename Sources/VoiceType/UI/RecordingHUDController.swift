@@ -57,14 +57,16 @@ final class RecordingHUDController {
         }
     }
 
-    /// Size to fit the current content and center horizontally near the bottom
-    /// of the active screen.
+    /// Size to fit the current content and center horizontally hard against the
+    /// bottom of the active screen.
     private func reposition() {
         hosting.layoutSubtreeIfNeeded()
         let size = hosting.fittingSize
         let screen = activeScreen.visibleFrame
         let x = screen.midX - size.width / 2
-        let y = screen.minY + 120
+        // The panel carries ~20pt of transparent margin below the oval (shadow
+        // breathing room), so a small offset still leaves the oval near the edge.
+        let y = screen.minY + 8
         panel.setFrame(NSRect(x: x, y: y, width: size.width, height: size.height), display: true)
     }
 
