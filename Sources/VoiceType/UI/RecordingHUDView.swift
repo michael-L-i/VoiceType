@@ -1,9 +1,9 @@
 import SwiftUI
 
 /// The signature surface: a small frosted pill that floats above whatever you're
-/// working in while you dictate. It shows you're being heard (live waveform),
-/// then the hand-off states (transcribing → cleaning → inserting), and a brief
-/// confirmation. It never takes focus — text still lands in the app underneath.
+/// working in while you dictate. It shows a compact live waveform while work is
+/// in flight, then disappears when dictation is complete. It never takes focus —
+/// text still lands in the app underneath.
 struct RecordingHUDView: View {
     @Bindable var coordinator: DictationCoordinator
 
@@ -12,11 +12,17 @@ struct RecordingHUDView: View {
     var body: some View {
         HStack(spacing: VT.Space.m) {
             leading
-            label
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(VT.live)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
         }
         .padding(.horizontal, VT.Space.l)
         .padding(.vertical, VT.Space.m)
-        .frame(minWidth: kind == .recording ? 44 : 132)
+        .frame(minWidth: kind == .error ? 132 : 44)
         .background(
             Capsule(style: .continuous)
                 .fill(.regularMaterial)
@@ -34,50 +40,30 @@ struct RecordingHUDView: View {
     @ViewBuilder
     private var leading: some View {
         switch kind {
-        case .recording:
-            WaveformView(level: coordinator.inputLevel, tint: VT.tint)
-        case .working:
-            ProgressView()
-                .controlSize(.small)
-                .tint(VT.tint)
-        case .done:
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(VT.success)
-                .font(.system(size: 16, weight: .semibold))
-                .transition(.scale.combined(with: .opacity))
+        case .recording, .working:
+            WaveformView(level: waveformLevel, tint: VT.tint)
         case .error:
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(VT.live)
                 .font(.system(size: 15, weight: .semibold))
-        case .idle:
+        case .idle, .done:
             Image(systemName: "mic.fill")
                 .foregroundStyle(.secondary)
                 .font(.system(size: 14, weight: .semibold))
         }
     }
 
-    // MARK: Label
-
-    @ViewBuilder
-    private var label: some View {
-        if let labelText {
-            Text(labelText)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(kind == .error ? AnyShapeStyle(VT.live) : AnyShapeStyle(.primary))
-                .lineLimit(1)
-                .fixedSize()
+    private var waveformLevel: Float {
+        if case .recording = coordinator.state {
+            return coordinator.inputLevel
         }
+        return 0.45
     }
 
-    private var labelText: String? {
-        switch coordinator.state {
-        case .recording: return nil
-        case .transcribing: return "Transcribing"
-        case .cleaning: return "Polishing"
-        case .injecting: return "Inserting"
-        case .done: return "Done"
-        case .error(let message): return message
-        case .idle: return nil
+    private var errorMessage: String? {
+        if case .error(let message) = coordinator.state {
+            return message
         }
+        return nil
     }
 }
