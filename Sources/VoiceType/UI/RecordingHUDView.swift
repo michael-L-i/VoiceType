@@ -35,10 +35,7 @@ struct RecordingHUDView: View {
     private var leading: some View {
         switch kind {
         case .recording:
-            HStack(spacing: VT.Space.s) {
-                PulsingDot(color: VT.live)
-                WaveformView(level: coordinator.inputLevel, tint: VT.tint)
-            }
+            WaveformView(level: coordinator.inputLevel, tint: VT.tint)
         case .working:
             ProgressView()
                 .controlSize(.small)
@@ -61,43 +58,26 @@ struct RecordingHUDView: View {
 
     // MARK: Label
 
+    @ViewBuilder
     private var label: some View {
-        Text(labelText)
-            .font(.system(size: 13, weight: .medium, design: .rounded))
-            .foregroundStyle(kind == .error ? AnyShapeStyle(VT.live) : AnyShapeStyle(.primary))
-            .lineLimit(1)
-            .fixedSize()
+        if let labelText {
+            Text(labelText)
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(kind == .error ? AnyShapeStyle(VT.live) : AnyShapeStyle(.primary))
+                .lineLimit(1)
+                .fixedSize()
+        }
     }
 
-    private var labelText: String {
+    private var labelText: String? {
         switch coordinator.state {
-        case .recording: return "Listening"
+        case .recording: return nil
         case .transcribing: return "Transcribing"
         case .cleaning: return "Polishing"
         case .injecting: return "Inserting"
         case .done: return "Done"
         case .error(let message): return message
-        case .idle: return "Ready"
+        case .idle: return nil
         }
-    }
-}
-
-/// A soft pulsing dot signalling a live recording.
-private struct PulsingDot: View {
-    var color: Color
-    @State private var animating = false
-
-    var body: some View {
-        Circle()
-            .fill(color)
-            .frame(width: 9, height: 9)
-            .overlay(
-                Circle()
-                    .stroke(color, lineWidth: 2)
-                    .scaleEffect(animating ? 2.0 : 1.0)
-                    .opacity(animating ? 0 : 0.6)
-            )
-            .animation(.easeOut(duration: 1.1).repeatForever(autoreverses: false), value: animating)
-            .onAppear { animating = true }
     }
 }
