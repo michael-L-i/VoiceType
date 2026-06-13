@@ -56,6 +56,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.app.info("VoiceType launched")
     }
 
+    /// Coming back to the foreground is a strong signal the user may have just
+    /// toggled a grant in System Settings. Re-arm the global hotkey so an
+    /// Accessibility grant made outside the onboarding window takes effect
+    /// without a relaunch.
+    func applicationDidBecomeActive(_ notification: Notification) {
+        coordinator.syncHotkeyWithPermissions()
+    }
+
     /// A faceless agent shows nothing when "opened" again from Finder or
     /// Spotlight, which reads as the app being broken. Treat a reopen as a
     /// request to see the app: surface the welcome window, which shows the
