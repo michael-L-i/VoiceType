@@ -12,15 +12,15 @@ Guidance for coding agents working in this repository.
 - Use conventional commit messages such as `feat:`, `fix:`, `docs:`, or
   `chore:`.
 - Verify changes with the appropriate build or test command before committing.
-- After any user-prompted app code change, rebuild the existing local app bundle
-  in place and relaunch that same bundle so the user gets the latest updated
-  version. Preserve the same bundle ID/path/signing setup; do not delete app
-  permissions, reset TCC, move the app bundle, or use a launch path that would
-  force the user to grant macOS permissions again.
+- Do not automatically rebuild and relaunch the local app after every code
+  change or commit. When the user explicitly asks to update the running app,
+  rebuild the existing local app bundle in place and relaunch that same bundle
+  using the flow below.
 
 ## Relaunching local app builds
 
-After a code change that affects the macOS app, use this path-preserving flow:
+When the user asks to update/relaunch the running macOS app, use this
+path-preserving flow:
 
 1. Check what app bundle is currently running:
    `pgrep -afil VoiceType || true`
@@ -39,7 +39,9 @@ After a code change that affects the macOS app, use this path-preserving flow:
 
 Do not launch a different copy of the app than the one the user was running;
 changing bundle paths can trigger duplicate instances or fresh macOS permission
-prompts.
+prompts. Preserve the same bundle ID/path/signing setup; do not delete app
+permissions, reset TCC, move the app bundle, or use a launch path that would
+force the user to grant macOS permissions again.
 
 ## Project Notes
 
