@@ -10,9 +10,6 @@ struct OnboardingView: View {
     /// Called when the user dismisses the window (Done / Start dictating).
     var onClose: () -> Void
 
-    /// Bumped to force a status re-read after the system grant dialogs return.
-    @State private var refreshTick = 0
-
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             header
@@ -22,14 +19,10 @@ struct OnboardingView: View {
             VStack(spacing: 12) {
                 ForEach(Permission.allCases, id: \.self) { permission in
                     PermissionRow(permission: permission, coordinator: coordinator) {
-                        Task {
-                            await coordinator.request(permission)
-                            refreshTick += 1
-                        }
+                        Task { await coordinator.request(permission) }
                     }
                 }
             }
-            .id(refreshTick)
 
             Divider()
 
@@ -39,20 +32,13 @@ struct OnboardingView: View {
         .frame(width: 460)
         // Accessibility (and a System Settings toggle for any permission) is
         // granted outside the app, so no callback fires when it changes. Poll
-        // while the window is up and re-render the moment a status flips —
-        // otherwise rows stay on "Grant" until the user clicks something.
+        // while the window is up; the rows read the coordinator's observable
+        // status, so they re-render the moment a grant flips — no view-identity
+        // hacks, no per-tick churn (refresh assigns only on real changes).
         .task {
-            var last = Permission.allCases.map { Permissions.status(for: $0) }
             while !Task.isCancelled {
+                coordinator.refreshPermissionStatuses()
                 try? await Task.sleep(for: .seconds(1))
-                // Re-arm the global hotkey the moment Accessibility is granted —
-                // a monitor created pre-grant won't deliver events without this.
-                coordinator.syncHotkeyWithPermissions()
-                let now = Permission.allCases.map { Permissions.status(for: $0) }
-                if now != last {
-                    last = now
-                    refreshTick += 1
-                }
             }
         }
         .background(alignment: .top) {
@@ -126,7 +112,7 @@ private struct PermissionRow: View {
     @Bindable var coordinator: DictationCoordinator
     var onGrant: () -> Void
 
-    private var status: PermissionStatus { Permissions.status(for: permission) }
+    private var status: PermissionStatus { coordinator.status(for: permission) }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -161,9 +147,23 @@ private struct PermissionRow: View {
                 .font(.caption.weight(.medium))
                 .foregroundStyle(.green)
         case .notDetermined:
-            Button("Grant", action: onGrant)
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
+            VStack(alignment: .trailing, spacing: 4) {
+                Button("Grant", action: onGrant)
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                // Accessibility can get stuck "on but not working" after a
+                // reinstall: System Settings shows it enabled, yet the app isn't
+                // trusted. A reset clears the stale record so a fresh grant binds.
+                if permission == .accessibility {
+                    Button("Already on? Reset") {
+                        Task { await coordinator.resetAccessibilityGrant() }
+                    }
+                    .buttonStyle(.link)
+                    .controlSize(.small)
+                    .font(.caption)
+                    .help("If System Settings already shows VoiceType enabled but it isn't working, reset and re-grant.")
+                }
+            }
         case .denied:
             Button("Open Settings") {
                 coordinator.openSystemSettings(for: permission)

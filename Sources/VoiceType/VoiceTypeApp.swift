@@ -31,6 +31,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hud: RecordingHUDController?
     private var updater: UpdaterController?
 
+    /// Single-instance guard. If another VoiceType is already running — the
+    /// classic case is the installed `/Applications` copy plus a dev build, which
+    /// share the bundle ID — hand focus to it and bow out before we touch the
+    /// menu bar, windows, or permission prompts. Running two copies is what makes
+    /// the onboarding window "alternate" and the mic prompt fire repeatedly, since
+    /// each process demands its own grant. Runs before `didFinishLaunching` so the
+    /// duplicate never sets anything up. `LSMultipleInstancesProhibited` covers the
+    /// same-bundle case; this covers two bundles at different paths.
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        if let other = Self.otherRunningInstance() {
+            other.activate()
+            Log.app.info("another VoiceType instance is running; deferring to it and exiting")
+            exit(0)
+        }
+    }
+
+    private static func otherRunningInstance() -> NSRunningApplication? {
+        guard let id = Bundle.main.bundleIdentifier else { return nil }
+        let mePID = NSRunningApplication.current.processIdentifier
+        return NSRunningApplication.runningApplications(withBundleIdentifier: id)
+            .first { $0.processIdentifier != mePID }
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Menu-bar agent: no Dock icon, no app switcher entry.
         NSApp.setActivationPolicy(.accessory)
@@ -62,7 +85,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Accessibility grant made outside the onboarding window takes effect
     /// without a relaunch.
     func applicationDidBecomeActive(_ notification: Notification) {
-        coordinator.syncHotkeyWithPermissions()
+        // Re-read grants (also re-arms the hotkey if Accessibility just flipped) —
+        // returning to the foreground is the strongest signal a grant changed in
+        // System Settings, where nothing calls back.
+        coordinator.refreshPermissionStatuses()
         coordinator.refreshSystemIntegrationStatus()
     }
 
