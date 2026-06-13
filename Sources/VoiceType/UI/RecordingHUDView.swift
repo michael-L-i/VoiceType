@@ -35,10 +35,7 @@ struct RecordingHUDView: View {
     private var leading: some View {
         switch kind {
         case .recording:
-            HStack(spacing: VT.Space.s) {
-                PulsingDot(color: VT.live)
-                WaveformView(level: coordinator.inputLevel, tint: VT.tint)
-            }
+            WaveformView(level: coordinator.inputLevel, tint: VT.tint)
         case .working:
             ProgressView()
                 .controlSize(.small)
@@ -79,25 +76,5 @@ struct RecordingHUDView: View {
         case .error(let message): return message
         case .idle: return "Ready"
         }
-    }
-}
-
-/// A soft pulsing dot signalling a live recording.
-private struct PulsingDot: View {
-    var color: Color
-    @State private var animating = false
-
-    var body: some View {
-        Circle()
-            .fill(color)
-            .frame(width: 9, height: 9)
-            .overlay(
-                Circle()
-                    .stroke(color, lineWidth: 2)
-                    .scaleEffect(animating ? 2.0 : 1.0)
-                    .opacity(animating ? 0 : 0.6)
-            )
-            .animation(.easeOut(duration: 1.1).repeatForever(autoreverses: false), value: animating)
-            .onAppear { animating = true }
     }
 }
