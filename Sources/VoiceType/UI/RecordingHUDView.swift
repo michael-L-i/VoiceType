@@ -58,23 +58,26 @@ struct RecordingHUDView: View {
 
     // MARK: Label
 
+    @ViewBuilder
     private var label: some View {
-        Text(labelText)
-            .font(.system(size: 13, weight: .medium, design: .rounded))
-            .foregroundStyle(kind == .error ? AnyShapeStyle(VT.live) : AnyShapeStyle(.primary))
-            .lineLimit(1)
-            .fixedSize()
+        if let labelText {
+            Text(labelText)
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(kind == .error ? AnyShapeStyle(VT.live) : AnyShapeStyle(.primary))
+                .lineLimit(1)
+                .fixedSize()
+        }
     }
 
-    private var labelText: String {
+    private var labelText: String? {
         switch coordinator.state {
-        case .recording: return "Listening"
+        case .recording: return nil
         case .transcribing: return "Transcribing"
         case .cleaning: return "Polishing"
         case .injecting: return "Inserting"
         case .done: return "Done"
         case .error(let message): return message
-        case .idle: return "Ready"
+        case .idle: return nil
         }
     }
 }
