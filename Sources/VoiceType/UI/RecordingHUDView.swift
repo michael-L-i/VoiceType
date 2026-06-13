@@ -51,9 +51,9 @@ struct RecordingHUDView: View {
                 .foregroundStyle(VT.live)
                 .font(.system(size: 15, weight: .semibold))
         case .idle, .done:
-            Image(systemName: "mic.fill")
-                .foregroundStyle(.secondary)
-                .font(.system(size: 14, weight: .semibold))
+            // These states hide the HUD; render nothing so no mic icon flashes
+            // as the pill transitions in or out.
+            EmptyView()
         }
     }
 
