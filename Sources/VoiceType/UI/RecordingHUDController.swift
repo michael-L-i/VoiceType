@@ -49,7 +49,7 @@ final class RecordingHUDController {
 
     private func apply() {
         switch DictationStateKind(coordinator.state) {
-        case .idle:
+        case .idle, .done:
             panel.orderOut(nil)
         default:
             reposition()

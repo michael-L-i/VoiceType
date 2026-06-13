@@ -11,8 +11,6 @@ enum VT {
     static let tint = Color(red: 0.36, green: 0.46, blue: 0.92)
     /// The familiar "live" red, used only for the recording dot.
     static let live = Color(red: 0.94, green: 0.33, blue: 0.36)
-    /// A soft success green for the completed checkmark.
-    static let success = Color(red: 0.30, green: 0.74, blue: 0.52)
 
     // MARK: Geometry
 
@@ -37,7 +35,7 @@ enum VT {
         switch state {
         case .recording: return live
         case .working: return tint
-        case .done: return success
+        case .done: return .secondary
         case .error: return live
         case .idle: return .secondary
         }
