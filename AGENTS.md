@@ -18,6 +18,29 @@ Guidance for coding agents working in this repository.
   permissions, reset TCC, move the app bundle, or use a launch path that would
   force the user to grant macOS permissions again.
 
+## Relaunching local app builds
+
+After a code change that affects the macOS app, use this path-preserving flow:
+
+1. Check what app bundle is currently running:
+   `pgrep -afil VoiceType || true`
+2. Quit the running app by bundle ID:
+   `osascript -e 'tell application id "com.voicetype.app" to quit' || true`
+3. Wait until no `VoiceType` process remains before replacing or relaunching it.
+4. Rebuild the repo bundle:
+   `Scripts/build-app.sh release`
+5. If the user was running `/Applications/VoiceType.app`, update that same
+   bundle in place:
+   `ditto VoiceType.app /Applications/VoiceType.app`
+6. Relaunch the same bundle path the user was already using, usually:
+   `open /Applications/VoiceType.app`
+7. Verify the relaunched process:
+   `pgrep -afil VoiceType || true`
+
+Do not launch a different copy of the app than the one the user was running;
+changing bundle paths can trigger duplicate instances or fresh macOS permission
+prompts.
+
 ## Project Notes
 
 - VoiceType is a native Swift/SwiftUI macOS menu-bar dictation app.
