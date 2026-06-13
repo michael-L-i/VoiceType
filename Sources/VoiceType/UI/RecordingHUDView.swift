@@ -20,9 +20,9 @@ struct RecordingHUDView: View {
                     .fixedSize()
             }
         }
-        .padding(.horizontal, VT.Space.l)
-        .padding(.vertical, VT.Space.m)
-        .frame(minWidth: kind == .error ? 132 : 44)
+        .padding(.horizontal, VT.Space.xl)
+        .padding(.vertical, VT.Space.s)
+        .frame(minWidth: kind == .error ? 132 : 64)
         .background(
             Capsule(style: .continuous)
                 .fill(.regularMaterial)
