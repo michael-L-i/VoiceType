@@ -17,9 +17,26 @@ final class AudioCaptureService {
     private var nativeSamples: [Float] = []
     private var nativeSampleRate: Double = 48_000
     private(set) var isRunning = false
+    private var configurationObserver: NSObjectProtocol?
 
     /// Live input level (0...1), published on the main actor for the UI meter.
     var onLevel: (@Sendable (Float) -> Void)?
+    var onConfigurationChange: (@Sendable () -> Void)?
+
+    init() {
+        configurationObserver = NotificationCenter.default.addObserver(
+            forName: .AVAudioEngineConfigurationChange,
+            object: engine,
+            queue: .main) { [weak self] _ in
+                self?.handleConfigurationChange()
+            }
+    }
+
+    deinit {
+        if let configurationObserver {
+            NotificationCenter.default.removeObserver(configurationObserver)
+        }
+    }
 
     func start() throws {
         guard !isRunning else { return }
@@ -54,6 +71,29 @@ final class AudioCaptureService {
         let resampled = Self.resampleToTarget(samples, from: rate)
         Log.audio.info("capture stopped: \(resampled.count, privacy: .public) samples")
         return PCMBuffer(samples: resampled, sampleRate: Self.targetSampleRate)
+    }
+
+    /// Abort the current recording without returning audio. Used when the audio
+    /// hardware graph changes under us, e.g. AirPods reconnecting mid-capture.
+    func cancel() {
+        guard isRunning else { return }
+        engine.inputNode.removeTap(onBus: 0)
+        engine.stop()
+        isRunning = false
+
+        lock.lock()
+        nativeSamples.removeAll(keepingCapacity: false)
+        lock.unlock()
+
+        onLevel?(0)
+        Log.audio.info("capture cancelled")
+    }
+
+    private func handleConfigurationChange() {
+        guard isRunning else { return }
+        Log.audio.info("audio configuration changed while capturing")
+        cancel()
+        onConfigurationChange?()
     }
 
     // MARK: - Realtime tap

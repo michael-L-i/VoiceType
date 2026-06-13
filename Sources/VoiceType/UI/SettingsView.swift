@@ -68,6 +68,26 @@ private struct GeneralTab: View {
             }
 
             Section {
+                Toggle("Open VoiceType at login", isOn: Binding(
+                    get: { coordinator.launchAtLoginEnabled },
+                    set: { coordinator.setLaunchAtLogin($0) }))
+
+                if coordinator.launchAtLoginRequiresApproval {
+                    HStack {
+                        Label("Needs approval in Login Items", systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                        Spacer()
+                        Button("Open Settings") {
+                            coordinator.openLoginItemsSettings()
+                        }
+                    }
+                }
+            } header: {
+                Text("Startup")
+            }
+
+            Section {
                 TextField("Language", text: $coordinator.settings.locale,
                           prompt: Text("en-US"))
                     .frame(maxWidth: 160)

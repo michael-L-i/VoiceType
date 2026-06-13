@@ -107,11 +107,15 @@ struct MenuContent: View {
         HStack(spacing: VT.Space.s) {
             Image(systemName: "keyboard")
                 .foregroundStyle(.secondary)
-            Text("Hold \(Text(coordinator.settings.hotkey.trigger.displayName).bold().foregroundColor(.primary)) to dictate")
+            Text("\(hotkeyVerb) \(Text(coordinator.settings.hotkey.trigger.displayName).bold().foregroundColor(.primary)) to dictate")
                 .foregroundStyle(.secondary)
             Spacer()
         }
         .font(.callout)
+    }
+
+    private var hotkeyVerb: String {
+        coordinator.settings.hotkey.holdToTalk ? "Hold" : "Tap"
     }
 
     // MARK: Last result

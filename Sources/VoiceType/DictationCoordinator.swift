@@ -14,6 +14,8 @@ final class DictationCoordinator {
     private(set) var lastResult: PipelineResult?
     private(set) var inputLevel: Float = 0
     private(set) var history = DictationHistory()
+    private(set) var launchAtLoginEnabled = LaunchAtLogin.isEnabled
+    private(set) var launchAtLoginRequiresApproval = LaunchAtLogin.requiresApproval
 
     /// Set true to request the onboarding window (first launch, or the menu's
     /// "Set Up VoiceType…"). The AppDelegate installs `onRequestOnboarding` to
@@ -55,6 +57,9 @@ final class DictationCoordinator {
         capture.onLevel = { [weak self] level in
             Task { @MainActor in self?.inputLevel = level }
         }
+        capture.onConfigurationChange = { [weak self] in
+            Task { @MainActor in self?.handleAudioConfigurationChange() }
+        }
         hotkey.onPress = { [weak self] in self?.handlePress() }
         hotkey.onRelease = { [weak self] in self?.handleRelease() }
     }
@@ -84,6 +89,28 @@ final class DictationCoordinator {
         hotkey.start()
         hotkeyArmedWithTrust = true
         Log.hotkey.info("re-armed global monitor after Accessibility grant")
+    }
+
+    func refreshSystemIntegrationStatus() {
+        launchAtLoginEnabled = LaunchAtLogin.isEnabled
+        launchAtLoginRequiresApproval = LaunchAtLogin.requiresApproval
+    }
+
+    func setLaunchAtLogin(_ enabled: Bool) {
+        do {
+            try LaunchAtLogin.setEnabled(enabled)
+        } catch {
+            Log.app.error("launch-at-login change failed: \(error.localizedDescription, privacy: .public)")
+            setError("Couldn't update Open at Login.")
+        }
+        refreshSystemIntegrationStatus()
+        if launchAtLoginRequiresApproval {
+            LaunchAtLogin.openSystemSettings()
+        }
+    }
+
+    func openLoginItemsSettings() {
+        LaunchAtLogin.openSystemSettings()
     }
 
     // MARK: - Permissions
@@ -172,7 +199,21 @@ final class DictationCoordinator {
     // MARK: - Push-to-talk
 
     private func handlePress() {
-        guard !isProcessing, state == .idle || isDone(state) else { return }
+        guard !isProcessing else { return }
+        if !settings.hotkey.holdToTalk, state == .recording {
+            finishRecording()
+            return
+        }
+        guard state == .idle || isDone(state) else { return }
+        beginRecording()
+    }
+
+    private func handleRelease() {
+        guard settings.hotkey.holdToTalk, state == .recording else { return }
+        finishRecording()
+    }
+
+    private func beginRecording() {
         resetTask?.cancel()
         do {
             try capture.start()
@@ -184,7 +225,7 @@ final class DictationCoordinator {
         }
     }
 
-    private func handleRelease() {
+    private func finishRecording() {
         guard state == .recording else { return }
         SoundFeedback(enabled: settings.soundFeedback).stop()
         let audio = capture.stop()
@@ -196,6 +237,13 @@ final class DictationCoordinator {
             return
         }
         runPipeline(on: audio)
+    }
+
+    private func handleAudioConfigurationChange() {
+        guard state == .recording else { return }
+        SoundFeedback(enabled: settings.soundFeedback).stop()
+        inputLevel = 0
+        state = .idle
     }
 
     // MARK: - Pipeline

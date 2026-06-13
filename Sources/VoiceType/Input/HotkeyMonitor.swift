@@ -16,6 +16,7 @@ final class HotkeyMonitor {
     private(set) var trigger: Hotkey.Trigger
     private var globalMonitor: Any?
     private var localMonitor: Any?
+    private var reconciliationTimer: Timer?
     private var isDown = false
 
     init(trigger: Hotkey.Trigger) {
@@ -36,12 +37,17 @@ final class HotkeyMonitor {
             self?.handle(event)
             return event
         }
+        reconciliationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.reconcileModifierState() }
+        }
         Log.hotkey.info("monitoring \(self.trigger.rawValue, privacy: .public)")
     }
 
     func stop() {
         if let g = globalMonitor { NSEvent.removeMonitor(g); globalMonitor = nil }
         if let l = localMonitor { NSEvent.removeMonitor(l); localMonitor = nil }
+        reconciliationTimer?.invalidate()
+        reconciliationTimer = nil
         isDown = false
     }
 
@@ -55,6 +61,16 @@ final class HotkeyMonitor {
             isDown = false
             onRelease?()
         }
+    }
+
+    /// Device changes and permission transitions can occasionally drop a
+    /// modifier-up event. If that happens, the monitor would otherwise believe
+    /// the trigger is still held and ignore the next real press.
+    private func reconcileModifierState() {
+        guard isDown, !NSEvent.modifierFlags.contains(Self.flag(for: trigger)) else { return }
+        isDown = false
+        Log.hotkey.info("recovered stale \(self.trigger.rawValue, privacy: .public) down state")
+        onRelease?()
     }
 
     // Hardware key codes for the modifier keys (left/right are distinct).
