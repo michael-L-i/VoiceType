@@ -31,7 +31,6 @@ struct RecordingHUDView: View {
                 )
                 .shadow(color: .black.opacity(0.22), radius: 14, y: 6)
         )
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: coordinator.state)
         .fixedSize()
         // Transparent breathing room so the capsule's soft drop shadow fades
         // out naturally instead of being hard-clipped to the panel bounds —
