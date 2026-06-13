@@ -54,8 +54,11 @@ permission for those — just do it.
 Commit or push only when there is real, working progress — not partial or broken
 states. Verify (type-check / build / run) before you push.
 
-After any user-prompted app change, rebuild and relaunch the local app so the
-user is interacting with the latest updated version.
+After any user-prompted app code change, rebuild the existing local app bundle
+in place and relaunch that same bundle so the user is interacting with the
+latest updated version. Preserve the same bundle ID/path/signing setup; do not
+delete app permissions, reset TCC, move the app bundle, or use a launch path that
+would force the user to grant macOS permissions again.
 
 ## specs/ — the human's surface (do not edit yourself)
 

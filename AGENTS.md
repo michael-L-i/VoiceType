@@ -12,8 +12,11 @@ Guidance for coding agents working in this repository.
 - Use conventional commit messages such as `feat:`, `fix:`, `docs:`, or
   `chore:`.
 - Verify changes with the appropriate build or test command before committing.
-- After any user-prompted app change, rebuild and relaunch the local app so the
-  user gets the latest updated version.
+- After any user-prompted app code change, rebuild the existing local app bundle
+  in place and relaunch that same bundle so the user gets the latest updated
+  version. Preserve the same bundle ID/path/signing setup; do not delete app
+  permissions, reset TCC, move the app bundle, or use a launch path that would
+  force the user to grant macOS permissions again.
 
 ## Project Notes
 
