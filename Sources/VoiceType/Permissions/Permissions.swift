@@ -42,8 +42,17 @@ enum Permissions {
         }
     }
 
+    /// Request microphone access — but only present the system prompt when the
+    /// status is genuinely undecided. Once the user has granted or denied, the OS
+    /// won't re-prompt anyway, and calling it again on every Grant tap is how the
+    /// flow ended up firing a stack of duplicate dialogs. Denied → route the user
+    /// to System Settings instead (see `openSystemSettings`).
     static func requestMicrophone() async -> Bool {
-        await AVCaptureDevice.requestAccess(for: .audio)
+        switch microphoneStatus() {
+        case .granted: return true
+        case .denied: return false
+        case .notDetermined: return await AVCaptureDevice.requestAccess(for: .audio)
+        }
     }
 
     // MARK: - Speech recognition
@@ -57,8 +66,11 @@ enum Permissions {
         }
     }
 
+    /// Request speech-recognition access — prompt only when undecided, for the
+    /// same anti-duplicate-prompt reason as `requestMicrophone`.
     static func requestSpeech() async -> Bool {
-        await withCheckedContinuation { cont in
+        guard speechStatus() == .notDetermined else { return speechStatus() == .granted }
+        return await withCheckedContinuation { cont in
             SFSpeechRecognizer.requestAuthorization { status in
                 cont.resume(returning: status == .authorized)
             }
@@ -73,56 +85,37 @@ enum Permissions {
 
     /// Prompt for Accessibility access. macOS shows its own system dialog and
     /// deep-links to System Settings; the grant takes effect without a relaunch.
-    ///
-    /// Reinstalling or rebuilding the app leaves a *stale* TCC record behind:
-    /// System Settings still lists VoiceType with the Accessibility toggle green,
-    /// but `AXIsProcessTrusted()` is false because the code signature changed
-    /// (ad-hoc dev builds get a fresh signature every build; even a notarized
-    /// update can drift). In that state macOS refuses to re-show the prompt and
-    /// the green toggle is inert — the user clicks Grant, lands on an
-    /// already-green row, and nothing registers. Clearing our own record first
-    /// removes the dead entry so the prompt reappears and binds to the current
-    /// signature. We only do this when not already trusted, so a live grant is
-    /// never disturbed.
     @discardableResult
     static func requestAccessibility() -> Bool {
-        if !AXIsProcessTrusted() {
-            clearStaleAccessibilityRecord()
-        }
         let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
         return AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
     }
 
-    /// Remove this app's own Accessibility TCC record via `tccutil` so a stale
-    /// post-reinstall grant can't block a fresh prompt. Scoped to our bundle ID
-    /// only — it never touches other apps — and needs no admin rights. A no-op
-    /// when there's nothing to clear; failures are non-fatal (we fall through to
-    /// the normal prompt). Safe because VoiceType is not sandboxed.
-    static func clearStaleAccessibilityRecord() {
+    /// Clear this app's own Accessibility TCC record so a *stale* grant can't
+    /// block a fresh prompt. Reinstalling or rebuilding the app can leave System
+    /// Settings showing VoiceType's Accessibility toggle green while
+    /// `AXIsProcessTrusted()` returns false — the code signature changed, so the
+    /// stored grant no longer matches. In that state the green toggle is inert and
+    /// macOS won't re-prompt; removing the record forces a clean re-grant.
+    ///
+    /// User-initiated only (the onboarding "Reset" recovery): it briefly drops the
+    /// grant, so we never run it automatically — doing so could wipe a perfectly
+    /// good grant, including one shared by another build under the same bundle ID.
+    /// Scoped to our bundle ID, needs no admin, and runs off the main thread
+    /// because `tccutil` is a subprocess. Safe because VoiceType is not sandboxed.
+    static func resetAccessibilityGrant() async {
         guard let bundleID = Bundle.main.bundleIdentifier else { return }
-        let proc = Process()
-        proc.executableURL = URL(fileURLWithPath: "/usr/bin/tccutil")
-        proc.arguments = ["reset", "Accessibility", bundleID]
-        do {
-            try proc.run()
-            proc.waitUntilExit()
-        } catch {
-            Log.app.error("tccutil reset Accessibility failed: \(error.localizedDescription, privacy: .public)")
-        }
+        await Task.detached {
+            let proc = Process()
+            proc.executableURL = URL(fileURLWithPath: "/usr/bin/tccutil")
+            proc.arguments = ["reset", "Accessibility", bundleID]
+            do {
+                try proc.run()
+                proc.waitUntilExit()
+            } catch {
+                Log.app.error("tccutil reset Accessibility failed: \(error.localizedDescription, privacy: .public)")
+            }
+        }.value
     }
 
-    static func status(for permission: Permission) -> PermissionStatus {
-        switch permission {
-        case .microphone: return microphoneStatus()
-        case .speech: return speechStatus()
-        case .accessibility: return accessibilityStatus()
-        }
-    }
-
-    /// True when everything required for core dictation is granted.
-    static var allCoreGranted: Bool {
-        microphoneStatus() == .granted &&
-        speechStatus() == .granted &&
-        accessibilityStatus() == .granted
-    }
 }

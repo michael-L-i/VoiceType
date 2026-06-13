@@ -17,6 +17,17 @@ final class DictationCoordinator {
     private(set) var launchAtLoginEnabled = LaunchAtLogin.isEnabled
     private(set) var launchAtLoginRequiresApproval = LaunchAtLogin.requiresApproval
 
+    /// Live system-permission status mirrored into observable state so the
+    /// onboarding UI re-renders the instant a grant flips — including grants
+    /// toggled directly in System Settings, which fire no callback. Updated only
+    /// by `refreshPermissionStatuses()`; never write these elsewhere.
+    private(set) var microphonePermission: PermissionStatus = .notDetermined
+    private(set) var speechPermission: PermissionStatus = .notDetermined
+    private(set) var accessibilityPermission: PermissionStatus = .notDetermined
+    /// Permissions with a system request currently in flight, so rapid re-taps on
+    /// a Grant button can't stack duplicate prompts.
+    private var requestsInFlight: Set<Permission> = []
+
     /// Set true to request the onboarding window (first launch, or the menu's
     /// "Set Up VoiceType…"). The AppDelegate installs `onRequestOnboarding` to
     /// actually present it via AppKit, which works regardless of what SwiftUI
@@ -62,6 +73,8 @@ final class DictationCoordinator {
         }
         hotkey.onPress = { [weak self] in self?.handlePress() }
         hotkey.onRelease = { [weak self] in self?.handleRelease() }
+
+        refreshPermissionStatuses()
     }
 
     /// Tracks whether the live global hotkey monitor was established while the
@@ -76,6 +89,7 @@ final class DictationCoordinator {
     func start() {
         hotkey.start()
         hotkeyArmedWithTrust = Permissions.accessibilityStatus() == .granted
+        refreshPermissionStatuses()
         Task { await refreshAvailability() }
     }
 
@@ -83,7 +97,7 @@ final class DictationCoordinator {
     /// since we last armed it — otherwise the hotkey stays dead in other apps
     /// until a relaunch. Idempotent and cheap (a guarded `AXIsProcessTrusted`
     /// check); safe to call on a timer or on `applicationDidBecomeActive`.
-    func syncHotkeyWithPermissions() {
+    private func syncHotkeyWithPermissions() {
         guard !hotkeyArmedWithTrust,
               Permissions.accessibilityStatus() == .granted else { return }
         hotkey.start()
@@ -115,24 +129,68 @@ final class DictationCoordinator {
 
     // MARK: - Permissions
 
-    var permissionsGranted: Bool { Permissions.allCoreGranted }
+    var permissionsGranted: Bool {
+        microphonePermission == .granted
+            && speechPermission == .granted
+            && accessibilityPermission == .granted
+    }
+
+    func status(for permission: Permission) -> PermissionStatus {
+        switch permission {
+        case .microphone: return microphonePermission
+        case .speech: return speechPermission
+        case .accessibility: return accessibilityPermission
+        }
+    }
+
+    /// Re-read live system permission status into observable state and re-arm the
+    /// hotkey if Accessibility just flipped. Cheap (pure status queries, no
+    /// prompts); safe to call on a timer or on app activation. Assigns only on an
+    /// actual change so a 1 s poll doesn't churn the UI every tick.
+    func refreshPermissionStatuses() {
+        let mic = Permissions.microphoneStatus()
+        let speech = Permissions.speechStatus()
+        let ax = Permissions.accessibilityStatus()
+        if mic != microphonePermission { microphonePermission = mic }
+        if speech != speechPermission { speechPermission = speech }
+        if ax != accessibilityPermission { accessibilityPermission = ax }
+        syncHotkeyWithPermissions()
+    }
 
     func requestAllPermissions() async {
-        _ = await Permissions.requestMicrophone()
-        _ = await Permissions.requestSpeech()
-        Permissions.requestAccessibility()
-        await refreshAvailability()
+        for permission in Permission.allCases { await request(permission) }
     }
 
     /// Request a single permission (used by the onboarding flow's per-row Grant
-    /// buttons) and refresh engine availability afterwards.
+    /// buttons). Guarded against re-entrancy so a flurry of taps can't stack
+    /// duplicate system prompts; refreshes observable status + engine
+    /// availability afterwards.
     func request(_ permission: Permission) async {
+        guard !requestsInFlight.contains(permission) else { return }
+        requestsInFlight.insert(permission)
+        defer { requestsInFlight.remove(permission) }
+
         switch permission {
         case .microphone: _ = await Permissions.requestMicrophone()
         case .speech: _ = await Permissions.requestSpeech()
         case .accessibility: Permissions.requestAccessibility()
         }
+        refreshPermissionStatuses()
         await refreshAvailability()
+    }
+
+    /// Recovery for a stale Accessibility grant (System Settings shows VoiceType
+    /// enabled but the app isn't trusted — common after a rebuild changes the
+    /// signature). Clears our own record, then re-prompts for a clean grant. Only
+    /// invoked by an explicit user tap in onboarding.
+    func resetAccessibilityGrant() async {
+        guard !requestsInFlight.contains(.accessibility) else { return }
+        requestsInFlight.insert(.accessibility)
+        defer { requestsInFlight.remove(.accessibility) }
+
+        await Permissions.resetAccessibilityGrant()
+        Permissions.requestAccessibility()
+        refreshPermissionStatuses()
     }
 
     /// Deep-link to the relevant System Settings privacy pane when a grant was

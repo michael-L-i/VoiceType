@@ -23,6 +23,13 @@
     <!-- Menu-bar agent: no Dock icon, no app-switcher entry. -->
     <key>LSUIElement</key>
     <true/>
+    <!-- Never run two copies at once. Two instances share the bundle ID and
+         fight over the menu bar, the onboarding window, and the system
+         permission prompts. This blocks a second launch of *this* bundle; the
+         AppDelegate also defers to an already-running copy at a different path
+         (e.g. an installed build vs. a dev build). -->
+    <key>LSMultipleInstancesProhibited</key>
+    <true/>
     <key>NSMicrophoneUsageDescription</key>
     <string>VoiceType listens while you hold the dictation key. Audio stays on your device.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
