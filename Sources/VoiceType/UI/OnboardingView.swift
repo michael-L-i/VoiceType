@@ -45,6 +45,9 @@ struct OnboardingView: View {
             var last = Permission.allCases.map { Permissions.status(for: $0) }
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
+                // Re-arm the global hotkey the moment Accessibility is granted —
+                // a monitor created pre-grant won't deliver events without this.
+                coordinator.syncHotkeyWithPermissions()
                 let now = Permission.allCases.map { Permissions.status(for: $0) }
                 if now != last {
                     last = now
