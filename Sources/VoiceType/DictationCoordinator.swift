@@ -59,10 +59,31 @@ final class DictationCoordinator {
         hotkey.onRelease = { [weak self] in self?.handleRelease() }
     }
 
+    /// Tracks whether the live global hotkey monitor was established while the
+    /// process was Accessibility-trusted. A `NSEvent` global monitor binds its
+    /// input-monitoring trust at creation time, so one created before the grant
+    /// silently receives no global key events — even after the user grants. We
+    /// remember the arm-time trust state so we can re-create the monitor exactly
+    /// once when Accessibility flips to granted.
+    private var hotkeyArmedWithTrust = false
+
     /// Begin operating: start the hotkey monitor and learn what engines exist.
     func start() {
         hotkey.start()
+        hotkeyArmedWithTrust = Permissions.accessibilityStatus() == .granted
         Task { await refreshAvailability() }
+    }
+
+    /// Re-establish the global hotkey monitor if Accessibility has become trusted
+    /// since we last armed it — otherwise the hotkey stays dead in other apps
+    /// until a relaunch. Idempotent and cheap (a guarded `AXIsProcessTrusted`
+    /// check); safe to call on a timer or on `applicationDidBecomeActive`.
+    func syncHotkeyWithPermissions() {
+        guard !hotkeyArmedWithTrust,
+              Permissions.accessibilityStatus() == .granted else { return }
+        hotkey.start()
+        hotkeyArmedWithTrust = true
+        Log.hotkey.info("re-armed global monitor after Accessibility grant")
     }
 
     // MARK: - Permissions
