@@ -56,12 +56,16 @@ struct MenuContent: View {
 
     private var statusPill: some View {
         HStack(spacing: 5) {
-            Circle()
-                .fill(VT.tint(for: stateKind))
-                .frame(width: 7, height: 7)
-            Text(shortStatus)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.secondary)
+            if stateKind == .recording {
+                WaveformView(level: coordinator.inputLevel, tint: VT.tint, barCount: 4)
+            } else {
+                Circle()
+                    .fill(VT.tint(for: stateKind))
+                    .frame(width: 7, height: 7)
+                Text(shortStatus)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.horizontal, VT.Space.s)
         .padding(.vertical, 3)
