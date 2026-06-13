@@ -16,7 +16,7 @@ struct RecordingHUDView: View {
         }
         .padding(.horizontal, VT.Space.l)
         .padding(.vertical, VT.Space.m)
-        .frame(minWidth: 132)
+        .frame(minWidth: kind == .recording ? 44 : 132)
         .background(
             Capsule(style: .continuous)
                 .fill(.regularMaterial)
