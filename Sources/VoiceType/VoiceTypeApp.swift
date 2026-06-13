@@ -47,6 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // scenes happen to be mounted (a SwiftUI Window can't open itself).
         coordinator.onRequestOnboarding = { [weak self] in self?.showOnboarding() }
         coordinator.start()
+        coordinator.refreshSystemIntegrationStatus()
 
         // First-run: guide the user through the required grants in a proper
         // window instead of firing the system prompts blind.
@@ -62,6 +63,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// without a relaunch.
     func applicationDidBecomeActive(_ notification: Notification) {
         coordinator.syncHotkeyWithPermissions()
+        coordinator.refreshSystemIntegrationStatus()
     }
 
     /// A faceless agent shows nothing when "opened" again from Finder or
