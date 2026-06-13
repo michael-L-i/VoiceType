@@ -40,6 +40,11 @@ permission for those — just do it.
 - **Commit freely and incrementally.** One logical change per commit. Reasonably
   sized — prefer several small, reviewable commits over one large one. Use
   conventional messages (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
+- **Always commit completed user-requested changes.** Do not leave working-tree
+  changes uncommitted at the end of a task unless the user explicitly asks you
+  not to commit or the change is not yet working.
+- **Use incremental commits for longer tasks.** Commit after each verified,
+  coherent milestone so progress is recoverable and reviewable.
 - **Push with upstream tracking** (`git push -u origin <branch>`).
 - **Open a PR to `main`** after pushing, with a clear summary of intent + changes.
 - **Do NOT merge your own PRs** — the human reviews and merges on GitHub.
@@ -48,6 +53,12 @@ permission for those — just do it.
 
 Commit or push only when there is real, working progress — not partial or broken
 states. Verify (type-check / build / run) before you push.
+
+After any user-prompted app code change, rebuild the existing local app bundle
+in place and relaunch that same bundle so the user is interacting with the
+latest updated version. Preserve the same bundle ID/path/signing setup; do not
+delete app permissions, reset TCC, move the app bundle, or use a launch path that
+would force the user to grant macOS permissions again.
 
 ## specs/ — the human's surface (do not edit yourself)
 
