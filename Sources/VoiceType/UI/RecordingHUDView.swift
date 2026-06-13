@@ -33,6 +33,10 @@ struct RecordingHUDView: View {
         )
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: coordinator.state)
         .fixedSize()
+        // Transparent breathing room so the capsule's soft drop shadow fades
+        // out naturally instead of being hard-clipped to the panel bounds —
+        // which is what showed up as a faint rectangle around the oval.
+        .padding(VT.Space.l)
     }
 
     // MARK: Leading indicator
