@@ -2,10 +2,12 @@ import AppKit
 import SwiftUI
 import Observation
 
-/// Owns the floating recording HUD panel and shows/hides it as dictation state
-/// changes. The panel is a non-activating, click-through, all-spaces floating
-/// pill: critically it never becomes key, so the app you're dictating into keeps
-/// focus and the injected text lands there — not on the HUD.
+/// Owns the floating recording HUD panel. The pill is **always present** — a
+/// small resting oval at the bottom of the screen that expands into a live
+/// waveform while you dictate (the Wispr Flow model: always there, just smaller).
+/// The panel is a non-activating, click-through, all-spaces floating pill:
+/// critically it never becomes key, so the app you're dictating into keeps focus
+/// and the injected text lands there — not on the HUD.
 @MainActor
 final class RecordingHUDController {
     private let coordinator: DictationCoordinator
@@ -31,6 +33,8 @@ final class RecordingHUDController {
         panel.contentView = hosting
 
         observeState()
+        // Show the resting pill immediately so it's there from launch.
+        apply()
     }
 
     // MARK: - State observation
@@ -48,23 +52,23 @@ final class RecordingHUDController {
     }
 
     private func apply() {
-        switch DictationStateKind(coordinator.state) {
-        case .idle:
-            panel.orderOut(nil)
-        default:
-            reposition()
-            panel.orderFrontRegardless()
-        }
+        // The pill is always on screen; state only changes its size and content.
+        // Re-fit and re-assert front on every change so it tracks the active
+        // screen and stays above other windows.
+        reposition()
+        panel.orderFrontRegardless()
     }
 
-    /// Size to fit the current content and center horizontally near the bottom
-    /// of the active screen.
+    /// Size to fit the current content and center horizontally hard against the
+    /// bottom of the active screen.
     private func reposition() {
         hosting.layoutSubtreeIfNeeded()
         let size = hosting.fittingSize
         let screen = activeScreen.visibleFrame
         let x = screen.midX - size.width / 2
-        let y = screen.minY + 120
+        // The panel carries ~20pt of transparent margin below the oval (shadow
+        // breathing room), so a small offset still leaves the oval near the edge.
+        let y = screen.minY + 8
         panel.setFrame(NSRect(x: x, y: y, width: size.width, height: size.height), display: true)
     }
 

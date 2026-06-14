@@ -437,20 +437,8 @@ final class DictationCoordinator {
         case .idle: return "mic"
         case .recording: return "mic.fill"
         case .transcribing, .cleaning, .injecting: return "waveform"
-        case .done: return "checkmark.circle"
+        case .done: return "mic"
         case .error: return "exclamationmark.triangle"
-        }
-    }
-
-    var statusText: String {
-        switch state {
-        case .idle: return "Ready"
-        case .recording: return "Listening…"
-        case .transcribing: return "Transcribing…"
-        case .cleaning: return "Cleaning up…"
-        case .injecting: return "Inserting…"
-        case .done: return "Done"
-        case .error(let message): return message
         }
     }
 }

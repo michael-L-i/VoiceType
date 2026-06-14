@@ -12,12 +12,24 @@ final class AudioCaptureService {
     /// Target sample rate for speech models.
     static let targetSampleRate: Double = 16_000
 
+    /// Why a capture attempt couldn't start. `noInputAvailable` is the transient
+    /// state an input device reports mid-route-change (0 channels / 0 Hz) — e.g.
+    /// the instant AirPods finish connecting.
+    enum CaptureError: Error { case noInputAvailable }
+
     private let engine = AVAudioEngine()
     private let lock = NSLock()
     private var nativeSamples: [Float] = []
     private var nativeSampleRate: Double = 48_000
     private(set) var isRunning = false
     private var configurationObserver: NSObjectProtocol?
+
+    /// Watchdog state: `bufferTick` (lock-guarded) advances on every captured
+    /// buffer; the watchdog fires if it hasn't moved since the last check.
+    private var watchdog: Timer?
+    private var bufferTick = 0
+    private var watchdogBaseline = 0
+    private static let watchdogInterval: TimeInterval = 2.5
 
     /// Live input level (0...1), published on the main actor for the UI meter.
     var onLevel: (@Sendable (Float) -> Void)?
@@ -42,22 +54,49 @@ final class AudioCaptureService {
         guard !isRunning else { return }
         lock.lock(); nativeSamples.removeAll(keepingCapacity: true); lock.unlock()
 
+        do {
+            try startEngine()
+        } catch {
+            // A route change (AirPods just connected, default input swapped) can
+            // leave the engine briefly reporting an invalid input format or refuse
+            // to start. Reset the audio graph and try once more before giving up.
+            Log.audio.info("capture start failed (\(error.localizedDescription, privacy: .public)); resetting and retrying")
+            engine.reset()
+            try startEngine()
+        }
+
+        isRunning = true
+        startWatchdog()
+        Log.audio.info("capture started @ \(self.nativeSampleRate, privacy: .public)Hz")
+    }
+
+    /// Install the tap at the input's native format and start the engine. Throws
+    /// `CaptureError.noInputAvailable` when the input reports a transient invalid
+    /// format, so the caller can retry rather than silently record nothing.
+    private func startEngine() throws {
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
+        guard format.sampleRate > 0, format.channelCount > 0 else {
+            throw CaptureError.noInputAvailable
+        }
         nativeSampleRate = format.sampleRate
 
         input.installTap(onBus: 0, bufferSize: 2048, format: format) { [weak self] buffer, _ in
             self?.append(buffer)
         }
         engine.prepare()
-        try engine.start()
-        isRunning = true
-        Log.audio.info("capture started @ \(self.nativeSampleRate, privacy: .public)Hz")
+        do {
+            try engine.start()
+        } catch {
+            input.removeTap(onBus: 0)
+            throw error
+        }
     }
 
     /// Stop capture and return the resampled mono 16 kHz buffer.
     func stop() -> PCMBuffer {
         guard isRunning else { return PCMBuffer(samples: [], sampleRate: Self.targetSampleRate) }
+        stopWatchdog()
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
         isRunning = false
@@ -77,6 +116,7 @@ final class AudioCaptureService {
     /// hardware graph changes under us, e.g. AirPods reconnecting mid-capture.
     func cancel() {
         guard isRunning else { return }
+        stopWatchdog()
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
         isRunning = false
@@ -87,6 +127,34 @@ final class AudioCaptureService {
 
         onLevel?(0)
         Log.audio.info("capture cancelled")
+    }
+
+    // MARK: - Watchdog
+
+    /// Catch a "recording but no audio is arriving" state — a dead input that
+    /// would otherwise leave the HUD spinning forever. If no buffers land within
+    /// `watchdogInterval`, abort and surface it through the same recovery path as
+    /// a configuration change (resets the UI to idle).
+    private func startWatchdog() {
+        lock.lock(); watchdogBaseline = bufferTick; lock.unlock()
+        watchdog?.invalidate()
+        watchdog = Timer.scheduledTimer(withTimeInterval: Self.watchdogInterval, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            self.lock.lock()
+            let current = self.bufferTick
+            let baseline = self.watchdogBaseline
+            self.watchdogBaseline = current
+            self.lock.unlock()
+            guard self.isRunning, current == baseline else { return }
+            Log.audio.error("no audio buffers received; aborting capture")
+            self.cancel()
+            self.onConfigurationChange?()
+        }
+    }
+
+    private func stopWatchdog() {
+        watchdog?.invalidate()
+        watchdog = nil
     }
 
     private func handleConfigurationChange() {
@@ -116,6 +184,7 @@ final class AudioCaptureService {
 
         lock.lock()
         nativeSamples.append(contentsOf: chunk)
+        bufferTick &+= 1
         lock.unlock()
     }
 
