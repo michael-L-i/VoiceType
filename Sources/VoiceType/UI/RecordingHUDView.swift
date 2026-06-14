@@ -1,9 +1,9 @@
 import SwiftUI
 
 /// The signature surface: a small frosted pill that floats above whatever you're
-/// working in while you dictate. It shows a compact live waveform while work is
-/// in flight, then disappears when dictation is complete. It never takes focus —
-/// text still lands in the app underneath.
+/// working in. It is always present — a small resting oval that expands into a
+/// compact live waveform while you dictate, then settles back to rest. It never
+/// takes focus — text still lands in the app underneath.
 struct RecordingHUDView: View {
     @Bindable var coordinator: DictationCoordinator
 
@@ -20,9 +20,9 @@ struct RecordingHUDView: View {
                     .fixedSize()
             }
         }
-        .padding(.horizontal, VT.Space.xl)
+        .padding(.horizontal, horizontalPadding)
         .padding(.vertical, VT.Space.s)
-        .frame(minWidth: kind == .error ? 132 : 64)
+        .frame(minWidth: minWidth)
         .background(
             Capsule(style: .continuous)
                 .fill(.regularMaterial)
@@ -50,9 +50,29 @@ struct RecordingHUDView: View {
                 .foregroundStyle(VT.live)
                 .font(.system(size: 15, weight: .semibold))
         case .idle, .done:
-            // These states hide the HUD; render nothing so no mic icon flashes
-            // as the pill transitions in or out.
-            EmptyView()
+            // The resting state: a tiny, dim set of dots — unmistakably "not
+            // recording" (no waveform, no tint, no mic) while signalling the app
+            // is alive and ready.
+            RestingIndicator()
+        }
+    }
+
+    // MARK: Sizing
+
+    /// The resting pill is deliberately small; active states are roomier and the
+    /// error state widest to fit its message.
+    private var minWidth: CGFloat {
+        switch kind {
+        case .error: return 132
+        case .idle, .done: return 16
+        case .recording, .working: return 64
+        }
+    }
+
+    private var horizontalPadding: CGFloat {
+        switch kind {
+        case .idle, .done: return VT.Space.l
+        default: return VT.Space.xl
         }
     }
 
@@ -68,5 +88,21 @@ struct RecordingHUDView: View {
             return message
         }
         return nil
+    }
+}
+
+/// The resting-state glyph: three small, dim dots. Calm and static — no
+/// animation, no tint — so the always-present pill never reads as "recording".
+private struct RestingIndicator: View {
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(0..<3, id: \.self) { _ in
+                Circle()
+                    .fill(.secondary)
+                    .frame(width: 3, height: 3)
+            }
+        }
+        .opacity(0.55)
+        .frame(height: 4)
     }
 }
