@@ -1,9 +1,9 @@
 import SwiftUI
 
 /// The signature surface: a small frosted pill that floats above whatever you're
-/// working in while you dictate. It shows you're being heard (live waveform),
-/// then the hand-off states (transcribing → cleaning → inserting), and a brief
-/// confirmation. It never takes focus — text still lands in the app underneath.
+/// working in. It is always present — a small resting oval that expands into a
+/// compact live waveform while you dictate, then settles back to rest. It never
+/// takes focus — text still lands in the app underneath.
 struct RecordingHUDView: View {
     @Bindable var coordinator: DictationCoordinator
 
@@ -12,11 +12,17 @@ struct RecordingHUDView: View {
     var body: some View {
         HStack(spacing: VT.Space.m) {
             leading
-            label
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(VT.live)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
         }
-        .padding(.horizontal, VT.Space.l)
-        .padding(.vertical, VT.Space.m)
-        .frame(minWidth: 132)
+        .padding(.horizontal, horizontalPadding)
+        .padding(.vertical, VT.Space.s)
+        .frame(minWidth: minWidth)
         .background(
             Capsule(style: .continuous)
                 .fill(.regularMaterial)
@@ -25,8 +31,11 @@ struct RecordingHUDView: View {
                 )
                 .shadow(color: .black.opacity(0.22), radius: 14, y: 6)
         )
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: coordinator.state)
         .fixedSize()
+        // Transparent breathing room so the capsule's soft drop shadow fades
+        // out naturally instead of being hard-clipped to the panel bounds —
+        // which is what showed up as a faint rectangle around the oval.
+        .padding(VT.Space.l)
     }
 
     // MARK: Leading indicator
@@ -34,50 +43,66 @@ struct RecordingHUDView: View {
     @ViewBuilder
     private var leading: some View {
         switch kind {
-        case .recording:
-            WaveformView(level: coordinator.inputLevel, tint: VT.tint)
-        case .working:
-            ProgressView()
-                .controlSize(.small)
-                .tint(VT.tint)
-        case .done:
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(VT.success)
-                .font(.system(size: 16, weight: .semibold))
-                .transition(.scale.combined(with: .opacity))
+        case .recording, .working:
+            WaveformView(level: waveformLevel, tint: VT.tint)
         case .error:
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(VT.live)
                 .font(.system(size: 15, weight: .semibold))
-        case .idle:
-            Image(systemName: "mic.fill")
-                .foregroundStyle(.secondary)
-                .font(.system(size: 14, weight: .semibold))
+        case .idle, .done:
+            // The resting state: a tiny, dim set of dots — unmistakably "not
+            // recording" (no waveform, no tint, no mic) while signalling the app
+            // is alive and ready.
+            RestingIndicator()
         }
     }
 
-    // MARK: Label
+    // MARK: Sizing
 
-    @ViewBuilder
-    private var label: some View {
-        if let labelText {
-            Text(labelText)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(kind == .error ? AnyShapeStyle(VT.live) : AnyShapeStyle(.primary))
-                .lineLimit(1)
-                .fixedSize()
+    /// The resting pill is deliberately small; active states are roomier and the
+    /// error state widest to fit its message.
+    private var minWidth: CGFloat {
+        switch kind {
+        case .error: return 132
+        case .idle, .done: return 16
+        case .recording, .working: return 64
         }
     }
 
-    private var labelText: String? {
-        switch coordinator.state {
-        case .recording: return nil
-        case .transcribing: return "Transcribing"
-        case .cleaning: return "Polishing"
-        case .injecting: return "Inserting"
-        case .done: return "Done"
-        case .error(let message): return message
-        case .idle: return nil
+    private var horizontalPadding: CGFloat {
+        switch kind {
+        case .idle, .done: return VT.Space.l
+        default: return VT.Space.xl
         }
+    }
+
+    private var waveformLevel: Float {
+        if case .recording = coordinator.state {
+            return coordinator.inputLevel
+        }
+        return 0.45
+    }
+
+    private var errorMessage: String? {
+        if case .error(let message) = coordinator.state {
+            return message
+        }
+        return nil
+    }
+}
+
+/// The resting-state glyph: three small, dim dots. Calm and static — no
+/// animation, no tint — so the always-present pill never reads as "recording".
+private struct RestingIndicator: View {
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(0..<3, id: \.self) { _ in
+                Circle()
+                    .fill(.secondary)
+                    .frame(width: 3, height: 3)
+            }
+        }
+        .opacity(0.55)
+        .frame(height: 4)
     }
 }
