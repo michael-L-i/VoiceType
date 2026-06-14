@@ -56,28 +56,32 @@ struct MenuContent: View {
 
     private var statusPill: some View {
         HStack(spacing: 5) {
-            Circle()
-                .fill(VT.tint(for: stateKind))
-                .frame(width: 7, height: 7)
-            Text(shortStatus)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.secondary)
+            if shouldShowStatusWaveform {
+                WaveformView(level: statusWaveformLevel, tint: VT.tint, barCount: 4)
+            } else {
+                Circle()
+                    .fill(VT.tint(for: stateKind))
+                    .frame(width: 7, height: 7)
+                Text(statusLabel)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.horizontal, VT.Space.s)
         .padding(.vertical, 3)
         .background(.quaternary.opacity(0.5), in: Capsule())
     }
 
-    private var shortStatus: String {
-        switch coordinator.state {
-        case .idle: return "Ready"
-        case .recording: return "Listening"
-        case .transcribing: return "Transcribing"
-        case .cleaning: return "Polishing"
-        case .injecting: return "Inserting"
-        case .done: return "Done"
-        case .error: return "Error"
-        }
+    private var shouldShowStatusWaveform: Bool {
+        stateKind == .recording || stateKind == .working
+    }
+
+    private var statusWaveformLevel: Float {
+        stateKind == .recording ? coordinator.inputLevel : 0.45
+    }
+
+    private var statusLabel: String {
+        stateKind == .error ? "Error" : "Ready"
     }
 
     // MARK: Setup callout
