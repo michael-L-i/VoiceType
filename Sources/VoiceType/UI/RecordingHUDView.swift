@@ -10,14 +10,26 @@ struct RecordingHUDView: View {
     private var kind: DictationStateKind { DictationStateKind(coordinator.state) }
 
     var body: some View {
+        pill
+            // Bottom-center the pill inside the fixed canvas so it grows *upward*
+            // from the screen edge instead of the window resizing under it.
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            // Quick but smooth: one spring drives the size, padding and content
+            // swap together so there's no bad intermediate frame entering record.
+            .animation(.spring(response: 0.28, dampingFraction: 0.82), value: kind)
+    }
+
+    private var pill: some View {
         HStack(spacing: VT.Space.m) {
             leading
+                .transition(.opacity)
             if let errorMessage {
                 Text(errorMessage)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(VT.live)
                     .lineLimit(1)
                     .fixedSize()
+                    .transition(.opacity)
             }
         }
         .padding(.horizontal, horizontalPadding)
