@@ -21,7 +21,7 @@ struct RecordingHUDView: View {
             }
         }
         .padding(.horizontal, horizontalPadding)
-        .padding(.vertical, VT.Space.s)
+        .padding(.vertical, verticalPadding)
         .frame(minWidth: minWidth)
         .background(
             Capsule(style: .continuous)
@@ -50,9 +50,9 @@ struct RecordingHUDView: View {
                 .foregroundStyle(VT.live)
                 .font(.system(size: 15, weight: .semibold))
         case .idle, .done:
-            // The resting state: a tiny, dim set of dots — unmistakably "not
+            // The resting state: a single hairline-thin bar — unmistakably "not
             // recording" (no waveform, no tint, no mic) while signalling the app
-            // is alive and ready.
+            // is alive and ready. Deliberately minimal so it nearly disappears.
             RestingIndicator()
         }
     }
@@ -64,15 +64,24 @@ struct RecordingHUDView: View {
     private var minWidth: CGFloat {
         switch kind {
         case .error: return 132
-        case .idle, .done: return 16
+        case .idle, .done: return 40
         case .recording, .working: return 64
         }
     }
 
     private var horizontalPadding: CGFloat {
         switch kind {
-        case .idle, .done: return VT.Space.l
+        case .idle, .done: return VT.Space.s
         default: return VT.Space.xl
+        }
+    }
+
+    /// Resting is a thin sliver; active/error states stand taller so the
+    /// waveform and message have room to breathe.
+    private var verticalPadding: CGFloat {
+        switch kind {
+        case .idle, .done: return 3
+        default: return VT.Space.s
         }
     }
 
@@ -91,18 +100,14 @@ struct RecordingHUDView: View {
     }
 }
 
-/// The resting-state glyph: three small, dim dots. Calm and static — no
-/// animation, no tint — so the always-present pill never reads as "recording".
+/// The resting-state glyph: a single short, hairline-thin bar. Calm and static —
+/// no animation, no tint — so the always-present pill nearly disappears and never
+/// reads as "recording".
 private struct RestingIndicator: View {
     var body: some View {
-        HStack(spacing: 4) {
-            ForEach(0..<3, id: \.self) { _ in
-                Circle()
-                    .fill(.secondary)
-                    .frame(width: 3, height: 3)
-            }
-        }
-        .opacity(0.55)
-        .frame(height: 4)
+        Capsule(style: .continuous)
+            .fill(.secondary)
+            .frame(width: 26, height: 2)
+            .opacity(0.4)
     }
 }
