@@ -14,22 +14,22 @@ struct RecordingHUDView: View {
             // Bottom-center the pill inside the fixed canvas so it grows *upward*
             // from the screen edge instead of the window resizing under it.
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-            // Quick but smooth: one spring drives the size, padding and content
-            // swap together so there's no bad intermediate frame entering record.
-            .animation(.spring(response: 0.28, dampingFraction: 0.82), value: kind)
+            // Quick but smooth: one spring drives the size and padding so there's
+            // no bad intermediate frame entering record.
+            .animation(.spring(response: 0.22, dampingFraction: 0.85), value: kind)
     }
 
     private var pill: some View {
         HStack(spacing: VT.Space.m) {
             leading
-                .transition(.opacity)
+                .transition(contentTransition)
             if let errorMessage {
                 Text(errorMessage)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(VT.live)
                     .lineLimit(1)
                     .fixedSize()
-                    .transition(.opacity)
+                    .transition(contentTransition)
             }
         }
         .padding(.horizontal, horizontalPadding)
@@ -37,9 +37,13 @@ struct RecordingHUDView: View {
         .frame(minWidth: minWidth)
         .background(
             Capsule(style: .continuous)
-                .fill(.regularMaterial)
+                .fill(.clear)
+                .background(
+                    VisualEffectBackground()
+                        .clipShape(Capsule(style: .continuous))
+                )
                 .overlay(
-                    Capsule(style: .continuous).strokeBorder(.white.opacity(0.10), lineWidth: 1)
+                    Capsule(style: .continuous).strokeBorder(.white.opacity(0.35), lineWidth: 1)
                 )
                 .shadow(color: .black.opacity(0.22), radius: 14, y: 6)
         )
@@ -62,11 +66,20 @@ struct RecordingHUDView: View {
                 .foregroundStyle(VT.live)
                 .font(.system(size: 15, weight: .semibold))
         case .idle, .done:
-            // The resting state: a single hairline-thin bar — unmistakably "not
-            // recording" (no waveform, no tint, no mic) while signalling the app
-            // is alive and ready. Deliberately minimal so it nearly disappears.
-            RestingIndicator()
+            // The resting state holds nothing at all: an empty thin sliver,
+            // unmistakably "not recording" while signalling the app is alive.
+            EmptyView()
         }
+    }
+
+    /// The content (waveform / error glyph) fades in slightly *after* the oval
+    /// has grown so it never pops in early, and clears immediately on the way
+    /// back to rest so it vanishes as the oval shrinks.
+    private var contentTransition: AnyTransition {
+        .asymmetric(
+            insertion: .opacity.animation(.easeOut(duration: 0.14).delay(0.06)),
+            removal: .opacity.animation(.easeOut(duration: 0.08))
+        )
     }
 
     // MARK: Sizing
@@ -77,14 +90,15 @@ struct RecordingHUDView: View {
         switch kind {
         case .error: return 132
         case .idle, .done: return 40
-        case .recording, .working: return 64
+        case .recording, .working: return 52
         }
     }
 
     private var horizontalPadding: CGFloat {
         switch kind {
         case .idle, .done: return VT.Space.s
-        default: return VT.Space.xl
+        case .recording, .working: return VT.Space.l
+        case .error: return VT.Space.xl
         }
     }
 
@@ -109,17 +123,5 @@ struct RecordingHUDView: View {
             return message
         }
         return nil
-    }
-}
-
-/// The resting-state glyph: a single short, hairline-thin bar. Calm and static —
-/// no animation, no tint — so the always-present pill nearly disappears and never
-/// reads as "recording".
-private struct RestingIndicator: View {
-    var body: some View {
-        Capsule(style: .continuous)
-            .fill(.secondary)
-            .frame(width: 26, height: 2)
-            .opacity(0.4)
     }
 }
