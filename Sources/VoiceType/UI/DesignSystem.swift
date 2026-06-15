@@ -11,6 +11,9 @@ enum VT {
     static let tint = Color(red: 0.36, green: 0.46, blue: 0.92)
     /// The familiar "live" red, used only for the recording dot.
     static let live = Color(red: 0.94, green: 0.33, blue: 0.36)
+    /// The dictation HUD pill fill: one fixed, opaque, relatively dark gray so the
+    /// pill reads identically over any background (no adaptive material).
+    static let hudFill = Color(red: 0.15, green: 0.15, blue: 0.17)
 
     // MARK: Geometry
 
