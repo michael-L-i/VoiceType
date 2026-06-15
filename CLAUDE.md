@@ -48,8 +48,6 @@ permission for those — just do it.
 - **Push with upstream tracking** (`git push -u origin <branch>`).
 - **Open a PR to `main`** after pushing, with a clear summary of intent + changes.
 - **Do NOT merge your own PRs** — the human reviews and merges on GitHub.
-- End commit messages with the `Co-Authored-By: Claude` trailer when committing
-  on the user's behalf.
 
 Commit or push only when there is real, working progress — not partial or broken
 states. Verify (type-check / build / run) before you push.
