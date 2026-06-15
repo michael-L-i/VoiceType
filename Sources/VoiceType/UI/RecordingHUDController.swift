@@ -68,7 +68,9 @@ final class RecordingHUDController {
         let x = screen.midX - size.width / 2
         // The panel carries ~20pt of transparent margin below the oval (shadow
         // breathing room), so a small offset still leaves the oval near the edge.
-        let y = screen.minY + 8
+        // Sit it hard against the bottom so the resting sliver nearly merges with
+        // the screen edge.
+        let y = screen.minY
         panel.setFrame(NSRect(x: x, y: y, width: size.width, height: size.height), display: true)
     }
 
