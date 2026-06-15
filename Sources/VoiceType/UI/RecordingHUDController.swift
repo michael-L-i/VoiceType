@@ -10,6 +10,11 @@ import Observation
 /// and the injected text lands there — not on the HUD.
 @MainActor
 final class RecordingHUDController {
+    /// Fixed canvas large enough to hold the widest/tallest pill state (the error
+    /// message) with shadow breathing room. The pill is centered horizontally and
+    /// anchored to the bottom edge inside it.
+    private static let panelSize = CGSize(width: 320, height: 100)
+
     private let coordinator: DictationCoordinator
     private let panel: NSPanel
     private let hosting: NSHostingView<RecordingHUDView>
@@ -18,8 +23,12 @@ final class RecordingHUDController {
         self.coordinator = coordinator
         self.hosting = NSHostingView(rootView: RecordingHUDView(coordinator: coordinator))
 
+        // The panel is a fixed-size, transparent, click-through canvas. The pill
+        // grows and shrinks *inside* it (anchored to the bottom) so the window
+        // itself never resizes — that's what made the transition into recording
+        // snap with a bad intermediate frame. SwiftUI now owns the whole motion.
         panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 160, height: 44),
+            contentRect: NSRect(x: 0, y: 0, width: Self.panelSize.width, height: Self.panelSize.height),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered, defer: false)
         panel.isFloatingPanel = true
@@ -59,17 +68,13 @@ final class RecordingHUDController {
         panel.orderFrontRegardless()
     }
 
-    /// Size to fit the current content and center horizontally hard against the
-    /// bottom of the active screen.
+    /// Center the fixed canvas horizontally and sit it hard against the bottom of
+    /// the active screen. The panel size is constant; only its origin moves (to
+    /// follow the active screen), so there is no window resize to animate.
     private func reposition() {
-        hosting.layoutSubtreeIfNeeded()
-        let size = hosting.fittingSize
+        let size = Self.panelSize
         let screen = activeScreen.visibleFrame
         let x = screen.midX - size.width / 2
-        // The panel carries ~20pt of transparent margin below the oval (shadow
-        // breathing room), so a small offset still leaves the oval near the edge.
-        // Sit it hard against the bottom so the resting sliver nearly merges with
-        // the screen edge.
         let y = screen.minY
         panel.setFrame(NSRect(x: x, y: y, width: size.width, height: size.height), display: true)
     }
