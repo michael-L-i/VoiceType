@@ -47,3 +47,23 @@ struct StatsTotalsTests {
         #expect(stats.sessionCount == 1)
     }
 }
+
+@Suite("Dictation stats — words per minute")
+struct StatsWPMTests {
+    @Test("no speaking time yields zero")
+    func zeroGuard() {
+        #expect(DictationStats().averageWordsPerMinute == 0)
+    }
+
+    @Test("computes rounded lifetime average from totals")
+    func average() {
+        var stats = DictationStats()
+        let day = Date(timeIntervalSince1970: 0)
+        // 150 words over 60s = 150 wpm
+        stats.record(words: 150, speakingTime: 60, on: day)
+        #expect(stats.averageWordsPerMinute == 150)
+        // + 30 words over 30s → 180 words / 90s = 120 wpm
+        stats.record(words: 30, speakingTime: 30, on: day)
+        #expect(stats.averageWordsPerMinute == 120)
+    }
+}

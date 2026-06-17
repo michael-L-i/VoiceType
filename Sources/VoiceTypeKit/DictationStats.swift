@@ -28,6 +28,14 @@ public struct DictationStats: Sendable, Codable, Equatable {
         self.lastDictationDay = lastDictationDay
     }
 
+    /// Lifetime average speaking pace in whole words per minute, derived from the
+    /// accumulated word and speaking-time totals. Zero until there's measurable
+    /// speaking time (guards division by zero).
+    public var averageWordsPerMinute: Int {
+        guard totalSpeakingTime > 0 else { return 0 }
+        return Int((Double(totalWords) / (totalSpeakingTime / 60)).rounded())
+    }
+
     /// Whitespace-delimited word count for a finished transcript.
     public static func wordCount(_ text: String) -> Int {
         text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
