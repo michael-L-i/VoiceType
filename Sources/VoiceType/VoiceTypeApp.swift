@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Carbon
 import VoiceTypeKit
 
 /// Menu-bar entry point. VoiceType has no dock icon and no main window — it is a
@@ -11,7 +12,7 @@ struct VoiceTypeApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuContent(coordinator: appDelegate.coordinator)
+            MenuContent(coordinator: appDelegate.coordinator, onQuit: appDelegate.requestQuit)
         } label: {
             Image(systemName: appDelegate.coordinator.menuBarSymbol)
         }
@@ -30,6 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindow: NSWindow?
     private var hud: RecordingHUDController?
     private var updater: UpdaterController?
+    private var terminationRequested = false
 
     /// Single-instance guard. If another VoiceType is already running — the
     /// classic case is the installed `/Applications` copy plus a dev build, which
@@ -40,6 +42,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// duplicate never sets anything up. `LSMultipleInstancesProhibited` covers the
     /// same-bundle case; this covers two bundles at different paths.
     func applicationWillFinishLaunching(_ notification: Notification) {
+        NSAppleEventManager.shared().setEventHandler(
+            self,
+            andSelector: #selector(handleQuitAppleEvent(_:withReplyEvent:)),
+            forEventClass: AEEventClass(kCoreEventClass),
+            andEventID: AEEventID(kAEQuitApplication))
+
         if let other = Self.otherRunningInstance() {
             other.activate()
             Log.app.info("another VoiceType instance is running; deferring to it and exiting")
@@ -57,6 +65,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Menu-bar agent: no Dock icon, no app switcher entry.
         NSApp.setActivationPolicy(.accessory)
+        ProcessInfo.processInfo.disableAutomaticTermination("VoiceType runs as a menu-bar dictation agent.")
 
         // The floating recording pill. Created once; it observes state itself.
         hud = RecordingHUDController(coordinator: coordinator)
@@ -78,6 +87,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             coordinator.wantsOnboarding = true
         }
         Log.app.info("VoiceType launched")
+    }
+
+    func requestQuit() {
+        terminationRequested = true
+        NSApp.terminate(nil)
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard terminationRequested else {
+            Log.app.info("ignoring unsolicited terminate request to keep the menu-bar agent running")
+            return .terminateCancel
+        }
+        return .terminateNow
+    }
+
+    @objc private func handleQuitAppleEvent(_ event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
+        requestQuit()
     }
 
     /// Coming back to the foreground is a strong signal the user may have just

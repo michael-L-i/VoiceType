@@ -6,6 +6,7 @@ import VoiceTypeKit
 /// quick actions. Calm-native: materials, SF Symbols, a restrained accent.
 struct MenuContent: View {
     @Bindable var coordinator: DictationCoordinator
+    let onQuit: () -> Void
     @Environment(\.openSettings) private var openSettings
 
     private var stateKind: DictationStateKind { DictationStateKind(coordinator.state) }
@@ -168,7 +169,7 @@ struct MenuContent: View {
             }
             Spacer()
             Button(role: .destructive) {
-                NSApplication.shared.terminate(nil)
+                onQuit()
             } label: {
                 Label("Quit", systemImage: "power")
             }
