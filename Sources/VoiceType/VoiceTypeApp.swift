@@ -115,16 +115,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 460, height: 620),
+            contentRect: NSRect(x: 0, y: 0, width: 820, height: 600),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered, defer: false)
         window.title = "VoiceType"
         window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
-        window.contentMinSize = NSSize(width: 440, height: 540)
+        window.contentMinSize = NSSize(width: 720, height: 520)
         window.center()
         window.setFrameAutosaveName("VoiceTypeMainWindow")
-        window.contentView = NSHostingView(rootView: HomeView(coordinator: coordinator))
+        window.contentView = NSHostingView(rootView: RootView(coordinator: coordinator))
         mainWindow = window
 
         NSApp.activate(ignoringOtherApps: true)
