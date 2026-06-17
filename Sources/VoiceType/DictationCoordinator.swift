@@ -14,6 +14,7 @@ final class DictationCoordinator {
     private(set) var lastResult: PipelineResult?
     private(set) var inputLevel: Float = 0
     private(set) var history = DictationHistory()
+    private(set) var stats = StatsStore.shared.load()
     private(set) var launchAtLoginEnabled = LaunchAtLogin.isEnabled
     private(set) var launchAtLoginRequiresApproval = LaunchAtLogin.requiresApproval
 
@@ -346,7 +347,7 @@ final class DictationCoordinator {
                 } else {
                     self.state = .injecting
                     try await self.injector.inject(result.finalText)
-                    self.record(result)
+                    self.record(result, speakingTime: audio.duration)
                     self.finish(state: .done)
                 }
             } catch let error as InjectionError {
@@ -360,9 +361,16 @@ final class DictationCoordinator {
         }
     }
 
-    private func record(_ result: PipelineResult) {
+    private func record(_ result: PipelineResult, speakingTime: TimeInterval) {
         lastResult = result
         Log.metrics(result)
+
+        // Aggregate stats are counts only (no text/audio), so they update even
+        // when history is off.
+        stats.record(words: DictationStats.wordCount(result.finalText),
+                     speakingTime: speakingTime, on: Date())
+        StatsStore.shared.save(stats)
+
         if settings.keepHistory {
             history.add(DictationRecord(
                 date: Date(), text: result.finalText,

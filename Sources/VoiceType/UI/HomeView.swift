@@ -110,7 +110,7 @@ struct HomeView: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)
-                StatRow(value: "0", label: "total words", symbol: "text.word.spacing")
+                StatRow(value: coordinator.stats.totalWords.formatted(), label: "total words", symbol: "text.word.spacing")
                 StatRow(value: "0", label: "wpm", symbol: "gauge.with.dots.needle.67percent")
                 StatRow(value: "0", label: "day streak", symbol: "flame")
             }
