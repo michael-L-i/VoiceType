@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 import VoiceTypeKit
 
-/// The preferences window, opened from the menu bar. Five focused tabs that bind
+/// The preferences window, opened with ⌘, or from the Home window. Five focused tabs that bind
 /// straight to `coordinator.settings` (mutations auto-persist via the
 /// coordinator's `didSet`). The design goal is a calm, native macOS utility:
 /// `Form` + `GroupBox` idioms, SF Symbols, and copy that makes the privacy

@@ -1,6 +1,6 @@
 import Foundation
 
-/// High-level state of a single dictation, surfaced to the menu-bar UI.
+/// High-level state of a single dictation, surfaced to the app UI (Home window + HUD).
 public enum DictationState: Sendable, Equatable {
     case idle
     case recording

@@ -5,7 +5,7 @@ import VoiceTypeKit
 
 /// The app-side brain: owns settings + services, drives the push-to-talk →
 /// capture → transcribe → cleanup → inject loop, and publishes state for the
-/// menu bar. All UI-affecting state lives here on the main actor.
+/// Home window and HUD. All UI-affecting state lives here on the main actor.
 @Observable
 @MainActor
 final class DictationCoordinator {
