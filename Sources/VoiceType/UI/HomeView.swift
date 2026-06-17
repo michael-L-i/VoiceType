@@ -17,6 +17,7 @@ struct HomeView: View {
                     setupCallout
                 }
                 welcomeHero
+                statsCard
             }
             .frame(maxWidth: 640, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -98,6 +99,23 @@ struct HomeView: View {
     private var quickStartLine: String {
         let verb = coordinator.settings.hotkey.holdToTalk ? "Hold" : "Tap"
         return "\(verb) \(coordinator.settings.hotkey.trigger.displayName) anywhere and start speaking — your words land in the focused app."
+    }
+
+    // MARK: Stats
+
+    private var statsCard: some View {
+        FrostedCard {
+            VStack(alignment: .leading, spacing: VT.Space.l) {
+                Text("Your stats")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+                StatRow(value: "0", label: "total words", symbol: "text.word.spacing")
+                StatRow(value: "0", label: "wpm", symbol: "gauge.with.dots.needle.67percent")
+                StatRow(value: "0", label: "day streak", symbol: "flame")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     // MARK: Setup callout
