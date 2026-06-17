@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build VoiceType.app — a self-contained menu-bar bundle from the SwiftPM
+# Build VoiceType.app — a self-contained Dock-app bundle from the SwiftPM
 # executable. Ad-hoc codesigned by default so TCC (mic / speech /
 # accessibility) prompts behave. Set DEVELOPER_ID_APPLICATION for public
 # Developer ID releases.

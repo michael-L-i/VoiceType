@@ -83,10 +83,14 @@ settle: **ask one sharp question, then stop.** Never guess on taste.
 
 Keep it simple; don't over-engineer.
 
-- **Shell:** SwiftPM menu-bar app (no Dock icon). `VoiceTypeKit` is the pure,
-  dependency-free, unit-tested core (protocols, models, pipeline, rule cleanup,
-  resolver); the `VoiceType` executable holds the app, system engines, and UI.
-  Build the bundle with `Scripts/build-app.sh`.
+- **Shell:** SwiftPM **regular Dock app** (`.regular` activation policy, Dock
+  icon + app-switcher entry). It opens a main **Home window** (`HomeView`) on
+  launch; the red close button hides the window while dictation keeps running in
+  the background, and clicking the Dock icon brings it back. Cmd+Q quits.
+  `VoiceTypeKit` is the pure, dependency-free, unit-tested core (protocols,
+  models, pipeline, rule cleanup, resolver); the `VoiceType` executable holds the
+  app, system engines, and UI. Build the bundle with `Scripts/build-app.sh`.
+  (It was previously a faceless `LSUIElement` menu-bar agent — that's gone.)
 - **Global hotkey + injection:** `HotkeyMonitor` (global `flagsChanged`,
   push-to-talk, default Right Option) → `PasteboardInjector` (⌘V + clipboard
   restore). Both gated on Accessibility consent.
