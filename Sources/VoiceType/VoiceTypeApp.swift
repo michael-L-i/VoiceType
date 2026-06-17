@@ -1,24 +1,20 @@
 import SwiftUI
 import AppKit
-import Carbon
 import VoiceTypeKit
 
-/// Menu-bar entry point. VoiceType has no dock icon and no main window — it is a
-/// background agent you summon with a hotkey. The Settings and Onboarding scenes
-/// are summoned on demand (from the menu, or auto-shown on first run).
+/// App entry point. VoiceType is a regular Dock app: it opens a main window (the
+/// Home dashboard) you can see and quit like any other app. Closing the window
+/// leaves it running in the background — dictation still works on the hotkey, and
+/// clicking the Dock icon brings the window back. The Settings scene is summoned
+/// on demand (⌘,); onboarding is presented via AppKit on first run.
 @main
 struct VoiceTypeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        MenuBarExtra {
-            MenuContent(coordinator: appDelegate.coordinator, onQuit: appDelegate.requestQuit)
-        } label: {
-            Image(systemName: appDelegate.coordinator.menuBarSymbol)
-        }
-        .menuBarExtraStyle(.window)
-
-        // Preferences. macOS gives this the standard ⌘, and window chrome.
+        // Preferences. macOS gives this the standard ⌘, and window chrome. The
+        // main Home window is managed by the AppDelegate via AppKit so we keep
+        // precise control over launch, close-to-hide, and Dock reopen.
         Settings {
             SettingsView(coordinator: appDelegate.coordinator)
         }
@@ -28,26 +24,20 @@ struct VoiceTypeApp: App {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let coordinator = DictationCoordinator()
+    private var mainWindow: NSWindow?
     private var onboardingWindow: NSWindow?
     private var hud: RecordingHUDController?
     private var updater: UpdaterController?
-    private var terminationRequested = false
 
     /// Single-instance guard. If another VoiceType is already running — the
     /// classic case is the installed `/Applications` copy plus a dev build, which
-    /// share the bundle ID — hand focus to it and bow out before we touch the
-    /// menu bar, windows, or permission prompts. Running two copies is what makes
-    /// the onboarding window "alternate" and the mic prompt fire repeatedly, since
+    /// share the bundle ID — hand focus to it and bow out before we touch any
+    /// windows or permission prompts. Running two copies is what makes the
+    /// onboarding window "alternate" and the mic prompt fire repeatedly, since
     /// each process demands its own grant. Runs before `didFinishLaunching` so the
     /// duplicate never sets anything up. `LSMultipleInstancesProhibited` covers the
     /// same-bundle case; this covers two bundles at different paths.
     func applicationWillFinishLaunching(_ notification: Notification) {
-        NSAppleEventManager.shared().setEventHandler(
-            self,
-            andSelector: #selector(handleQuitAppleEvent(_:withReplyEvent:)),
-            forEventClass: AEEventClass(kCoreEventClass),
-            andEventID: AEEventID(kAEQuitApplication))
-
         if let other = Self.otherRunningInstance() {
             other.activate()
             Log.app.info("another VoiceType instance is running; deferring to it and exiting")
@@ -63,9 +53,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Menu-bar agent: no Dock icon, no app switcher entry.
-        NSApp.setActivationPolicy(.accessory)
-        ProcessInfo.processInfo.disableAutomaticTermination("VoiceType runs as a menu-bar dictation agent.")
+        // Regular app: Dock icon and app-switcher entry, a real window, normal
+        // quit. (Was a faceless `.accessory` menu-bar agent.)
+        NSApp.setActivationPolicy(.regular)
 
         // The floating recording pill. Created once; it observes state itself.
         hud = RecordingHUDController(coordinator: coordinator)
@@ -75,11 +65,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.updater = updater
         coordinator.onCheckForUpdates = { updater.checkForUpdates() }
 
+        // Open Settings (⌘,) on request from the AppKit-hosted Home window.
+        coordinator.onOpenSettings = { Self.openSettingsScene() }
+
         // Present onboarding via AppKit so it works no matter which SwiftUI
         // scenes happen to be mounted (a SwiftUI Window can't open itself).
         coordinator.onRequestOnboarding = { [weak self] in self?.showOnboarding() }
         coordinator.start()
         coordinator.refreshSystemIntegrationStatus()
+
+        // The main surface: show the Home window on launch.
+        showMainWindow()
 
         // First-run: guide the user through the required grants in a proper
         // window instead of firing the system prompts blind.
@@ -89,43 +85,60 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.app.info("VoiceType launched")
     }
 
-    func requestQuit() {
-        terminationRequested = true
-        NSApp.terminate(nil)
-    }
-
-    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard terminationRequested else {
-            Log.app.info("ignoring unsolicited terminate request to keep the menu-bar agent running")
-            return .terminateCancel
-        }
-        return .terminateNow
-    }
-
-    @objc private func handleQuitAppleEvent(_ event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
-        requestQuit()
-    }
-
     /// Coming back to the foreground is a strong signal the user may have just
-    /// toggled a grant in System Settings. Re-arm the global hotkey so an
-    /// Accessibility grant made outside the onboarding window takes effect
-    /// without a relaunch.
+    /// toggled a grant in System Settings. Re-read grants (this also re-arms the
+    /// global hotkey if Accessibility just flipped, since nothing calls back when
+    /// it's changed in System Settings).
     func applicationDidBecomeActive(_ notification: Notification) {
-        // Re-read grants (also re-arms the hotkey if Accessibility just flipped) —
-        // returning to the foreground is the strongest signal a grant changed in
-        // System Settings, where nothing calls back.
         coordinator.refreshPermissionStatuses()
         coordinator.refreshSystemIntegrationStatus()
     }
 
-    /// A faceless agent shows nothing when "opened" again from Finder or
-    /// Spotlight, which reads as the app being broken. Treat a reopen as a
-    /// request to see the app: surface the welcome window, which shows the
-    /// hotkey, permission status, and that VoiceType is alive in the menu bar.
+    /// Clicking the Dock icon (with no visible window) brings the Home window
+    /// back — closing it only hid it; dictation kept running in the background.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if !flag { coordinator.wantsOnboarding = true }
-        return false
+        if !flag { showMainWindow() }
+        return true
     }
+
+    // MARK: - Main window
+
+    /// Create (or re-focus) the Home window hosting the SwiftUI dashboard. The
+    /// window is kept alive across closes (`isReleasedWhenClosed = false`) so the
+    /// red close button simply hides it — VoiceType keeps dictating in the
+    /// background and a Dock click brings the same window straight back.
+    private func showMainWindow() {
+        if let window = mainWindow {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 620),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+            backing: .buffered, defer: false)
+        window.title = "VoiceType"
+        window.titlebarAppearsTransparent = true
+        window.isReleasedWhenClosed = false
+        window.contentMinSize = NSSize(width: 440, height: 540)
+        window.center()
+        window.setFrameAutosaveName("VoiceTypeMainWindow")
+        window.contentView = NSHostingView(rootView: HomeView(coordinator: coordinator))
+        mainWindow = window
+
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    /// Open the SwiftUI `Settings` scene. `\.openSettings` isn't available from an
+    /// AppKit-hosted view, so we send the standard responder action instead.
+    private static func openSettingsScene() {
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+    }
+
+    // MARK: - Onboarding
 
     /// Create (or re-focus) the onboarding window, hosting the SwiftUI view.
     private func showOnboarding() {

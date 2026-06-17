@@ -5,7 +5,7 @@ import VoiceTypeKit
 
 /// The app-side brain: owns settings + services, drives the push-to-talk →
 /// capture → transcribe → cleanup → inject loop, and publishes state for the
-/// menu bar. All UI-affecting state lives here on the main actor.
+/// Home window and HUD. All UI-affecting state lives here on the main actor.
 @Observable
 @MainActor
 final class DictationCoordinator {
@@ -42,6 +42,12 @@ final class DictationCoordinator {
     /// Installed by the AppDelegate to trigger a Sparkle update check.
     var onCheckForUpdates: (@MainActor () -> Void)?
     func checkForUpdates() { onCheckForUpdates?() }
+
+    /// Installed by the AppDelegate to open the Settings scene. The home window is
+    /// hosted via AppKit, where SwiftUI's `\.openSettings` environment action
+    /// isn't wired up, so we route the request through the app layer instead.
+    var onOpenSettings: (@MainActor () -> Void)?
+    func openSettings() { onOpenSettings?() }
 
     var settings: AppSettings {
         didSet { applySettingsChange(from: oldValue) }
@@ -428,17 +434,5 @@ final class DictationCoordinator {
         availableTranscription = await EngineFactory.availableTranscription(secrets: secrets)
         availableCleanup = await EngineFactory.availableCleanup(secrets: secrets)
         if availableTranscription.isEmpty { availableTranscription = [.appleOnDevice] }
-    }
-
-    // MARK: - Menu bar presentation
-
-    var menuBarSymbol: String {
-        switch state {
-        case .idle: return "mic"
-        case .recording: return "mic.fill"
-        case .transcribing, .cleaning, .injecting: return "waveform"
-        case .done: return "mic"
-        case .error: return "exclamationmark.triangle"
-        }
     }
 }

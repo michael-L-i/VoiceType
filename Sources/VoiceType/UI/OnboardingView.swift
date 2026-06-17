@@ -86,9 +86,9 @@ struct OnboardingView: View {
             .foregroundStyle(.secondary)
 
             Label {
-                Text("VoiceType has no Dock icon — it lives in your menu bar. Look for the \(Image(systemName: "mic")) up top.")
+                Text("Closing the window keeps VoiceType running — the hotkey still works. Click its Dock icon any time to bring the window back.")
             } icon: {
-                Image(systemName: "menubar.arrow.up.rectangle")
+                Image(systemName: "dock.rectangle")
             }
             .font(.callout)
             .foregroundStyle(.secondary)
