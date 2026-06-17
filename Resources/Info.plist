@@ -20,9 +20,8 @@
     <string>1</string>
     <key>LSMinimumSystemVersion</key>
     <string>26.0</string>
-    <!-- Menu-bar agent: no Dock icon, no app-switcher entry. -->
-    <key>LSUIElement</key>
-    <true/>
+    <!-- Regular Dock app: a visible icon, app-switcher entry, and a main window.
+         (Previously LSUIElement=true ran it as a faceless menu-bar agent.) -->
     <!-- Never run two copies at once. Two instances share the bundle ID and
          fight over the menu bar, the onboarding window, and the system
          permission prompts. This blocks a second launch of *this* bundle; the

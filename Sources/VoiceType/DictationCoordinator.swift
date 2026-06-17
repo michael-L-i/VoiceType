@@ -435,16 +435,4 @@ final class DictationCoordinator {
         availableCleanup = await EngineFactory.availableCleanup(secrets: secrets)
         if availableTranscription.isEmpty { availableTranscription = [.appleOnDevice] }
     }
-
-    // MARK: - Menu bar presentation
-
-    var menuBarSymbol: String {
-        switch state {
-        case .idle: return "mic"
-        case .recording: return "mic.fill"
-        case .transcribing, .cleaning, .injecting: return "waveform"
-        case .done: return "mic"
-        case .error: return "exclamationmark.triangle"
-        }
-    }
 }
