@@ -48,6 +48,53 @@ struct StatsTotalsTests {
     }
 }
 
+@Suite("Dictation stats — streak")
+struct StatsStreakTests {
+    /// A stable UTC Gregorian calendar so day math is deterministic.
+    private var calendar: Calendar {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "UTC")!
+        return cal
+    }
+
+    private func day(_ year: Int, _ month: Int, _ day: Int) -> Date {
+        calendar.date(from: DateComponents(year: year, month: month, day: day))!
+    }
+
+    @Test("first dictation starts a 1-day streak")
+    func first() {
+        var stats = DictationStats()
+        stats.record(words: 3, speakingTime: 1, on: day(2026, 6, 17), calendar: calendar)
+        #expect(stats.currentStreak == 1)
+    }
+
+    @Test("multiple dictations on the same day don't bump the streak")
+    func sameDay() {
+        var stats = DictationStats()
+        stats.record(words: 3, speakingTime: 1, on: day(2026, 6, 17), calendar: calendar)
+        stats.record(words: 3, speakingTime: 1, on: day(2026, 6, 17), calendar: calendar)
+        #expect(stats.currentStreak == 1)
+    }
+
+    @Test("consecutive days increment the streak")
+    func consecutive() {
+        var stats = DictationStats()
+        stats.record(words: 3, speakingTime: 1, on: day(2026, 6, 17), calendar: calendar)
+        stats.record(words: 3, speakingTime: 1, on: day(2026, 6, 18), calendar: calendar)
+        stats.record(words: 3, speakingTime: 1, on: day(2026, 6, 19), calendar: calendar)
+        #expect(stats.currentStreak == 3)
+    }
+
+    @Test("a skipped day resets the streak to 1")
+    func skipped() {
+        var stats = DictationStats()
+        stats.record(words: 3, speakingTime: 1, on: day(2026, 6, 17), calendar: calendar)
+        stats.record(words: 3, speakingTime: 1, on: day(2026, 6, 18), calendar: calendar)
+        stats.record(words: 3, speakingTime: 1, on: day(2026, 6, 21), calendar: calendar)
+        #expect(stats.currentStreak == 1)
+    }
+}
+
 @Suite("Dictation stats — words per minute")
 struct StatsWPMTests {
     @Test("no speaking time yields zero")

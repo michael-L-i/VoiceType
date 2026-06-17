@@ -41,9 +41,11 @@ public struct DictationStats: Sendable, Codable, Equatable {
         text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
     }
 
-    /// Fold one completed dictation into the totals. `speakingTime` is the audio
-    /// duration in seconds; `date` is when it finished (defaults handled by the
-    /// caller). Streak handling lands in a later step.
+    /// Fold one completed dictation into the totals and advance the daily streak.
+    /// `speakingTime` is the audio duration in seconds; `date` is when it
+    /// finished. The streak counts consecutive calendar days with at least one
+    /// dictation: same day leaves it unchanged, the next day increments it, and a
+    /// gap of more than a day resets it to 1.
     public mutating func record(words: Int,
                                 speakingTime: TimeInterval,
                                 on date: Date,
@@ -51,5 +53,18 @@ public struct DictationStats: Sendable, Codable, Equatable {
         totalWords += max(0, words)
         totalSpeakingTime += max(0, speakingTime)
         sessionCount += 1
+
+        let day = calendar.startOfDay(for: date)
+        if let last = lastDictationDay {
+            let gap = calendar.dateComponents([.day], from: last, to: day).day ?? 0
+            switch gap {
+            case 0: break              // already counted today
+            case 1: currentStreak += 1 // consecutive day
+            default: currentStreak = 1 // streak broken (or clock moved back)
+            }
+        } else {
+            currentStreak = 1
+        }
+        lastDictationDay = day
     }
 }
