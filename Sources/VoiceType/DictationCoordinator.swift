@@ -43,6 +43,12 @@ final class DictationCoordinator {
     var onCheckForUpdates: (@MainActor () -> Void)?
     func checkForUpdates() { onCheckForUpdates?() }
 
+    /// Installed by the AppDelegate to open the Settings scene. The home window is
+    /// hosted via AppKit, where SwiftUI's `\.openSettings` environment action
+    /// isn't wired up, so we route the request through the app layer instead.
+    var onOpenSettings: (@MainActor () -> Void)?
+    func openSettings() { onOpenSettings?() }
+
     var settings: AppSettings {
         didSet { applySettingsChange(from: oldValue) }
     }
