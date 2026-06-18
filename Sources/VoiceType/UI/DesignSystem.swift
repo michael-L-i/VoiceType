@@ -78,3 +78,29 @@ struct FrostedCard<Content: View>: View {
             )
     }
 }
+
+/// A single headline statistic: a large monospaced-digit value beside its
+/// label, with an optional leading glyph. Used for the Home stats card
+/// (total words / WPM / streak).
+struct StatRow: View {
+    let value: String
+    let label: String
+    var symbol: String? = nil
+
+    var body: some View {
+        HStack(spacing: VT.Space.m) {
+            if let symbol {
+                Image(systemName: symbol)
+                    .font(.body)
+                    .foregroundStyle(VT.tint)
+                    .frame(width: 22)
+            }
+            Text(value)
+                .font(.system(.title, design: .rounded).weight(.semibold).monospacedDigit())
+            Text(label)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 0)
+        }
+    }
+}

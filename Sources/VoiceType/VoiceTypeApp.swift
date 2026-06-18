@@ -25,7 +25,6 @@ struct VoiceTypeApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let coordinator = DictationCoordinator()
     private var mainWindow: NSWindow?
-    private var onboardingWindow: NSWindow?
     private var hud: RecordingHUDController?
     private var updater: UpdaterController?
 
@@ -68,9 +67,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Open Settings (⌘,) on request from the AppKit-hosted Home window.
         coordinator.onOpenSettings = { Self.openSettingsScene() }
 
-        // Present onboarding via AppKit so it works no matter which SwiftUI
-        // scenes happen to be mounted (a SwiftUI Window can't open itself).
-        coordinator.onRequestOnboarding = { [weak self] in self?.showOnboarding() }
+        // Setup is now a tab inside the Home window (RootView switches to it when
+        // `wantsOnboarding` flips); just make sure the window is up and focused.
+        coordinator.onRequestOnboarding = { [weak self] in self?.showMainWindow() }
         coordinator.start()
         coordinator.refreshSystemIntegrationStatus()
 
@@ -115,16 +114,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 460, height: 620),
+            contentRect: NSRect(x: 0, y: 0, width: 820, height: 600),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered, defer: false)
         window.title = "VoiceType"
         window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
-        window.contentMinSize = NSSize(width: 440, height: 540)
+        window.contentMinSize = NSSize(width: 720, height: 520)
         window.center()
         window.setFrameAutosaveName("VoiceTypeMainWindow")
-        window.contentView = NSHostingView(rootView: HomeView(coordinator: coordinator))
+        window.contentView = NSHostingView(rootView: RootView(coordinator: coordinator))
         mainWindow = window
 
         NSApp.activate(ignoringOtherApps: true)
@@ -136,50 +135,5 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private static func openSettingsScene() {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-    }
-
-    // MARK: - Onboarding
-
-    /// Create (or re-focus) the onboarding window, hosting the SwiftUI view.
-    private func showOnboarding() {
-        if let window = onboardingWindow {
-            NSApp.activate(ignoringOtherApps: true)
-            window.makeKeyAndOrderFront(nil)
-            return
-        }
-
-        let root = OnboardingView(coordinator: coordinator) { [weak self] in
-            self?.coordinator.wantsOnboarding = false
-            self?.onboardingWindow?.close()
-        }
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 460, height: 560),
-            styleMask: [.titled, .closable, .fullSizeContentView],
-            backing: .buffered, defer: false)
-        window.title = "Welcome to VoiceType"
-        window.titlebarAppearsTransparent = true
-        window.isReleasedWhenClosed = false
-        window.center()
-        window.contentView = NSHostingView(rootView: root)
-        window.delegate = onboardingDelegate
-        onboardingWindow = window
-
-        NSApp.activate(ignoringOtherApps: true)
-        window.makeKeyAndOrderFront(nil)
-    }
-
-    // Reset the onboarding flag when the user closes the window directly.
-    private lazy var onboardingDelegate = OnboardingWindowDelegate { [weak self] in
-        self?.coordinator.wantsOnboarding = false
-    }
-}
-
-/// Tracks manual closes of the onboarding window so `wantsOnboarding` stays in
-/// sync (otherwise re-requesting it after a manual close would no-op).
-private final class OnboardingWindowDelegate: NSObject, NSWindowDelegate {
-    private let onClose: @MainActor () -> Void
-    init(onClose: @escaping @MainActor () -> Void) { self.onClose = onClose }
-    func windowWillClose(_ notification: Notification) {
-        MainActor.assumeIsolated { onClose() }
     }
 }
