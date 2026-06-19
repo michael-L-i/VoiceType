@@ -1,16 +1,25 @@
 import SwiftUI
 import VoiceTypeKit
 
-/// The calm-native design language: quiet, premium, system-first. We lean on
-/// macOS materials and the system accent, add a restrained brand tint, and keep
-/// a consistent spacing/radius scale so every surface feels of a piece.
+/// The warm-distinctive design language: premium and system-first, but with a
+/// warm coral/amber brand instead of the sea-of-blue default. We lean on macOS
+/// materials, add a restrained coral tint, and keep a consistent spacing/radius
+/// scale so every surface feels of a piece.
 enum VT {
     // MARK: Brand
 
-    /// A calm indigo used for active/affirmative accents (waveform, focus rings).
-    static let tint = Color(red: 0.36, green: 0.46, blue: 0.92)
-    /// The familiar "live" red, used only for the recording dot.
+    /// The brand coral used for active/affirmative accents (mark, focus rings).
+    static let tint = Color(red: 0.95, green: 0.45, blue: 0.28)
+    /// A lighter amber, paired with `tint` for warm gradients.
+    static let tintAmber = Color(red: 1.0, green: 0.66, blue: 0.40)
+    /// The familiar "live" red, used only for the recording dot. Kept distinct
+    /// (pink-red) from the brand coral (orange) so the two never read alike.
     static let live = Color(red: 0.94, green: 0.33, blue: 0.36)
+
+    /// The signature warm gradient: amber → coral, top-leading to bottom-trailing.
+    static let brandGradient = LinearGradient(
+        colors: [tintAmber, tint],
+        startPoint: .topLeading, endPoint: .bottomTrailing)
     /// The dictation HUD pill fill: one fixed, opaque, relatively dark gray so the
     /// pill reads identically over any background (no adaptive material).
     static let hudFill = Color(red: 0.15, green: 0.15, blue: 0.17)
@@ -76,6 +85,41 @@ struct FrostedCard<Content: View>: View {
                 RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous)
                     .strokeBorder(.white.opacity(0.08), lineWidth: 1)
             )
+    }
+}
+
+/// The VoiceType brand mark: the "utterance wave" — vertical rounded bars whose
+/// envelope traces a horizontal pointed oval (a lens), tall in the centre and
+/// tapering to point-dots at each end. Matches the app icon's glyph exactly, so
+/// the sidebar, hero, and Dock all speak with one voice. Draws to fill its
+/// frame; give it a ~2:1 (width:height) box for the intended proportions.
+struct BrandMark: View {
+    /// Fill colour for the bars (e.g. `VT.tint` on light surfaces, `.white` on
+    /// the coloured hero).
+    var color: Color = VT.tint
+    /// Odd counts keep a true centre bar. 9 matches the app icon.
+    var barCount: Int = 9
+
+    var body: some View {
+        Canvas { ctx, size in
+            let n = barCount
+            let pitch = size.width / Double(n)
+            let barW = pitch * 0.52
+            let midY = size.height / 2
+            let maxHalf = size.height / 2
+            let minHalf = barW / 2
+
+            for i in 0..<n {
+                let t = Double(i) / Double(n - 1) * 2.0 - 1.0   // -1 … 1
+                let f = 1.0 - t * t                             // pointed-oval envelope
+                let half = max(minHalf, maxHalf * f)
+                let x = pitch * (Double(i) + 0.5)
+                let rect = CGRect(x: x - barW / 2, y: midY - half, width: barW, height: half * 2)
+                ctx.fill(Path(roundedRect: rect, cornerRadius: barW / 2), with: .color(color))
+            }
+        }
+        .aspectRatio(2.0, contentMode: .fit)
+        .accessibilityLabel("VoiceType")
     }
 }
 

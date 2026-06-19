@@ -70,9 +70,8 @@ struct RootView: View {
 
     private var brand: some View {
         HStack(spacing: VT.Space.s) {
-            Image(systemName: "waveform")
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(VT.tint)
+            BrandMark(color: VT.tint)
+                .frame(width: 30, height: 15)
             Text("VoiceType")
                 .font(.title3.weight(.semibold))
         }

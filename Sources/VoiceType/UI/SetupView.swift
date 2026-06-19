@@ -52,9 +52,11 @@ struct SetupView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: VT.Space.m) {
-            Image(systemName: "waveform.circle.fill")
-                .font(.system(size: 52, weight: .regular))
-                .foregroundStyle(VT.tint)
+            BrandMark(color: .white)
+                .frame(width: 36, height: 18)
+                .frame(width: 60, height: 60)
+                .background(VT.brandGradient,
+                            in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             VStack(alignment: .leading, spacing: VT.Space.xs) {
                 Text("Set up VoiceType")
                     .font(.system(.largeTitle, design: .rounded).weight(.bold))
