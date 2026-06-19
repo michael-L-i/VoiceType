@@ -15,6 +15,7 @@ final class DictationCoordinator {
     private(set) var inputLevel: Float = 0
     private(set) var history = DictationHistory()
     private(set) var stats = StatsStore.shared.load()
+    private(set) var dailyStats = DailyStatsStore.shared.load()
     private(set) var launchAtLoginEnabled = LaunchAtLogin.isEnabled
     private(set) var launchAtLoginRequiresApproval = LaunchAtLogin.requiresApproval
 
@@ -345,9 +346,12 @@ final class DictationCoordinator {
                 if result.finalText.isEmpty {
                     self.finish(state: .idle)
                 } else {
+                    // Read the target app while it's still frontmost (before we
+                    // touch state or inject) so the usage breakdown is accurate.
+                    let app = self.currentForegroundApp()
                     self.state = .injecting
                     try await self.injector.inject(result.finalText)
-                    self.record(result, speakingTime: audio.duration)
+                    self.record(result, speakingTime: audio.duration, app: app)
                     self.finish(state: .done)
                 }
             } catch let error as InjectionError {
@@ -361,15 +365,32 @@ final class DictationCoordinator {
         }
     }
 
-    private func record(_ result: PipelineResult, speakingTime: TimeInterval) {
+    /// The app the user is dictating into, read at inject time while it's still
+    /// frontmost. On-device only, to power the usage breakdown; nil when the
+    /// foreground app has no bundle id. VoiceType's own window is never frontmost
+    /// during hotkey dictation, so this reports the real target app.
+    private func currentForegroundApp() -> AppUsageKey? {
+        guard let app = NSWorkspace.shared.frontmostApplication,
+              let bundleID = app.bundleIdentifier else { return nil }
+        return AppUsageKey(bundleID: bundleID, name: app.localizedName ?? bundleID)
+    }
+
+    private func record(_ result: PipelineResult, speakingTime: TimeInterval,
+                        app: AppUsageKey?, source: DictationSource = .microphone) {
         lastResult = result
         Log.metrics(result)
 
+        let words = DictationStats.wordCount(result.finalText)
+
         // Aggregate stats are counts only (no text/audio), so they update even
         // when history is off.
-        stats.record(words: DictationStats.wordCount(result.finalText),
-                     speakingTime: speakingTime, on: Date())
+        stats.record(words: words, speakingTime: speakingTime, on: Date())
         StatsStore.shared.save(stats)
+
+        // Per-day + per-app rollups for the heatmap and usage insights.
+        dailyStats.record(words: words, speakingTime: speakingTime,
+                          app: app, source: source, on: Date())
+        DailyStatsStore.shared.save(dailyStats)
 
         if settings.keepHistory {
             history.add(DictationRecord(
