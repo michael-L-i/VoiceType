@@ -31,6 +31,16 @@ public struct PipelineResult: Sendable, Equatable {
     public var cleanupEngine: CleanupEngineKind
     public var metrics: LatencyMetrics
 
+    public init(rawText: String, cleanedText: String,
+                transcriptionEngine: TranscriptionEngineKind,
+                cleanupEngine: CleanupEngineKind, metrics: LatencyMetrics) {
+        self.rawText = rawText
+        self.cleanedText = cleanedText
+        self.transcriptionEngine = transcriptionEngine
+        self.cleanupEngine = cleanupEngine
+        self.metrics = metrics
+    }
+
     /// The text that should actually be injected.
     public var finalText: String { cleanedText.isEmpty ? rawText : cleanedText }
 }
