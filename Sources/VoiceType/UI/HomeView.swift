@@ -49,7 +49,6 @@ struct HomeView: View {
         HStack(alignment: .firstTextBaseline, spacing: VT.Space.s) {
             Text(greetingText)
                 .font(.system(.largeTitle, design: .rounded).weight(.bold))
-            hotkeyBadge
             Spacer(minLength: 0)
         }
     }
@@ -66,21 +65,6 @@ struct HomeView: View {
         guard let first = full.split(separator: " ").first else { return nil }
         return first.isEmpty ? nil : String(first)
     }()
-
-    private var hotkeyBadge: some View {
-        HStack(spacing: VT.Space.xs) {
-            Image(systemName: "keyboard")
-            Text(coordinator.settings.hotkey.holdToTalk ? "Hold" : "Tap")
-                .foregroundStyle(.secondary)
-            Text(coordinator.settings.hotkey.trigger.displayName)
-                .fontWeight(.semibold)
-                .monospaced()
-        }
-        .font(.callout)
-        .padding(.horizontal, VT.Space.m)
-        .padding(.vertical, VT.Space.s)
-        .background(.quaternary.opacity(0.5), in: Capsule())
-    }
 
     // MARK: Welcome hero
 
