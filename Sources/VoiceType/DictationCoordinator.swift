@@ -16,6 +16,14 @@ final class DictationCoordinator {
     private(set) var history = HistoryStore.shared.load()
     private(set) var stats = StatsStore.shared.load()
     private(set) var dailyStats = DailyStatsStore.shared.load()
+
+    /// Deterministic usage insights for the Stats page — recomputed cheaply from
+    /// the daily log + lifetime totals. Always populated.
+    private(set) var insights = UsageInsights(headline: "", bullets: [], topApps: [],
+                                              busiestDay: nil, weekOverWeekWordDelta: 0)
+    /// An optional friendly natural-language summary from the on-device model;
+    /// nil until generated (or if Apple Intelligence is unavailable).
+    private(set) var naturalSummary: String?
     private(set) var launchAtLoginEnabled = LaunchAtLogin.isEnabled
     private(set) var launchAtLoginRequiresApproval = LaunchAtLogin.requiresApproval
 
@@ -83,6 +91,28 @@ final class DictationCoordinator {
         hotkey.onRelease = { [weak self] in self?.handleRelease() }
 
         refreshPermissionStatuses()
+        refreshInsights()
+    }
+
+    // MARK: - Insights
+
+    /// Recompute the deterministic usage insights from current stats. Cheap and
+    /// synchronous; safe to call after every dictation.
+    func refreshInsights() {
+        insights = InsightsGenerator.generate(from: dailyStats, lifetime: stats)
+    }
+
+    /// Ask the on-device model for a friendly paragraph summarizing usage. No-ops
+    /// silently if Apple Intelligence is unavailable or generation fails — the
+    /// deterministic insights remain the floor.
+    func generateNaturalSummary() {
+        let snapshot = insights
+        Task { [weak self] in
+            let engine = FoundationModelsSummaryEngine()
+            guard await engine.isAvailable(),
+                  let summary = try? await engine.summarize(snapshot) else { return }
+            self?.naturalSummary = summary
+        }
     }
 
     /// Tracks whether the live global hotkey monitor was established while the
@@ -323,11 +353,11 @@ final class DictationCoordinator {
 
     // MARK: - Pipeline
 
-    private func runPipeline(on audio: PCMBuffer) {
-        isProcessing = true
-        let settings = self.settings
+    /// Resolve the transcription + cleanup engines for the current settings,
+    /// honoring consent and availability fallback. Shared by the live mic path
+    /// and file import. Returns nil only when no transcriber can run at all.
+    private func resolveEngines() -> (transcriber: TranscriptionEngine, cleaner: CleanupEngine)? {
         let secrets = EngineFactory.Secrets(groqAPIKey: KeychainStore.shared.groqAPIKey)
-
         let tKind = EngineResolver.resolveTranscription(
             preferred: settings.transcriptionEngine,
             cloudEnabled: settings.cloudEnabled,
@@ -336,14 +366,26 @@ final class DictationCoordinator {
             preferred: settings.cleanupEngine,
             cloudEnabled: settings.cloudEnabled,
             available: availableCleanup)
-
         guard let transcriber = EngineFactory.makeTranscriber(tKind, secrets: secrets) else {
+            return nil
+        }
+        return (transcriber, EngineFactory.makeCleaner(cKind, secrets: secrets))
+    }
+
+    private func makePipeline() -> DictationPipeline? {
+        guard let engines = resolveEngines() else { return nil }
+        return DictationPipeline(transcriber: engines.transcriber, cleaner: engines.cleaner)
+    }
+
+    private func runPipeline(on audio: PCMBuffer) {
+        isProcessing = true
+        let settings = self.settings
+
+        guard let pipeline = makePipeline() else {
             isProcessing = false
             setError("No transcription engine available.")
             return
         }
-        let cleaner = EngineFactory.makeCleaner(cKind, secrets: secrets)
-        let pipeline = DictationPipeline(transcriber: transcriber, cleaner: cleaner)
 
         Task { [weak self] in
             guard let self else { return }
@@ -402,6 +444,11 @@ final class DictationCoordinator {
                           app: app, source: source, on: Date())
         DailyStatsStore.shared.save(dailyStats)
 
+        // Refresh the deterministic insights; drop any stale model summary so it
+        // regenerates on next request rather than describing old numbers.
+        refreshInsights()
+        naturalSummary = nil
+
         if settings.keepHistory {
             history.add(DictationRecord(
                 date: Date(), text: result.finalText,
@@ -415,6 +462,112 @@ final class DictationCoordinator {
                 speakingTime: speakingTime))
             HistoryStore.shared.save(history)
         }
+    }
+
+    // MARK: - File import
+
+    /// Progress of an audio/video file transcription.
+    enum ImportState: Equatable {
+        case idle
+        case decoding(Double)        // 0...1
+        case transcribing(Double)    // 0...1
+        case done(text: String)
+        case failed(String)
+
+        var isRunning: Bool {
+            switch self {
+            case .decoding, .transcribing: return true
+            default: return false
+            }
+        }
+    }
+
+    private(set) var importState: ImportState = .idle
+    private var importTask: Task<Void, Never>?
+
+    /// Transcribe an imported audio/video file: decode → chunk → transcribe each
+    /// chunk → one cleanup pass → save to transcripts. Unlike mic dictation the
+    /// text is NOT injected (there's no target app) — the UI shows it to copy.
+    /// Respects cloud consent via the same resolver as the mic path.
+    func transcribeFile(at url: URL) {
+        guard !importState.isRunning else { return }
+        importTask?.cancel()
+        importState = .decoding(0)
+
+        importTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let buffer = try await AudioFileDecoder.decode(url) { fraction in
+                    Task { @MainActor in
+                        if case .decoding = self.importState { self.importState = .decoding(fraction) }
+                    }
+                }
+                if Task.isCancelled { return }
+
+                guard let engines = self.resolveEngines() else {
+                    self.importState = .failed("No transcription engine available.")
+                    return
+                }
+
+                let chunks = AudioChunker.chunk(buffer)
+                self.importState = .transcribing(0)
+
+                var parts: [String] = []
+                for (index, chunk) in chunks.enumerated() {
+                    if Task.isCancelled { return }
+                    let result = try await engines.transcriber.transcribe(chunk, locale: self.settings.locale)
+                    let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !text.isEmpty { parts.append(text) }
+                    self.importState = .transcribing(Double(index + 1) / Double(chunks.count))
+                }
+
+                let raw = parts.joined(separator: " ")
+                guard !raw.isEmpty else {
+                    self.importState = .failed("Couldn't find any speech in this file.")
+                    return
+                }
+
+                // One cleanup pass over the joined transcript (coherent over the
+                // whole file), degrading to raw if cleanup is unavailable.
+                var cleaned = raw
+                var usedCleanup: CleanupEngineKind = .none
+                do {
+                    let c = try await engines.cleaner.cleanup(raw, options: self.settings.cleanupOptions)
+                    if !c.isEmpty { cleaned = c; usedCleanup = engines.cleaner.kind }
+                } catch { /* keep raw */ }
+
+                if Task.isCancelled { return }
+
+                var metrics = LatencyMetrics()
+                metrics.audioDuration = buffer.duration
+                let result = PipelineResult(
+                    rawText: raw, cleanedText: cleaned,
+                    transcriptionEngine: engines.transcriber.kind,
+                    cleanupEngine: usedCleanup, metrics: metrics)
+
+                self.record(result, speakingTime: buffer.duration,
+                            app: nil, source: .importedFile, filename: url.lastPathComponent)
+                self.importState = .done(text: result.finalText)
+            } catch let error as AudioFileDecoder.DecodeError {
+                self.importState = .failed(error.message)
+            } catch let error as TranscriptionError {
+                self.importState = .failed(Self.describe(error))
+            } catch {
+                self.importState = .failed(error.localizedDescription)
+            }
+        }
+    }
+
+    /// Cancel an in-flight import and reset to idle.
+    func cancelImport() {
+        importTask?.cancel()
+        importState = .idle
+    }
+
+    /// Dismiss a finished/failed import result.
+    func clearImport() {
+        guard !importState.isRunning else { return }
+        importState = .idle
     }
 
     // MARK: - State helpers
