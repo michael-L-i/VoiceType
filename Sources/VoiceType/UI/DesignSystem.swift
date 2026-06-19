@@ -24,6 +24,9 @@ enum VT {
     /// pill reads identically over any background (no adaptive material).
     static let hudFill = Color(red: 0.15, green: 0.15, blue: 0.17)
 
+    /// A faint divider/empty-cell ink, used for hairlines and zero-state fills.
+    static let hairline = Color.primary.opacity(0.08)
+
     // MARK: Geometry
 
     enum Radius {
@@ -120,6 +123,38 @@ struct BrandMark: View {
         }
         .aspectRatio(2.0, contentMode: .fit)
         .accessibilityLabel("VoiceType")
+    }
+}
+
+/// A page title + optional subtitle, used at the top of each main surface so
+/// every page opens the same calm way.
+struct PageHeader: View {
+    let title: String
+    var subtitle: String? = nil
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: VT.Space.xs) {
+            Text(title)
+                .font(.system(.largeTitle, design: .rounded).weight(.bold))
+            if let subtitle {
+                Text(subtitle)
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+/// A small uppercase section label (the quiet caption above grouped content).
+struct SectionLabel: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+
+    var body: some View {
+        Text(text)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .textCase(.uppercase)
     }
 }
 

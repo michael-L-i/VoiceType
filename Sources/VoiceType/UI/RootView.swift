@@ -11,7 +11,7 @@ struct RootView: View {
     @State private var selection: SidebarItem = .home
 
     /// The primary destinations, shown at the top of the sidebar.
-    private let topItems: [SidebarItem] = [.home, .insights, .scratchpad]
+    private let topItems: [SidebarItem] = [.home, .stats, .transcripts, .transcribe]
 
     var body: some View {
         NavigationSplitView {
@@ -127,13 +127,13 @@ struct RootView: View {
     private var detail: some View {
         switch selection {
         case .home:
-            HomeView(coordinator: coordinator)
-        case .insights:
-            ComingSoonView(title: "Insights", symbol: "chart.bar.xaxis",
-                           blurb: "Dictation trends and patterns are coming soon.")
-        case .scratchpad:
-            ComingSoonView(title: "Scratchpad", symbol: "note.text",
-                           blurb: "A quick place to jot and dictate is coming soon.")
+            HomeView(coordinator: coordinator) { selection = $0 }
+        case .stats:
+            StatsView(coordinator: coordinator)
+        case .transcripts:
+            TranscriptsView(coordinator: coordinator)
+        case .transcribe:
+            TranscribeView(coordinator: coordinator)
         case .setup:
             SetupView(coordinator: coordinator) { selection = .home }
         }
@@ -143,15 +143,16 @@ struct RootView: View {
 /// The selectable destinations in the sidebar. (Settings is intentionally not
 /// here — it opens the standalone preferences window.)
 enum SidebarItem: String, CaseIterable, Identifiable {
-    case home, insights, scratchpad, setup
+    case home, stats, transcripts, transcribe, setup
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .home: return "Home"
-        case .insights: return "Insights"
-        case .scratchpad: return "Scratchpad"
+        case .stats: return "Stats"
+        case .transcripts: return "Transcripts"
+        case .transcribe: return "Transcribe"
         case .setup: return "Setup"
         }
     }
@@ -159,8 +160,9 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     var symbol: String {
         switch self {
         case .home: return "house"
-        case .insights: return "chart.bar.xaxis"
-        case .scratchpad: return "note.text"
+        case .stats: return "chart.bar.xaxis"
+        case .transcripts: return "text.book.closed"
+        case .transcribe: return "waveform.badge.plus"
         case .setup: return "person.badge.shield.checkmark"
         }
     }
