@@ -56,6 +56,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // quit. (Was a faceless `.accessory` menu-bar agent.)
         NSApp.setActivationPolicy(.regular)
 
+        // VoiceType has a light identity (warm coral on white), so pin the whole
+        // app to the Aqua appearance rather than following the system into Dark
+        // Mode. Covers the Home window, the floating HUD, and Settings at once.
+        NSApp.appearance = NSAppearance(named: .aqua)
+
         // The floating recording pill. Created once; it observes state itself.
         hud = RecordingHUDController(coordinator: coordinator)
 
