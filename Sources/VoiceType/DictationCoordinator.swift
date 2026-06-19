@@ -16,6 +16,14 @@ final class DictationCoordinator {
     private(set) var history = HistoryStore.shared.load()
     private(set) var stats = StatsStore.shared.load()
     private(set) var dailyStats = DailyStatsStore.shared.load()
+
+    /// Deterministic usage insights for the Stats page — recomputed cheaply from
+    /// the daily log + lifetime totals. Always populated.
+    private(set) var insights = UsageInsights(headline: "", bullets: [], topApps: [],
+                                              busiestDay: nil, weekOverWeekWordDelta: 0)
+    /// An optional friendly natural-language summary from the on-device model;
+    /// nil until generated (or if Apple Intelligence is unavailable).
+    private(set) var naturalSummary: String?
     private(set) var launchAtLoginEnabled = LaunchAtLogin.isEnabled
     private(set) var launchAtLoginRequiresApproval = LaunchAtLogin.requiresApproval
 
@@ -83,6 +91,28 @@ final class DictationCoordinator {
         hotkey.onRelease = { [weak self] in self?.handleRelease() }
 
         refreshPermissionStatuses()
+        refreshInsights()
+    }
+
+    // MARK: - Insights
+
+    /// Recompute the deterministic usage insights from current stats. Cheap and
+    /// synchronous; safe to call after every dictation.
+    func refreshInsights() {
+        insights = InsightsGenerator.generate(from: dailyStats, lifetime: stats)
+    }
+
+    /// Ask the on-device model for a friendly paragraph summarizing usage. No-ops
+    /// silently if Apple Intelligence is unavailable or generation fails — the
+    /// deterministic insights remain the floor.
+    func generateNaturalSummary() {
+        let snapshot = insights
+        Task { [weak self] in
+            let engine = FoundationModelsSummaryEngine()
+            guard await engine.isAvailable(),
+                  let summary = try? await engine.summarize(snapshot) else { return }
+            self?.naturalSummary = summary
+        }
     }
 
     /// Tracks whether the live global hotkey monitor was established while the
@@ -401,6 +431,11 @@ final class DictationCoordinator {
         dailyStats.record(words: words, speakingTime: speakingTime,
                           app: app, source: source, on: Date())
         DailyStatsStore.shared.save(dailyStats)
+
+        // Refresh the deterministic insights; drop any stale model summary so it
+        // regenerates on next request rather than describing old numbers.
+        refreshInsights()
+        naturalSummary = nil
 
         if settings.keepHistory {
             history.add(DictationRecord(
