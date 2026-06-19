@@ -28,7 +28,8 @@ struct TranscriptsView: View {
             content
         }
         .padding(VT.Space.xl)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: 900, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(.background)
     }
 

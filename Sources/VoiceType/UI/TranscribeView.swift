@@ -24,8 +24,8 @@ struct TranscribeView: View {
                 case .failed(let message):   errorCard(message)
                 }
             }
-            .frame(maxWidth: 680, alignment: .leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: 760, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
             .padding(VT.Space.xl)
         }
         .background(.background)
