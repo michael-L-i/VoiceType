@@ -23,9 +23,6 @@ struct SettingsView: View {
 
             PrivacyTab(coordinator: coordinator)
                 .tabItem { Label("Privacy & Cloud", systemImage: "lock.shield") }
-
-            HistoryTab(coordinator: coordinator)
-                .tabItem { Label("History", systemImage: "clock.arrow.circlepath") }
         }
         .frame(width: 520, height: 460)
     }
@@ -298,73 +295,6 @@ private struct PrivacyTab: View {
         }
         .formStyle(.grouped)
         .onChange(of: groqKeyDraft) { _, _ in savedConfirmation = false }
-    }
-}
-
-// MARK: - History
-
-private struct HistoryTab: View {
-    @Bindable var coordinator: DictationCoordinator
-
-    var body: some View {
-        VStack(spacing: 0) {
-            if coordinator.history.records.isEmpty {
-                ContentUnavailableView(
-                    "No dictations yet",
-                    systemImage: "clock.arrow.circlepath",
-                    description: Text("Recent dictations will appear here. They stay on your Mac."))
-            } else {
-                List(coordinator.history.records) { record in
-                    HistoryRow(record: record)
-                }
-                .listStyle(.inset)
-            }
-
-            Divider()
-
-            HStack {
-                Text("Stored on-device only. Audio is never saved.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Button("Clear History", role: .destructive) {
-                    coordinator.clearHistory()
-                }
-                .disabled(coordinator.history.records.isEmpty)
-            }
-            .padding(12)
-        }
-    }
-}
-
-private struct HistoryRow: View {
-    let record: DictationRecord
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(record.text)
-                .lineLimit(3)
-
-            HStack(spacing: 6) {
-                Text(record.date, format: .dateTime.hour().minute().month().day())
-                Text("·")
-                Text(record.transcriptionEngine.displayName)
-                Text("·")
-                Text("\(Int(record.timeToText * 1000)) ms")
-                Spacer()
-                Button {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(record.text, forType: .string)
-                } label: {
-                    Image(systemName: "doc.on.doc")
-                }
-                .buttonStyle(.borderless)
-                .help("Copy")
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-        .padding(.vertical, 2)
     }
 }
 

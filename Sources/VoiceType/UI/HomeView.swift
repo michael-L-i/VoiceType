@@ -3,11 +3,13 @@ import AppKit
 import VoiceTypeKit
 
 /// VoiceType's Home: a calm welcome dashboard. A personalized greeting, a
-/// quick-start hero that reminds you how to dictate, and your headline stats.
-/// The in-the-moment "is it listening" feedback lives in the floating HUD pill,
-/// so Home stays a quiet at-a-glance surface rather than a live status board.
+/// quick-start hero, an at-a-glance stat strip with a mini activity heatmap, and
+/// a peek at your most recent transcripts. The live "is it listening" feedback
+/// lives in the floating HUD pill, so Home stays a quiet at-a-glance surface.
 struct HomeView: View {
     @Bindable var coordinator: DictationCoordinator
+    /// Jump to another sidebar destination (the "View all" links).
+    var onNavigate: (SidebarItem) -> Void = { _ in }
 
     var body: some View {
         ScrollView {
@@ -17,9 +19,11 @@ struct HomeView: View {
                     setupCallout
                 }
                 welcomeHero
-                statsCard
+                statStrip
+                miniActivity
+                recentTranscripts
             }
-            .frame(maxWidth: 640, alignment: .leading)
+            .frame(maxWidth: 680, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(VT.Space.xl)
         }
@@ -31,14 +35,12 @@ struct HomeView: View {
     private var greeting: some View {
         HStack(alignment: .firstTextBaseline, spacing: VT.Space.s) {
             Text(greetingText)
-                .font(.largeTitle.weight(.bold))
+                .font(.system(.largeTitle, design: .rounded).weight(.bold))
             hotkeyBadge
             Spacer(minLength: 0)
         }
     }
 
-    /// "Good {morning/afternoon/evening}, {FirstName}" — name from the macOS
-    /// account, gracefully dropping to a nameless greeting when unavailable.
     private var greetingText: String {
         let hour = Calendar.current.component(.hour, from: Date())
         let part = hour < 12 ? "morning" : (hour < 18 ? "afternoon" : "evening")
@@ -71,15 +73,13 @@ struct HomeView: View {
 
     // MARK: Welcome hero
 
-    /// A branded quick-start card: the product promise plus the one move that
-    /// makes it happen. Replaces a live status board — the HUD does that job.
     private var welcomeHero: some View {
         VStack(alignment: .leading, spacing: VT.Space.m) {
             BrandMark(color: .white)
                 .frame(width: 64, height: 32)
             VStack(alignment: .leading, spacing: VT.Space.xs) {
                 Text("Speak anywhere, get clean text instantly")
-                    .font(.title2.weight(.semibold))
+                    .font(.system(.title2, design: .rounded).weight(.semibold))
                     .foregroundStyle(.white)
                 Text(quickStartLine)
                     .font(.callout)
@@ -88,9 +88,8 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(VT.Space.l)
-        .background(
-            VT.brandGradient,
-            in: RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous))
+        .background(VT.brandGradient,
+                    in: RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous))
     }
 
     private var quickStartLine: String {
@@ -98,18 +97,75 @@ struct HomeView: View {
         return "\(verb) \(coordinator.settings.hotkey.trigger.displayName) anywhere and start speaking — your words land in the focused app."
     }
 
-    // MARK: Stats
+    // MARK: Stat strip
 
-    private var statsCard: some View {
+    private var statStrip: some View {
+        HStack(spacing: VT.Space.m) {
+            StatTile(value: coordinator.stats.totalWords.formatted(),
+                     label: "total words", symbol: "text.word.spacing")
+            StatTile(value: coordinator.stats.averageWordsPerMinute.formatted(),
+                     label: "wpm", symbol: "gauge.with.dots.needle.67percent")
+            StatTile(value: coordinator.stats.currentStreak.formatted(),
+                     label: "day streak", symbol: "flame")
+        }
+    }
+
+    // MARK: Mini activity
+
+    private var miniActivity: some View {
         FrostedCard {
-            VStack(alignment: .leading, spacing: VT.Space.l) {
-                Text("Your stats")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                StatRow(value: coordinator.stats.totalWords.formatted(), label: "total words", symbol: "text.word.spacing")
-                StatRow(value: coordinator.stats.averageWordsPerMinute.formatted(), label: "wpm", symbol: "gauge.with.dots.needle.67percent")
-                StatRow(value: coordinator.stats.currentStreak.formatted(), label: "day streak", symbol: "flame")
+            VStack(alignment: .leading, spacing: VT.Space.m) {
+                HStack {
+                    SectionLabel("Last 12 weeks")
+                    Spacer()
+                    Button("All stats") { onNavigate(.stats) }
+                        .buttonStyle(.plain)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(VT.tint)
+                }
+                ActivityHeatmap(days: coordinator.dailyStats.window(endingOn: Date(), days: 84))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    // MARK: Recent transcripts
+
+    private var recentTranscripts: some View {
+        FrostedCard {
+            VStack(alignment: .leading, spacing: VT.Space.m) {
+                HStack {
+                    SectionLabel("Recent transcripts")
+                    Spacer()
+                    if !coordinator.history.records.isEmpty {
+                        Button("View all") { onNavigate(.transcripts) }
+                            .buttonStyle(.plain)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(VT.tint)
+                    }
+                }
+                if coordinator.history.records.isEmpty {
+                    Text("Your dictations will show up here.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, VT.Space.s)
+                } else {
+                    ForEach(coordinator.history.records.prefix(3)) { record in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(record.text)
+                                .font(.callout)
+                                .lineLimit(2)
+                            Text(record.date, format: .dateTime.weekday().hour().minute())
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        if record.id != coordinator.history.records.prefix(3).last?.id {
+                            Divider()
+                        }
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -140,5 +196,31 @@ struct HomeView: View {
             .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous))
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// A compact stat tile for the Home strip: a small glyph, a big rounded value,
+/// and its label.
+struct StatTile: View {
+    let value: String
+    let label: String
+    let symbol: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: VT.Space.xs) {
+            Image(systemName: symbol)
+                .font(.callout)
+                .foregroundStyle(VT.tint)
+            Text(value)
+                .font(.system(.title, design: .rounded).weight(.semibold).monospacedDigit())
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(VT.Space.l)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous)
+            .strokeBorder(VT.hairline, lineWidth: 1))
     }
 }
