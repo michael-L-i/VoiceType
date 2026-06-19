@@ -75,9 +75,8 @@ struct HomeView: View {
     /// makes it happen. Replaces a live status board — the HUD does that job.
     private var welcomeHero: some View {
         VStack(alignment: .leading, spacing: VT.Space.m) {
-            Image(systemName: "waveform")
-                .font(.system(size: 30, weight: .semibold))
-                .foregroundStyle(.white)
+            BrandMark(color: .white)
+                .frame(width: 64, height: 32)
             VStack(alignment: .leading, spacing: VT.Space.xs) {
                 Text("Speak anywhere, get clean text instantly")
                     .font(.title2.weight(.semibold))
@@ -90,9 +89,7 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(VT.Space.l)
         .background(
-            LinearGradient(
-                colors: [VT.tint, VT.tint.opacity(0.72)],
-                startPoint: .topLeading, endPoint: .bottomTrailing),
+            VT.brandGradient,
             in: RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous))
     }
 

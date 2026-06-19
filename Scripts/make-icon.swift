@@ -2,10 +2,12 @@
 //
 // make-icon.swift — render the VoiceType macOS app icon.
 //
-// Design language: "calm & native". A Big Sur+ rounded-rect (squircle) app tile
-// with a quiet indigo→graphite gradient, a soft inner highlight for depth, and a
-// clean centered glyph: a minimalist microphone over a gentle, symmetric
-// soundwave. Restrained, premium, system-native — not loud or cartoonish.
+// Design language: "warm & distinctive". A Big Sur+ rounded-rect (squircle) app
+// tile with a warm coral→amber gradient, a soft inner highlight for depth, and a
+// single ownable glyph: the "utterance wave" — vertical rounded bars whose
+// envelope traces a horizontal pointed oval (a lens), tall in the centre and
+// tapering to points at each end. It's the silhouette of a single spoken sound:
+// recognizable as voice without the stock microphone.
 //
 // Rendering is done entirely with Core Graphics into an RGBA bitmap context, so
 // it works headlessly (no window server / NSGraphicsContext required). The 1024
@@ -100,24 +102,24 @@ func renderIcon(size: Int) -> CGImage {
                   blur: 32 * u,
                   color: rgb(0, 0, 0, 0.28))
     ctx.addPath(tilePath)
-    ctx.setFillColor(rgb(0.10, 0.12, 0.18))
+    ctx.setFillColor(rgb(0.18, 0.09, 0.07))
     ctx.fillPath()
     ctx.restoreGState()
 
-    // --- Tile background: calm indigo → graphite vertical gradient ---
+    // --- Tile background: warm amber → coral diagonal gradient ---
     ctx.saveGState()
     ctx.addPath(tilePath)
     ctx.clip()
     let bgColors = [
-        rgb(0.34, 0.42, 0.72),   // soft indigo (top)
-        rgb(0.24, 0.30, 0.55),   // mid indigo
-        rgb(0.16, 0.19, 0.33),   // graphite (bottom)
+        rgb(1.00, 0.72, 0.44),   // warm amber (top-left)
+        rgb(0.99, 0.52, 0.36),   // coral (mid)
+        rgb(0.90, 0.39, 0.27),   // burnt coral (bottom-right)
     ] as CFArray
     let bgGradient = CGGradient(colorsSpace: srgb, colors: bgColors,
                                 locations: [0.0, 0.55, 1.0])!
     ctx.drawLinearGradient(bgGradient,
-                           start: CGPoint(x: tileRect.midX, y: tileRect.maxY),
-                           end: CGPoint(x: tileRect.midX, y: tileRect.minY),
+                           start: CGPoint(x: tileRect.minX, y: tileRect.maxY),
+                           end: CGPoint(x: tileRect.maxX, y: tileRect.minY),
                            options: [])
 
     // --- Gentle top inner highlight for soft depth (radial, upper area) ---
@@ -140,101 +142,39 @@ func renderIcon(size: Int) -> CGImage {
     ctx.restoreGState()
 
     // ===================================================================
-    //  GLYPH — minimalist microphone over a soft symmetric soundwave
+    //  GLYPH — "utterance wave": vertical rounded bars whose envelope traces
+    //  a horizontal pointed oval (a lens). Tall in the centre, tapering to
+    //  points at each end — the silhouette of a single spoken sound.
     // ===================================================================
     let cx = dim / 2.0
-    // Visual centre nudged slightly up so mic + wave read as balanced.
-    let cy = dim / 2.0 + 40.0 * u
+    let cy = dim / 2.0
 
-    let glyphColor = rgb(0.96, 0.97, 1.0)             // near-white, faint cool tint
-    let glyphSoft  = rgb(0.96, 0.97, 1.0, 0.55)
+    let barCount = 9
+    let lensW = 660.0 * u                 // overall width of the mark
+    let pitch = lensW / Double(barCount)  // per-bar cell width
+    let barW = pitch * 0.52               // bar thickness (rest is the gap)
+    let maxHalf = 178.0 * u               // half-height of the centre bar
+    let minHalf = barW / 2.0              // end bars collapse to round dots (the tips)
 
-    // --- Microphone capsule ---
-    let micW = 180.0 * u
-    let micH = 300.0 * u
-    let micTop = cy - 250.0 * u
-    let micRect = CGRect(x: cx - micW / 2, y: micTop, width: micW, height: micH)
-    let micRadius = micW / 2.0
+    // Build every bar into one path so the warm glow underneath reads as a
+    // single unified mark rather than a halo per bar.
+    let group = CGMutablePath()
+    for i in 0..<barCount {
+        let t = Double(i) / Double(barCount - 1) * 2.0 - 1.0   // -1 … 1 across the width
+        let f = 1.0 - t * t                                    // pointed-oval envelope
+        let half = max(minHalf, maxHalf * f)
+        // Bars are centred in their cell, leaving a small margin past the tips.
+        let x = cx - lensW / 2.0 + pitch * (Double(i) + 0.5)
+        let r = CGRect(x: x - barW / 2, y: cy - half, width: barW, height: half * 2)
+        group.addPath(CGPath(roundedRect: r, cornerWidth: barW / 2, cornerHeight: barW / 2, transform: nil))
+    }
 
     ctx.saveGState()
-    // subtle glow behind the glyph
-    ctx.setShadow(offset: .zero, blur: 26 * u, color: rgb(0.55, 0.65, 1.0, 0.30))
-    let micPath = CGPath(roundedRect: micRect, cornerWidth: micRadius, cornerHeight: micRadius, transform: nil)
-    ctx.addPath(micPath)
-    ctx.setFillColor(glyphColor)
+    ctx.setShadow(offset: .zero, blur: 38 * u, color: rgb(1.0, 0.82, 0.64, 0.50))
+    ctx.addPath(group)
+    ctx.setFillColor(rgb(1.0, 0.98, 0.96))   // near-white, faint warm tint
     ctx.fillPath()
     ctx.restoreGState()
-
-    // tiny vertical gradient sheen on the capsule for soft depth
-    ctx.saveGState()
-    ctx.addPath(micPath)
-    ctx.clip()
-    let sheen = CGGradient(colorsSpace: srgb,
-                           colors: [rgb(1, 1, 1, 0.25), rgb(1, 1, 1, 0.0)] as CFArray,
-                           locations: [0, 1])!
-    ctx.drawLinearGradient(sheen,
-                           start: CGPoint(x: cx, y: micRect.maxY),
-                           end: CGPoint(x: cx, y: micRect.minY),
-                           options: [])
-    ctx.restoreGState()
-
-    // --- Mic cradle (the U-shaped arc) ---
-    let cradleR = 150.0 * u
-    let cradleCy = cy - 110.0 * u
-    let cradleLineW = 32.0 * u
-    ctx.saveGState()
-    ctx.setLineWidth(cradleLineW)
-    ctx.setStrokeColor(glyphColor)
-    ctx.setLineCap(.round)
-    // semicircle opening upward (from ~200° to ~340° in CG's coord space)
-    ctx.addArc(center: CGPoint(x: cx, y: cradleCy),
-               radius: cradleR,
-               startAngle: CGFloat.pi,           // 180°  (left)
-               endAngle: 2 * CGFloat.pi,         // 360°  (right) — bottom half
-               clockwise: false)
-    ctx.strokePath()
-    ctx.restoreGState()
-
-    // --- Mic stem + base ---
-    let stemTop = cradleCy - cradleR
-    let stemBottom = stemTop - 60.0 * u
-    ctx.saveGState()
-    ctx.setLineWidth(cradleLineW)
-    ctx.setStrokeColor(glyphColor)
-    ctx.setLineCap(.round)
-    ctx.move(to: CGPoint(x: cx, y: stemTop))
-    ctx.addLine(to: CGPoint(x: cx, y: stemBottom))
-    ctx.strokePath()
-    // base bar
-    let baseHalf = 88.0 * u
-    ctx.move(to: CGPoint(x: cx - baseHalf, y: stemBottom))
-    ctx.addLine(to: CGPoint(x: cx + baseHalf, y: stemBottom))
-    ctx.strokePath()
-    ctx.restoreGState()
-
-    // --- Soft symmetric soundwave bars beneath, flanking the base ---
-    // A calm, decaying set of vertical rounded bars on each side, suggesting voice.
-    let waveY = stemBottom - 78.0 * u          // baseline for wave centre
-    let barW = 24.0 * u
-    let gap = 44.0 * u
-    // heights decay outward (tallest nearest centre)
-    let heights: [CGFloat] = [128, 88, 54].map { CGFloat($0) * u }
-    let alphas: [CGFloat]  = [0.85, 0.62, 0.42]
-
-    func drawBar(centerX: CGFloat, height: CGFloat, alpha: CGFloat) {
-        let r = CGRect(x: centerX - barW / 2, y: waveY - height / 2, width: barW, height: height)
-        let path = CGPath(roundedRect: r, cornerWidth: barW / 2, cornerHeight: barW / 2, transform: nil)
-        ctx.addPath(path)
-        ctx.setFillColor(rgb(0.96, 0.97, 1.0, Double(alpha)))
-        ctx.fillPath()
-    }
-
-    for (i, h) in heights.enumerated() {
-        let offset = CGFloat(i + 1) * (barW + gap)
-        drawBar(centerX: cx - offset, height: h, alpha: alphas[i])
-        drawBar(centerX: cx + offset, height: h, alpha: alphas[i])
-    }
-    _ = glyphSoft  // (kept for clarity; bars use explicit alphas)
 
     guard let image = ctx.makeImage() else {
         fatalError("Could not produce CGImage at size \(size)")
