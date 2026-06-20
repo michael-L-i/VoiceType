@@ -101,9 +101,7 @@ struct TranscribeView: View {
                         .font(.callout.weight(.medium))
                         .foregroundStyle(.green)
                     Spacer()
-                    Button { copy(text) } label: { Label("Copy", systemImage: "doc.on.doc") }
-                        .buttonStyle(.borderless)
-                        .foregroundStyle(VT.tint)
+                    CopyButton(text: text, style: .labeled)
                 }
                 ScrollView {
                     Text(text)
@@ -132,8 +130,4 @@ struct TranscribeView: View {
         }
     }
 
-    private func copy(_ text: String) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
-    }
 }
