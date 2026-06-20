@@ -16,6 +16,7 @@ never leaves your Mac unless you choose to turn on a cloud engine.
 &nbsp;[![Platform](https://img.shields.io/badge/macOS-26%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
+&nbsp;[![License](https://img.shields.io/badge/license-MIT-111111)](./LICENSE)
 
 </div>
 
@@ -95,6 +96,10 @@ transcription · pluggable cleanup · paste/Accessibility text injection · a
 floating recording HUD. The core (`VoiceTypeKit`) is pure and unit-tested; the app
 target holds the system engines and UI. Details live in [`CLAUDE.md`](./CLAUDE.md)
 and evolve via `specs/`.
+
+## License
+
+[MIT](./LICENSE) © 2026 Michael Li.
 
 ## How this repo is run
 
