@@ -91,31 +91,4 @@ enum Permissions {
         return AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
     }
 
-    /// Clear this app's own Accessibility TCC record so a *stale* grant can't
-    /// block a fresh prompt. Reinstalling or rebuilding the app can leave System
-    /// Settings showing VoiceType's Accessibility toggle green while
-    /// `AXIsProcessTrusted()` returns false — the code signature changed, so the
-    /// stored grant no longer matches. In that state the green toggle is inert and
-    /// macOS won't re-prompt; removing the record forces a clean re-grant.
-    ///
-    /// User-initiated only (the onboarding "Reset" recovery): it briefly drops the
-    /// grant, so we never run it automatically — doing so could wipe a perfectly
-    /// good grant, including one shared by another build under the same bundle ID.
-    /// Scoped to our bundle ID, needs no admin, and runs off the main thread
-    /// because `tccutil` is a subprocess. Safe because VoiceType is not sandboxed.
-    static func resetAccessibilityGrant() async {
-        guard let bundleID = Bundle.main.bundleIdentifier else { return }
-        await Task.detached {
-            let proc = Process()
-            proc.executableURL = URL(fileURLWithPath: "/usr/bin/tccutil")
-            proc.arguments = ["reset", "Accessibility", bundleID]
-            do {
-                try proc.run()
-                proc.waitUntilExit()
-            } catch {
-                Log.app.error("tccutil reset Accessibility failed: \(error.localizedDescription, privacy: .public)")
-            }
-        }.value
-    }
-
 }

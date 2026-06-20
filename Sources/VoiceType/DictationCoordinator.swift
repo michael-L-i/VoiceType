@@ -217,20 +217,6 @@ final class DictationCoordinator {
         await refreshAvailability()
     }
 
-    /// Recovery for a stale Accessibility grant (System Settings shows VoiceType
-    /// enabled but the app isn't trusted — common after a rebuild changes the
-    /// signature). Clears our own record, then re-prompts for a clean grant. Only
-    /// invoked by an explicit user tap in onboarding.
-    func resetAccessibilityGrant() async {
-        guard !requestsInFlight.contains(.accessibility) else { return }
-        requestsInFlight.insert(.accessibility)
-        defer { requestsInFlight.remove(.accessibility) }
-
-        await Permissions.resetAccessibilityGrant()
-        Permissions.requestAccessibility()
-        refreshPermissionStatuses()
-    }
-
     /// Deep-link to the relevant System Settings privacy pane when a grant was
     /// denied (the system won't re-prompt, so we send the user there).
     func openSystemSettings(for permission: Permission) {

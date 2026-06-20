@@ -218,13 +218,6 @@ private struct PermissionStepCard: View {
             HStack(spacing: VT.Space.m) {
                 Button("Grant access", action: onGrant)
                     .buttonStyle(.borderedProminent).controlSize(.large).tint(VT.tint)
-                if permission == .accessibility {
-                    Button("Already on? Reset") {
-                        Task { await coordinator.resetAccessibilityGrant() }
-                    }
-                    .buttonStyle(.link).controlSize(.small).font(.caption)
-                    .help("If System Settings shows VoiceType enabled but it isn't working, reset and re-grant.")
-                }
                 Spacer(minLength: 0)
             }
         case .denied:
