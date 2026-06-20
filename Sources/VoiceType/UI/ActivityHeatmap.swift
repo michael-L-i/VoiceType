@@ -175,7 +175,6 @@ private struct DayStatCard: View {
                     stat(day.sessions.formatted(), day.sessions == 1 ? "session" : "sessions")
                     if day.speakingTime > 0 {
                         stat(Self.duration(day.speakingTime), "spoken")
-                        if day.wordsPerMinute > 0 { stat("\(day.wordsPerMinute)", "wpm") }
                     }
                 }
             } else {
