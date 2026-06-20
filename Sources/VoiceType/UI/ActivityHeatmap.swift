@@ -18,6 +18,9 @@ struct ActivityHeatmap: View {
     private let gap: CGFloat = 3
     private let corner: CGFloat = 2.5
 
+    /// The day whose hover card is currently shown (keyed by start-of-day).
+    @State private var hoveredID: Date?
+
     var body: some View {
         let columns = weekColumns()
         let peak = max(1, days.map(metric).max() ?? 1)
@@ -47,7 +50,19 @@ struct ActivityHeatmap: View {
         RoundedRectangle(cornerRadius: corner, style: .continuous)
             .fill(color(for: day, peak: peak))
             .frame(width: cell, height: cell)
-            .help(tooltip(for: day))
+            .onHover { inside in
+                guard let day else { return }
+                if inside { hoveredID = day.id }
+                else if hoveredID == day.id { hoveredID = nil }
+            }
+            // A real hover card — pops instantly, unlike the OS `.help` tooltip
+            // (which only shows after a ~2s delay and is flaky on tiny cells).
+            .popover(isPresented: Binding(
+                get: { day != nil && hoveredID == day?.id },
+                set: { show in if !show, hoveredID == day?.id { hoveredID = nil } }
+            ), arrowEdge: .top) {
+                if let day { DayStatCard(day: day) }
+            }
     }
 
     /// Empty/zero days read as a faint neutral; active days step through four
@@ -63,25 +78,6 @@ struct ActivityHeatmap: View {
         case 3: return tint.opacity(0.74)
         default: return tint
         }
-    }
-
-    /// A compact multi-line stat outline shown on hover. Line 1 is the date;
-    /// remaining lines summarize the day's dictation (words · sessions, then
-    /// time spoken · pace). Silent days collapse to a single "No dictation" line.
-    private func tooltip(for day: DailyStats?) -> String {
-        guard let day else { return "" }
-        let date = Self.tooltipDate.string(from: day.day)
-        guard day.words > 0 || day.sessions > 0 else { return "\(date)\nNo dictation" }
-
-        let words = "\(day.words.formatted()) \(day.words == 1 ? "word" : "words")"
-        let sessions = "\(day.sessions.formatted()) \(day.sessions == 1 ? "session" : "sessions")"
-        var lines = ["\(words) · \(sessions)"]
-        if day.speakingTime > 0 {
-            var pace = "\(Self.duration(day.speakingTime)) spoken"
-            if day.wordsPerMinute > 0 { pace += " · \(day.wordsPerMinute) wpm" }
-            lines.append(pace)
-        }
-        return ([date] + lines).joined(separator: "\n")
     }
 
     // MARK: Labels
@@ -153,9 +149,6 @@ struct ActivityHeatmap: View {
 
     // MARK: Formatting
 
-    private static let tooltipDate: DateFormatter = {
-        let f = DateFormatter(); f.dateFormat = "EEE, MMM d, yyyy"; return f
-    }()
     private static func weekdayShort(_ row: Int) -> String {
         ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][row]
     }
@@ -163,6 +156,52 @@ struct ActivityHeatmap: View {
         let symbols = DateFormatter().shortMonthSymbols ?? []
         return symbols.indices.contains(month - 1) ? symbols[month - 1] : " "
     }
+}
+
+/// The hover card for a single day: a date header over a row of compact
+/// value/label stats, or "No dictation" on a silent day.
+private struct DayStatCard: View {
+    let day: DailyStats
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Self.date.string(from: day.day))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if day.words > 0 || day.sessions > 0 {
+                HStack(alignment: .top, spacing: 16) {
+                    stat(day.words.formatted(), day.words == 1 ? "word" : "words")
+                    stat(day.sessions.formatted(), day.sessions == 1 ? "session" : "sessions")
+                    if day.speakingTime > 0 {
+                        stat(Self.duration(day.speakingTime), "spoken")
+                        if day.wordsPerMinute > 0 { stat("\(day.wordsPerMinute)", "wpm") }
+                    }
+                }
+            } else {
+                Text("No dictation")
+                    .font(.callout)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(12)
+        .frame(minWidth: 130, alignment: .leading)
+    }
+
+    private func stat(_ value: String, _ label: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(value)
+                .font(.system(.title3, design: .rounded).weight(.semibold))
+                .monospacedDigit()
+            Text(label.uppercased())
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private static let date: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "EEE, MMM d, yyyy"; return f
+    }()
     /// Speaking time as a terse "Xm Ys" (or "Ys" under a minute).
     private static func duration(_ seconds: TimeInterval) -> String {
         let total = Int(seconds.rounded())
