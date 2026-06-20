@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/logo.png" width="120" alt="VoiceType" />
+<img src="docs/logo.png" width="128" alt="VoiceType" />
 
 # VoiceType
 
@@ -10,9 +10,9 @@ A fast, private, open-source voice-dictation app for macOS. Hold a key, talk, an
 your words land as clean, punctuated text in whatever app you're using. Your audio
 never leaves your Mac unless you choose to turn on a cloud engine.
 
-[![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-5C75EB?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
+[![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
-[![Latest release](https://img.shields.io/github/v/release/michael-L-i/VoiceType?label=release&color=5C75EB)](https://github.com/michael-L-i/VoiceType/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/michael-L-i/VoiceType?label=release&color=F2743E)](https://github.com/michael-L-i/VoiceType/releases/latest)
 &nbsp;[![Platform](https://img.shields.io/badge/macOS-26%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
@@ -26,12 +26,12 @@ never leaves your Mac unless you choose to turn on a cloud engine.
 
 ## Why VoiceType
 
-- 🔒 **Private by default.** Audio and transcripts stay on your Mac. Any cloud path is opt-in, clearly labeled, and off until you turn it on.
+- 🔒 **Private by default.** Audio and transcripts stay on your Mac. No account, no telemetry. Any cloud path is opt-in, clearly labeled, and off until you turn it on.
 - ⚡ **Latency is the feature.** Native Swift with Apple's on-device speech model — time-to-text is what we optimize.
 - 🎙️ **Press-to-talk anywhere.** A global hotkey works in any app; the cleaned text is inserted right where your cursor is.
 - ✨ **Smart cleanup.** Punctuation, capitalization, and filler removal — without ever changing your words.
+- 📊 **Your voice, visualized.** A calm Home dashboard tracks your words, pace, and day streaks, with a full activity heatmap and a friendly, on-device usage summary — all computed on your Mac.
 - 🧩 **Pluggable engines.** On-device by default, with a local Whisper fallback and an optional Groq cloud upgrade.
-- 🪶 **A calm little menu-bar app.** No Dock icon, no account, no telemetry. A floating pill shows you're being heard.
 
 ## Download & install
 
@@ -47,17 +47,18 @@ never leaves your Mac unless you choose to turn on a cloud engine.
 > Requires **macOS 26** or later (Apple Silicon).
 
 **Updates are automatic.** VoiceType checks for new versions in the background
-(and on demand via **Check for Updates…** in the menu) and installs them in place
-with [Sparkle](https://sparkle-project.org) — every update is cryptographically
-signed and verified. No need to re-download. _(Auto-update works from v0.1.1
-onward; the very first build, v0.1.0, has to be replaced once by hand.)_
+(and on demand via **Check for Updates…**) and installs them in place with
+[Sparkle](https://sparkle-project.org) — every update is cryptographically signed
+and verified. No need to re-download. _(Auto-update works from v0.1.1 onward; the
+very first build, v0.1.0, has to be replaced once by hand.)_
 
 ## Using it
 
 Hold **Right Option (⌥)** anywhere and start talking. A frosted pill appears
 showing a live waveform while it listens; release the key and your cleaned-up text
-is inserted into the focused app. Change the key, language, engines, and cleanup
-in **Settings**.
+is inserted into the focused app. Open the window any time to see your **Home
+dashboard** — your pace, totals, activity heatmap, and where you dictate. Change
+the key, language, engines, and cleanup in **Settings**.
 
 ## Engines
 
@@ -75,8 +76,9 @@ always degrades to plain text rather than failing.
 Audio and transcripts stay on-device by default. The cloud engines (Groq) are
 inert until you flip a single master **"Enable cloud"** switch and add your own
 API key, which is stored in the macOS Keychain. Nothing is logged off-device, and
-audio is never written to disk. This is a constitutional invariant of the project,
-not a setting we might change later.
+audio is never written to disk. Even the friendly usage summary is built from
+aggregate counts only — never your transcript text. This is a constitutional
+invariant of the project, not a setting we might change later.
 
 ## Build from source
 
@@ -89,11 +91,12 @@ open VoiceType.app
 
 ## Architecture
 
-Native **Swift 6 / SwiftUI** menu-bar app (macOS 26). Global push-to-talk hotkey ·
-AVAudioEngine mic capture · pluggable on-device transcription · pluggable cleanup ·
-paste/Accessibility text injection · a floating recording HUD. The core
-(`VoiceTypeKit`) is pure and unit-tested; the app target holds the system engines
-and UI. Details live in [`CLAUDE.md`](./CLAUDE.md) and evolve via `specs/`.
+Native **Swift 6 / SwiftUI** Dock app (macOS 26) with a Home dashboard. Global
+push-to-talk hotkey · AVAudioEngine mic capture · pluggable on-device
+transcription · pluggable cleanup · paste/Accessibility text injection · a
+floating recording HUD. The core (`VoiceTypeKit`) is pure and unit-tested; the app
+target holds the system engines and UI. Details live in [`CLAUDE.md`](./CLAUDE.md)
+and evolve via `specs/`.
 
 ## How this repo is run
 
@@ -110,9 +113,9 @@ VoiceType/
 ├── Package.swift      # SwiftPM: VoiceTypeKit (core) + VoiceType (app)
 ├── Sources/
 │   ├── VoiceTypeKit/  # pure, tested core: protocols, pipeline, cleanup, resolver
-│   └── VoiceType/     # app: menu bar, hotkey, audio, engines, injection, UI
+│   └── VoiceType/     # app: hotkey, audio, engines, injection, dashboard UI
 ├── Tests/             # VoiceTypeKit unit tests
-├── Scripts/           # build-app.sh · make-dmg.sh · make-icon.swift
+├── Scripts/           # build-app.sh · make-dmg.sh · make-icon.swift · release.sh
 ├── Resources/         # Info.plist · entitlements · AppIcon
 ├── specs/             # the human's surface — product direction (agent doesn't edit)
 └── README.md
