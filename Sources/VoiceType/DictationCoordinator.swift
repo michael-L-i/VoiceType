@@ -401,7 +401,9 @@ final class DictationCoordinator {
                     // touch state or inject) so the usage breakdown is accurate.
                     let app = self.currentForegroundApp()
                     self.state = .injecting
-                    try await self.injector.inject(result.finalText)
+                    // Trailing space so consecutive dictations don't run together.
+                    // Appended only at inject time; recorded history stays clean.
+                    try await self.injector.inject(result.finalText + " ")
                     self.record(result, speakingTime: audio.duration, app: app)
                     self.finish(state: .done)
                 }
