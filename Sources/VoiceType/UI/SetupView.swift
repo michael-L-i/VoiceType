@@ -277,8 +277,8 @@ private struct HotkeySelector: View {
             }
             .pickerStyle(.segmented)
             .labelsHidden()
-            .frame(maxWidth: 300, alignment: .leading)
-            .padding(.top, VT.Space.xs)
+            .fixedSize()
+            .padding(.vertical, VT.Space.s)
 
             Text(previewLine)
                 .font(.callout)
