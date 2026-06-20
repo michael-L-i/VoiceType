@@ -36,12 +36,10 @@ never leaves your Mac unless you choose to turn on a cloud engine.
 ## Download & install
 
 1. **[⬇ Download VoiceType.dmg](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)** from the latest release.
-2. Open the DMG and drag **VoiceType** into your **Applications** folder.
-3. **First launch:** VoiceType is open-source and not yet notarized by Apple, so a
-   normal double-click is blocked by Gatekeeper. The one-time fix:
-   **right-click VoiceType → Open → Open.** macOS remembers your choice — every
-   launch after that is a plain double-click.
-4. Grant the three permissions VoiceType asks for — **Microphone**,
+2. Open the DMG and drag **VoiceType** into your **Applications** folder. The app
+   is **signed and notarized by Apple**, so it launches with a normal
+   double-click — no Gatekeeper workaround needed.
+3. Grant the three permissions VoiceType asks for — **Microphone**,
    **Speech Recognition**, and **Accessibility** — and you're set.
 
 > Requires **macOS 26** or later (Apple Silicon).
