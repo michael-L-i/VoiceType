@@ -82,8 +82,13 @@ rm sparkle_private_key.txt   # never commit this
        VoiceType.dmg VoiceType.zip appcast.xml
    ```
 
-   Or just `git push origin v0.1.2` and let `.github/workflows/release.yml` do
-   steps 1–2 (once GitHub runners provide Xcode 26 — see the caveat in that file).
+   Local is the canonical path: only the maintainer's machine has the Apple
+   Developer ID + notary credentials, so the DMG it produces is signed and
+   notarized (a plain double-click works). `.github/workflows/release.yml` exists
+   as a **manual** fallback (Actions → Release → Run workflow) for a machine-less
+   release — but a GitHub runner can't notarize, so its DMG is ad-hoc only. Don't
+   run it to re-publish a tag you already released locally; it would overwrite the
+   notarized DMG. It also needs the `SPARKLE_PRIVATE_KEY` repo secret.
 
 That's it. Because the app's `SUFeedURL` points at
 `releases/latest/download/appcast.xml`, every existing install will discover the

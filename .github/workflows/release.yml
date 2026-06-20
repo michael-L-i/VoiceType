@@ -1,26 +1,27 @@
-# Release — on tag push, build the DMG (human download) + the signed Sparkle
-# ZIP/appcast (auto-update) and publish all three to a GitHub Release.
+# Release — build the DMG (human download) + the signed Sparkle ZIP/appcast
+# (auto-update) and publish all three to a GitHub Release.
 #
-# CAVEAT: VoiceType targets macOS 26 and needs the macOS 26 SDK (Xcode 26) to
-# compile — it uses Apple's on-device `SpeechTranscriber` and `FoundationModels`,
-# which only exist in that SDK. GitHub-hosted runners may not ship Xcode 26 yet,
-# so this workflow will only succeed once `macos-latest` provides Xcode 26 (or
-# you point it at a self-hosted macOS 26 runner). The setup below is correct
-# regardless: it selects the newest stable Xcode available on the runner.
+# MANUAL ONLY (workflow_dispatch). Releases are normally cut LOCALLY with
+# `Scripts/release.sh <version>` + `gh release create`, because the maintainer's
+# machine has the Apple Developer ID + notary credentials that produce a SIGNED,
+# NOTARIZED DMG (a plain double-click works). This workflow is a fallback for a
+# machine-less release: it builds on a GitHub runner, which can compile (runners
+# now ship Xcode 26) but CANNOT notarize, so its DMG is ad-hoc only. Don't run it
+# to "re-publish" a notarized tag — action-gh-release would overwrite the good
+# DMG with the un-notarized one.
 #
 # REQUIRED SECRET: SPARKLE_PRIVATE_KEY — the EdDSA private key that signs updates
 # (export it once with Sparkle's `generate_keys -x`). Without it the appcast
-# can't be signed and clients reject the update. The matching public key is
-# pinned in Info.plist as SUPublicEDKey; the private key is NEVER committed.
-#
-# The DMG/ZIP are unsigned / not notarized (no Apple Developer account). On first
-# launch users right-click the app -> Open -> Open once. See README.
+# can't be signed and the run fails at the signing step. The matching public key
+# is pinned in Info.plist as SUPublicEDKey; the private key is NEVER committed.
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build, without the leading v (e.g. 1.0.1)"
+        required: true
 
 permissions:
   contents: write
@@ -40,11 +41,12 @@ jobs:
       - name: Build DMG + signed Sparkle update
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
-        run: ./Scripts/release.sh "${GITHUB_REF_NAME#v}"
+        run: ./Scripts/release.sh "${{ inputs.version }}"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: "v${{ inputs.version }}"
           files: |
             VoiceType.dmg
             VoiceType.zip
