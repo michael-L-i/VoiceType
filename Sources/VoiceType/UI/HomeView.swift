@@ -10,10 +10,20 @@ import VoiceTypeKit
 /// The layout is responsive: content sits in a centered, width-capped column so
 /// it never hugs one edge, and on wide windows the lower cards split into two
 /// columns instead of leaving a dead zone.
+/// Transient state of the Insights "Summarize my usage" affordance. View-local
+/// (not on the coordinator) so the summary is shown only until the user leaves
+/// and returns to Home — and so a single guarded `.task` can't overlap.
+private enum SummaryPhase: Equatable { case idle, loading, shown(String) }
+
 struct HomeView: View {
     @Bindable var coordinator: DictationCoordinator
     /// Jump to another sidebar destination (the "View all" link).
     var onNavigate: (SidebarItem) -> Void = { _ in }
+
+    /// Drives the Insights summary overlay; resets to `.idle` on (re)appear.
+    @State private var summaryPhase: SummaryPhase = .idle
+    /// Bumped to start exactly one generation; keys the `.task` below.
+    @State private var summaryRequest: Int = 0
 
     /// Past this width the lower cards go two-up.
     private let wideBreakpoint: CGFloat = 880
@@ -40,7 +50,8 @@ struct HomeView: View {
             }
         }
         .background(.background)
-        .onAppear { coordinator.refreshInsights() }
+        .onAppear { coordinator.refreshInsights(); summaryPhase = .idle }
+        .onDisappear { summaryPhase = .idle }
     }
 
     // MARK: Greeting
@@ -164,8 +175,8 @@ struct HomeView: View {
                 HStack {
                     SectionLabel("Insights")
                     Spacer()
-                    if coordinator.naturalSummary == nil {
-                        Button("Summarize my usage") { coordinator.generateNaturalSummary() }
+                    if summaryPhase == .idle && !coordinator.insights.bullets.isEmpty {
+                        Button("Summarize my usage") { startSummary() }
                             .buttonStyle(.borderless)
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(VT.tint)
@@ -173,26 +184,79 @@ struct HomeView: View {
                 }
                 Text(coordinator.insights.headline)
                     .font(.system(.title3, design: .rounded).weight(.semibold))
-                if let summary = coordinator.naturalSummary {
-                    Text(summary)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                if coordinator.insights.bullets.isEmpty {
-                    Text("Dictate a little and patterns will appear here.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(coordinator.insights.bullets) { bullet in
-                        Label { Text(bullet.text) } icon: {
-                            Image(systemName: bullet.symbol).foregroundStyle(VT.tint)
-                        }
-                        .font(.callout)
+
+                // The summary temporarily replaces the bullet stats; the orange
+                // ring traces the card border while the model writes it.
+                Group {
+                    if case .shown(let summary) = summaryPhase {
+                        Text(summary)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .scale(scale: 0.98, anchor: .topLeading)),
+                                removal: .opacity))
+                    } else {
+                        statsContent
+                            .transition(.opacity)
                     }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .overlay {
+            if summaryPhase == .loading {
+                BorderTraceOverlay().transition(.opacity)
+            }
+        }
+        .task(id: summaryRequest) { await runSummaryGeneration() }
+    }
+
+    /// The deterministic bullet insights (or the empty-state hint) — shown
+    /// whenever the natural-language summary isn't on screen.
+    @ViewBuilder
+    private var statsContent: some View {
+        if coordinator.insights.bullets.isEmpty {
+            Text("Dictate a little and patterns will appear here.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        } else {
+            ForEach(coordinator.insights.bullets) { bullet in
+                Label { Text(bullet.text) } icon: {
+                    Image(systemName: bullet.symbol).foregroundStyle(VT.tint)
+                }
+                .font(.callout)
+            }
+        }
+    }
+
+    /// Kick off one summary generation. Guarded so rapid taps can't stack
+    /// concurrent runs (the old multi-click "overlapping summaries" bug).
+    private func startSummary() {
+        guard summaryPhase == .idle else { return }
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+            summaryPhase = .loading
+        }
+        summaryRequest += 1
+    }
+
+    /// Run the on-device summary engine for the current insights. Reverts to
+    /// `.idle` silently if Apple Intelligence is unavailable or generation fails
+    /// (the deterministic bullets remain the floor). Drives the `.task(id:)`.
+    private func runSummaryGeneration() async {
+        guard summaryRequest > 0, summaryPhase == .loading else { return }
+        let snapshot = coordinator.insights
+        let engine = FoundationModelsSummaryEngine()
+        guard await engine.isAvailable(),
+              let summary = try? await engine.summarize(snapshot),
+              !Task.isCancelled else {
+            if !Task.isCancelled, summaryPhase == .loading {
+                withAnimation(.easeOut(duration: 0.2)) { summaryPhase = .idle }
+            }
+            return
+        }
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+            summaryPhase = .shown(summary)
         }
     }
 

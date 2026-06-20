@@ -24,14 +24,19 @@ public struct UsageInsights: Sendable, Equatable {
     public var topApps: [AppUsage]
     public var busiestDay: DailyStats?
     public var weekOverWeekWordDelta: Int
+    /// Lifetime totals (words, speaking time, sessions, streak) — aggregate
+    /// counts only, carried so the summary can quote them without re-deriving.
+    public var lifetime: DictationStats
 
     public init(headline: String, bullets: [Insight], topApps: [AppUsage],
-                busiestDay: DailyStats?, weekOverWeekWordDelta: Int) {
+                busiestDay: DailyStats?, weekOverWeekWordDelta: Int,
+                lifetime: DictationStats = DictationStats()) {
         self.headline = headline
         self.bullets = bullets
         self.topApps = topApps
         self.busiestDay = busiestDay
         self.weekOverWeekWordDelta = weekOverWeekWordDelta
+        self.lifetime = lifetime
     }
 }
 
@@ -104,7 +109,8 @@ public enum InsightsGenerator {
         }
 
         return UsageInsights(headline: headline, bullets: bullets, topApps: topApps,
-                             busiestDay: busiestDay, weekOverWeekWordDelta: delta)
+                             busiestDay: busiestDay, weekOverWeekWordDelta: delta,
+                             lifetime: lifetime)
     }
 
     /// The weekday with the most dictated words over the last ~12 weeks, as a

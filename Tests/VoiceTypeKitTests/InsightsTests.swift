@@ -90,4 +90,28 @@ struct SummaryPromptTests {
         #expect(text.contains("only the facts"))
         #expect(text.lowercased().contains("markdown"))
     }
+
+    @Test("prompt carries the richer aggregate facts: totals, per-app depth, busiest day")
+    func richFacts() {
+        var log = DailyStatsLog()
+        log.record(words: 300, speakingTime: 120, app: slack, source: .microphone, on: day(9), calendar: utc)
+        log.record(words: 500, speakingTime: 180, app: slack, source: .microphone, on: day(10), calendar: utc)
+        let lifetime = DictationStats(totalWords: 5000, totalSpeakingTime: 3000,
+                                      sessionCount: 40, currentStreak: 6, lastDictationDay: day(10))
+        let insights = InsightsGenerator.generate(from: log, lifetime: lifetime,
+                                                  now: day(10), calendar: utc)
+        let prompt = SummaryPrompt.prompt(for: insights)
+        // Lifetime totals woven in (words, dictations, speaking time, pace).
+        #expect(prompt.contains("By the numbers"))
+        #expect(prompt.contains("5,000 words all-time"))
+        #expect(prompt.contains("40 dictations"))
+        #expect(prompt.contains("spoken"))
+        // Per-app depth: sessions + time, not just words.
+        #expect(prompt.contains("Where you dictate"))
+        #expect(prompt.contains("sessions"))
+        // Busiest single day surfaced.
+        #expect(prompt.contains("busiest single day"))
+        // Still fenced, still no transcript text could leak (no record text exists).
+        #expect(prompt.contains("<<<STATS"))
+    }
 }
