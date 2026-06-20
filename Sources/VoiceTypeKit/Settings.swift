@@ -76,6 +76,25 @@ public struct Hotkey: Sendable, Codable, Equatable {
             case .fn: return "Fn / Globe"
             }
         }
+
+        /// The key-cap glyph, for a compact selector.
+        public var keyCap: String {
+            switch self {
+            case .rightOption, .leftOption: return "⌥"
+            case .rightCommand: return "⌘"
+            case .fn: return "fn"
+            }
+        }
+
+        /// The name without the glyph, paired with `keyCap` in the selector.
+        public var shortName: String {
+            switch self {
+            case .rightOption: return "Right Option"
+            case .leftOption: return "Left Option"
+            case .rightCommand: return "Right Command"
+            case .fn: return "Fn / Globe"
+            }
+        }
     }
 
     public var trigger: Trigger
