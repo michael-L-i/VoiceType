@@ -305,7 +305,7 @@ struct HomeView: View {
 
     private var setupCallout: some View {
         Button {
-            coordinator.wantsOnboarding = true
+            onNavigate(.setup)
         } label: {
             HStack(spacing: VT.Space.s) {
                 Image(systemName: "exclamationmark.triangle.fill")
