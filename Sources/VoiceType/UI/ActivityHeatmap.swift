@@ -65,11 +65,23 @@ struct ActivityHeatmap: View {
         }
     }
 
+    /// A compact multi-line stat outline shown on hover. Line 1 is the date;
+    /// remaining lines summarize the day's dictation (words · sessions, then
+    /// time spoken · pace). Silent days collapse to a single "No dictation" line.
     private func tooltip(for day: DailyStats?) -> String {
         guard let day else { return "" }
-        let value = metric(day)
         let date = Self.tooltipDate.string(from: day.day)
-        return value > 0 ? "\(date) — \(value.formatted()) words" : "\(date) — no dictation"
+        guard day.words > 0 || day.sessions > 0 else { return "\(date)\nNo dictation" }
+
+        let words = "\(day.words.formatted()) \(day.words == 1 ? "word" : "words")"
+        let sessions = "\(day.sessions.formatted()) \(day.sessions == 1 ? "session" : "sessions")"
+        var lines = ["\(words) · \(sessions)"]
+        if day.speakingTime > 0 {
+            var pace = "\(Self.duration(day.speakingTime)) spoken"
+            if day.wordsPerMinute > 0 { pace += " · \(day.wordsPerMinute) wpm" }
+            lines.append(pace)
+        }
+        return ([date] + lines).joined(separator: "\n")
     }
 
     // MARK: Labels
@@ -93,6 +105,10 @@ struct ActivityHeatmap: View {
                 Text(monthLabel(for: week, at: index, in: columns))
                     .font(.system(size: 8))
                     .foregroundStyle(.secondary)
+                    // Keep the label on one line; let it overflow leading-aligned
+                    // over the blank columns that follow (GitHub does the same)
+                    // instead of wrapping "JUN" into "JU" / "N".
+                    .fixedSize(horizontal: true, vertical: false)
                     .frame(width: cell, alignment: .leading)
             }
         }
@@ -146,6 +162,12 @@ struct ActivityHeatmap: View {
     private static func monthShort(_ month: Int) -> String {
         let symbols = DateFormatter().shortMonthSymbols ?? []
         return symbols.indices.contains(month - 1) ? symbols[month - 1] : " "
+    }
+    /// Speaking time as a terse "Xm Ys" (or "Ys" under a minute).
+    private static func duration(_ seconds: TimeInterval) -> String {
+        let total = Int(seconds.rounded())
+        let m = total / 60, s = total % 60
+        return m > 0 ? "\(m)m \(s)s" : "\(s)s"
     }
 }
 
