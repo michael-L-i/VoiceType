@@ -266,10 +266,11 @@ private struct HotkeySelector: View {
 
             Picker("", selection: $coordinator.settings.hotkey.holdToTalk) {
                 Text("Hold to talk").tag(true)
-                Text("Tap to toggle").tag(false)
+                Text("Tap to talk").tag(false)
             }
             .pickerStyle(.segmented)
             .labelsHidden()
+            .tint(VT.tintAmber)
             .fixedSize()
             .padding(.vertical, VT.Space.s)
 
