@@ -95,9 +95,7 @@ struct TranscriptsView: View {
                 Text(record.date, format: .dateTime.month().day().hour().minute())
                 sourceBadge(record)
                 Spacer()
-                Button { copy(record.text) } label: { Image(systemName: "doc.on.doc") }
-                    .buttonStyle(.borderless)
-                    .help("Copy")
+                CopyButton(text: record.text, style: .icon)
             }
             .font(.caption)
             .foregroundStyle(.secondary)
