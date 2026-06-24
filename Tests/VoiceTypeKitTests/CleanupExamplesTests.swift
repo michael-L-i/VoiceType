@@ -26,6 +26,21 @@ struct CleanupExamplesTests {
         #expect(pair?.cleaned == "I want three")
     }
 
+    @Test("teaches that a dictated instruction is transcribed, not performed")
+    func instructionAsContent() {
+        // The spoken side is a request; the cleaned side must still be that request
+        // as text (a question), never an action or a lead-in.
+        let pair = CleanupExamples.fewShot.first { $0.spoken.contains("clean up this table") }
+        #expect(pair != nil)
+        #expect(pair?.cleaned.hasSuffix("?") == true)
+        #expect(pair?.cleaned.lowercased().contains("here's") == false)
+    }
+
+    @Test("teaches handle rendering with hyphens")
+    func handleRendering() {
+        #expect(CleanupExamples.fewShot.contains { $0.cleaned.contains("michael-L-i") })
+    }
+
     @Test("includes a prose guard so triggers in prose stay prose")
     func proseGuard() {
         // "dot product" must survive as prose, never collapse to "the.product".
