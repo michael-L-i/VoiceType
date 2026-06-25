@@ -104,33 +104,96 @@ private struct TranscriptionTab: View {
     var body: some View {
         Form {
             Section {
-                Picker("Engine", selection: $coordinator.settings.transcriptionEngine) {
-                    ForEach(TranscriptionEngineKind.allCases, id: \.self) { kind in
-                        Text(kind.displayName).tag(kind)
-                    }
+                ForEach(TranscriptionEngineKind.allCases, id: \.self) { kind in
+                    EngineRow(coordinator: coordinator, kind: kind)
                 }
-                .pickerStyle(.radioGroup)
-
-                statusNote(for: coordinator.settings.transcriptionEngine)
             } header: {
                 Text("Speech-to-text")
             } footer: {
-                Text("Speech-to-text runs entirely on your Mac — your audio never leaves the device.")
+                Text("Everything runs on your Mac — your audio never leaves the device. Apple's model is built in; the others download once and you can switch anytime. One engine is active at a time.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
     }
+}
+
+/// A selectable engine in the Transcription list: name, description, a radio to
+/// activate it (only when its model is ready), and a download / remove control.
+private struct EngineRow: View {
+    @Bindable var coordinator: DictationCoordinator
+    let kind: TranscriptionEngineKind
+
+    private var state: ModelAvailability { coordinator.modelState(for: kind) }
+    private var isSelected: Bool { coordinator.settings.transcriptionEngine == kind }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                .imageScale(.large)
+                .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                .opacity(state.isReady ? 1 : 0.35)
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(kind.displayName).font(.body.weight(.medium))
+                    if !kind.requiresDownload {
+                        Text("Built-in")
+                            .font(.caption2)
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(.quaternary, in: Capsule())
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Text(kind.summary).font(.caption).foregroundStyle(.secondary)
+                if let attribution = kind.attribution {
+                    Text(attribution).font(.caption2).foregroundStyle(.tertiary)
+                }
+            }
+
+            Spacer()
+            trailing
+        }
+        .padding(.vertical, 2)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if state.isReady { coordinator.settings.transcriptionEngine = kind }
+        }
+    }
 
     @ViewBuilder
-    private func statusNote(for kind: TranscriptionEngineKind) -> some View {
-        switch kind {
-        case .appleOnDevice:
-            EngineStatusRow(
-                ready: coordinator.availableTranscription.contains(.appleOnDevice),
-                readyText: "Ready. Runs entirely on-device.",
-                pendingText: "Needs Speech Recognition permission to run.")
+    private var trailing: some View {
+        switch state {
+        case .builtIn:
+            EmptyView()
+        case .ready:
+            Button("Remove", role: .destructive) { coordinator.deleteModel(kind) }
+                .buttonStyle(.borderless)
+                .font(.caption)
+        case .notDownloaded:
+            Button {
+                coordinator.downloadModel(kind)
+            } label: {
+                Label(kind.approxDownloadSize.map { "Download (\($0))" } ?? "Download",
+                      systemImage: "arrow.down.circle")
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        case .downloading(let fraction):
+            if let fraction {
+                ProgressView(value: fraction).frame(width: 90)
+            } else {
+                ProgressView().controlSize(.small)
+            }
+        case .failed(let message):
+            VStack(alignment: .trailing, spacing: 2) {
+                Button("Retry") { coordinator.downloadModel(kind) }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                Text(message).font(.caption2).foregroundStyle(.orange)
+                    .frame(maxWidth: 140, alignment: .trailing)
+            }
         }
     }
 }
