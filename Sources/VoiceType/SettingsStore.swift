@@ -1,8 +1,8 @@
 import Foundation
 import VoiceTypeKit
 
-/// Persists `AppSettings` to `UserDefaults` as JSON. Secrets (the Groq API key)
-/// never come through here — they live in the Keychain, handled separately.
+/// Persists `AppSettings` to `UserDefaults` as JSON. Everything runs on-device,
+/// so there are no secrets to keep here or anywhere else.
 final class SettingsStore: @unchecked Sendable {
     static let shared = SettingsStore()
     private let key = "voicetype.settings.v1"

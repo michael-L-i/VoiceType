@@ -157,7 +157,7 @@ struct SetupView: View {
     private var footnotes: some View {
         VStack(alignment: .leading, spacing: VT.Space.xs) {
             footnote("lock.shield.fill", .green,
-                     "Your audio and transcripts stay on your Mac. Nothing leaves unless you turn on cloud.")
+                     "Your audio and transcripts stay on your Mac. Nothing ever leaves the device.")
             footnote("dock.rectangle", .secondary,
                      "Closing the window keeps VoiceType running — the key still works. Click its Dock icon to bring it back.")
         }

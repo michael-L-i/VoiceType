@@ -1,8 +1,8 @@
 import Foundation
 
 /// User-facing, persisted configuration. Pure value type so it is easy to test
-/// and to diff. The app layer is responsible for loading/saving (UserDefaults)
-/// and for keeping secrets (the Groq API key) in the Keychain, not here.
+/// and to diff. The app layer is responsible for loading/saving (UserDefaults).
+/// Everything runs on-device, so there are no secrets to keep.
 public struct AppSettings: Sendable, Codable, Equatable {
     /// Preferred transcription engine. The resolver downgrades to an available
     /// one if this is not usable right now.
@@ -10,10 +10,6 @@ public struct AppSettings: Sendable, Codable, Equatable {
     /// Preferred cleanup engine, same downgrade rule.
     public var cleanupEngine: CleanupEngineKind
     public var cleanupOptions: CleanupOptions
-
-    /// Master consent switch for any off-device path. Cloud engines are inert
-    /// until this is explicitly turned on — privacy is the default.
-    public var cloudEnabled: Bool
 
     /// BCP-47 locale used for transcription (e.g. "en-US").
     public var locale: String
@@ -30,7 +26,6 @@ public struct AppSettings: Sendable, Codable, Equatable {
     public init(transcriptionEngine: TranscriptionEngineKind = .appleOnDevice,
                 cleanupEngine: CleanupEngineKind = .foundationModels,
                 cleanupOptions: CleanupOptions = .default,
-                cloudEnabled: Bool = false,
                 locale: String = "en-US",
                 hotkey: Hotkey = .default,
                 soundFeedback: Bool = true,
@@ -38,7 +33,6 @@ public struct AppSettings: Sendable, Codable, Equatable {
         self.transcriptionEngine = transcriptionEngine
         self.cleanupEngine = cleanupEngine
         self.cleanupOptions = cleanupOptions
-        self.cloudEnabled = cloudEnabled
         self.locale = locale
         self.hotkey = hotkey
         self.soundFeedback = soundFeedback
@@ -46,16 +40,6 @@ public struct AppSettings: Sendable, Codable, Equatable {
     }
 
     public static let `default` = AppSettings()
-
-    /// Whether the chosen transcription engine is allowed to run given consent.
-    /// A cloud engine selected while cloud is disabled is not permitted.
-    public var transcriptionEngineAllowed: Bool {
-        !transcriptionEngine.isCloud || cloudEnabled
-    }
-
-    public var cleanupEngineAllowed: Bool {
-        !cleanupEngine.isCloud || cloudEnabled
-    }
 }
 
 /// A push-to-talk trigger. The prototype default is "hold Right Option": easy

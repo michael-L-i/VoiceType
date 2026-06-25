@@ -215,22 +215,6 @@ final class DictationCoordinator {
         }
     }
 
-    // MARK: - Secrets
-
-    /// Whether a Groq API key is present in the Keychain. Read-only; the key
-    /// itself never leaves the Keychain through this surface.
-    var hasGroqKey: Bool {
-        guard let key = KeychainStore.shared.groqAPIKey else { return false }
-        return !key.isEmpty
-    }
-
-    /// Save (or clear, when empty) the Groq API key in the Keychain, then
-    /// re-resolve which engines are usable so the UI updates immediately.
-    func saveGroqKey(_ key: String) {
-        KeychainStore.shared.groqAPIKey = key
-        Task { await refreshAvailability() }
-    }
-
     // MARK: - History
 
     func clearHistory() {
@@ -242,33 +226,6 @@ final class DictationCoordinator {
     func deleteRecord(id: UUID) {
         history.remove(id: id)
         HistoryStore.shared.save(history)
-    }
-
-    // MARK: - Whisper model
-
-    /// Whether the local Whisper model is present on disk.
-    var whisperModelDownloaded: Bool { WhisperModelManager().isModelDownloaded() }
-
-    /// Download progress in 0...1 while a download is in flight; nil otherwise.
-    private(set) var whisperDownloadProgress: Double?
-
-    /// Fetch the local Whisper model (one-time). Safe to call repeatedly; it
-    /// no-ops if already downloading or present, and refreshes availability so
-    /// the Whisper engine becomes selectable as soon as it lands.
-    func downloadWhisperModel() {
-        guard whisperDownloadProgress == nil else { return }
-        whisperDownloadProgress = 0
-        Task { [weak self] in
-            do {
-                try await WhisperModelManager().downloadModelIfNeeded(progress: { fraction in
-                    Task { @MainActor in self?.whisperDownloadProgress = fraction }
-                })
-                await self?.refreshAvailability()
-            } catch {
-                Log.engine.error("whisper model download failed: \(error.localizedDescription, privacy: .public)")
-            }
-            self?.whisperDownloadProgress = nil
-        }
     }
 
     // MARK: - Push-to-talk
@@ -324,22 +281,19 @@ final class DictationCoordinator {
     // MARK: - Pipeline
 
     /// Resolve the transcription + cleanup engines for the current settings,
-    /// honoring consent and availability fallback. Shared by the live mic path
-    /// and file import. Returns nil only when no transcriber can run at all.
+    /// honoring availability fallback. Shared by the live mic path and file
+    /// import. Returns nil only when no transcriber can run at all.
     private func resolveEngines() -> (transcriber: TranscriptionEngine, cleaner: CleanupEngine)? {
-        let secrets = EngineFactory.Secrets(groqAPIKey: KeychainStore.shared.groqAPIKey)
         let tKind = EngineResolver.resolveTranscription(
             preferred: settings.transcriptionEngine,
-            cloudEnabled: settings.cloudEnabled,
             available: availableTranscription)
         let cKind = EngineResolver.resolveCleanup(
             preferred: settings.cleanupEngine,
-            cloudEnabled: settings.cloudEnabled,
             available: availableCleanup)
-        guard let transcriber = EngineFactory.makeTranscriber(tKind, secrets: secrets) else {
+        guard let transcriber = EngineFactory.makeTranscriber(tKind) else {
             return nil
         }
-        return (transcriber, EngineFactory.makeCleaner(cKind, secrets: secrets))
+        return (transcriber, EngineFactory.makeCleaner(cKind))
     }
 
     private func makePipeline() -> DictationPipeline? {
@@ -458,7 +412,6 @@ final class DictationCoordinator {
     /// Transcribe an imported audio/video file: decode → chunk → transcribe each
     /// chunk → one cleanup pass → save to transcripts. Unlike mic dictation the
     /// text is NOT injected (there's no target app) — the UI shows it to copy.
-    /// Respects cloud consent via the same resolver as the mic path.
     func transcribeFile(at url: URL) {
         guard !importState.isRunning else { return }
         importTask?.cancel()
@@ -578,7 +531,6 @@ final class DictationCoordinator {
         switch error {
         case .unavailable(let reason): return reason
         case .noSpeechDetected: return "Didn't catch that."
-        case .network(let m): return "Network: \(m)"
         case .failed(let m): return m
         }
     }
@@ -590,17 +542,15 @@ final class DictationCoordinator {
         if old.hotkey.trigger != settings.hotkey.trigger {
             hotkey.updateTrigger(settings.hotkey.trigger)
         }
-        if old.cloudEnabled != settings.cloudEnabled
-            || old.transcriptionEngine != settings.transcriptionEngine
+        if old.transcriptionEngine != settings.transcriptionEngine
             || old.cleanupEngine != settings.cleanupEngine {
             Task { await refreshAvailability() }
         }
     }
 
     func refreshAvailability() async {
-        let secrets = EngineFactory.Secrets(groqAPIKey: KeychainStore.shared.groqAPIKey)
-        availableTranscription = await EngineFactory.availableTranscription(secrets: secrets)
-        availableCleanup = await EngineFactory.availableCleanup(secrets: secrets)
+        availableTranscription = await EngineFactory.availableTranscription()
+        availableCleanup = await EngineFactory.availableCleanup()
         if availableTranscription.isEmpty { availableTranscription = [.appleOnDevice] }
     }
 }

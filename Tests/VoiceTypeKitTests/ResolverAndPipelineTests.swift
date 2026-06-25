@@ -2,45 +2,41 @@ import Testing
 import Foundation
 @testable import VoiceTypeKit
 
-@Suite("Engine resolver — privacy & fallback policy")
+@Suite("Engine resolver — on-device fallback policy")
 struct ResolverTests {
-    @Test("never uses cloud transcription without consent")
-    func cloudGated() {
+    @Test("uses the preferred transcription engine when available")
+    func transcriptionPreferred() {
         let resolved = EngineResolver.resolveTranscription(
-            preferred: .groqCloud, cloudEnabled: false,
-            available: [.appleOnDevice, .whisperCpp, .groqCloud])
-        #expect(resolved != .groqCloud)
+            preferred: .appleOnDevice, available: [.appleOnDevice])
         #expect(resolved == .appleOnDevice)
     }
 
-    @Test("uses cloud transcription when consented and preferred")
-    func cloudAllowed() {
+    @Test("returns the preferred kind even when nothing is available, so the caller can error")
+    func transcriptionNoneAvailable() {
         let resolved = EngineResolver.resolveTranscription(
-            preferred: .groqCloud, cloudEnabled: true,
-            available: [.appleOnDevice, .groqCloud])
-        #expect(resolved == .groqCloud)
+            preferred: .appleOnDevice, available: [])
+        #expect(resolved == .appleOnDevice)
     }
 
-    @Test("downgrades apple -> whisper when apple unavailable")
-    func downgradeToWhisper() {
-        let resolved = EngineResolver.resolveTranscription(
-            preferred: .appleOnDevice, cloudEnabled: false,
-            available: [.whisperCpp])
-        #expect(resolved == .whisperCpp)
+    @Test("cleanup uses Apple Intelligence when available")
+    func cleanupPreferred() {
+        let resolved = EngineResolver.resolveCleanup(
+            preferred: .foundationModels, available: [.foundationModels])
+        #expect(resolved == .foundationModels)
     }
 
     @Test("cleanup falls back to rule-based when foundation models absent")
     func cleanupFallback() {
         let resolved = EngineResolver.resolveCleanup(
-            preferred: .foundationModels, cloudEnabled: false, available: [])
+            preferred: .foundationModels, available: [])
         #expect(resolved == .ruleBased)
     }
 
-    @Test("cloud cleanup gated by consent")
-    func cleanupCloudGated() {
+    @Test("cleanup honors an explicit none selection")
+    func cleanupNone() {
         let resolved = EngineResolver.resolveCleanup(
-            preferred: .groqCloud, cloudEnabled: false, available: [.foundationModels])
-        #expect(resolved == .foundationModels)
+            preferred: .none, available: [.foundationModels])
+        #expect(resolved == .none)
     }
 }
 

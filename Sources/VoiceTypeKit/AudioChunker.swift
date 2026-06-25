@@ -1,8 +1,8 @@
 import Foundation
 
-/// Splits a long recording into transcription-sized windows. Whisper and the
-/// Apple batch path degrade (and can run out of memory) on very long audio, so
-/// imported files are chunked before transcription and the results joined.
+/// Splits a long recording into transcription-sized windows. The Apple batch
+/// path degrades (and can run out of memory) on very long audio, so imported
+/// files are chunked before transcription and the results joined.
 ///
 /// Cuts are nudged to the quietest spot near each window boundary so we don't
 /// slice through the middle of a word, and a small overlap is carried across so a

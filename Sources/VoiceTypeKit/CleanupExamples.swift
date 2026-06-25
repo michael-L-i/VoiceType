@@ -1,9 +1,8 @@
 import Foundation
 
 /// Canonical few-shot examples that teach the cleanup model how to tidy a voice
-/// transcript. Kept here, in the pure Kit, so both LLM cleanup prompts (the Apple
-/// on-device `CleanupPrompt` and the Groq `systemPrompt`) compose the *same*
-/// guidance — they can't drift — and so the wording stays unit-testable.
+/// transcript. Kept here, in the pure Kit, so the Apple on-device `CleanupPrompt`
+/// composes them consistently and the wording stays unit-testable.
 ///
 /// The set deliberately mixes three lessons:
 ///  - **Compact code rendering:** spoken file names, symbols, and identifiers

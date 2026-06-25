@@ -2,11 +2,11 @@ import SwiftUI
 import AppKit
 import VoiceTypeKit
 
-/// The preferences window, opened with ⌘, or from the Home window. Five focused tabs that bind
-/// straight to `coordinator.settings` (mutations auto-persist via the
+/// The preferences window, opened with ⌘, or from the Home window. Focused tabs
+/// that bind straight to `coordinator.settings` (mutations auto-persist via the
 /// coordinator's `didSet`). The design goal is a calm, native macOS utility:
-/// `Form` + `GroupBox` idioms, SF Symbols, and copy that makes the privacy
-/// default obvious rather than buried in a setting.
+/// `Form` + `GroupBox` idioms, SF Symbols, and copy that makes the on-device
+/// default obvious. Everything runs on your Mac — there is no cloud path.
 struct SettingsView: View {
     @Bindable var coordinator: DictationCoordinator
 
@@ -20,9 +20,6 @@ struct SettingsView: View {
 
             CleanupTab(coordinator: coordinator)
                 .tabItem { Label("Cleanup", systemImage: "wand.and.stars") }
-
-            PrivacyTab(coordinator: coordinator)
-                .tabItem { Label("Privacy & Cloud", systemImage: "lock.shield") }
         }
         .frame(width: 520, height: 460)
     }
@@ -118,7 +115,7 @@ private struct TranscriptionTab: View {
             } header: {
                 Text("Speech-to-text")
             } footer: {
-                Text("VoiceType picks the best available engine automatically if your choice can't run right now.")
+                Text("Speech-to-text runs entirely on your Mac — your audio never leaves the device.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -134,27 +131,6 @@ private struct TranscriptionTab: View {
                 ready: coordinator.availableTranscription.contains(.appleOnDevice),
                 readyText: "Ready. Runs entirely on-device.",
                 pendingText: "Needs Speech Recognition permission to run.")
-        case .whisperCpp:
-            EngineStatusRow(
-                ready: coordinator.availableTranscription.contains(.whisperCpp),
-                readyText: "Ready. Runs entirely on-device.",
-                pendingText: "Requires a one-time model download before first use.")
-            if !coordinator.whisperModelDownloaded {
-                if let progress = coordinator.whisperDownloadProgress {
-                    ProgressView(value: progress) {
-                        Text("Downloading model… \(Int(progress * 100))%").font(.caption)
-                    }
-                } else {
-                    Button("Download Whisper model (~150 MB)") {
-                        coordinator.downloadWhisperModel()
-                    }
-                }
-            }
-        case .groqCloud:
-            CloudEngineStatusRow(
-                cloudEnabled: coordinator.settings.cloudEnabled,
-                hasKey: coordinator.hasGroqKey,
-                ready: coordinator.availableTranscription.contains(.groqCloud))
         }
     }
 }
@@ -211,90 +187,12 @@ private struct CleanupTab: View {
                 ready: true,
                 readyText: "Always available. Deterministic, on-device.",
                 pendingText: "")
-        case .groqCloud:
-            CloudEngineStatusRow(
-                cloudEnabled: coordinator.settings.cloudEnabled,
-                hasKey: coordinator.hasGroqKey,
-                ready: coordinator.availableCleanup.contains(.groqCloud))
         case .none:
             EngineStatusRow(
                 ready: true,
                 readyText: "Inserts the raw transcript verbatim.",
                 pendingText: "")
         }
-    }
-}
-
-// MARK: - Privacy & Cloud
-
-private struct PrivacyTab: View {
-    @Bindable var coordinator: DictationCoordinator
-    @State private var groqKeyDraft: String = ""
-    @State private var savedConfirmation = false
-
-    var body: some View {
-        Form {
-            Section {
-                Toggle("Enable cloud features", isOn: $coordinator.settings.cloudEnabled)
-                    .font(.body.weight(.medium))
-                Text("Off by default. When on, selecting a cloud engine lets VoiceType send your audio and text to Groq to be transcribed or cleaned up. With this off, everything stays on your Mac.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } header: {
-                Text("Cloud")
-            }
-
-            Section {
-                SecureField("Groq API key", text: $groqKeyDraft,
-                            prompt: Text(coordinator.hasGroqKey ? "•••••• (saved)" : "gsk_…"))
-                    .disabled(!coordinator.settings.cloudEnabled)
-
-                HStack {
-                    Button("Save Key") {
-                        coordinator.saveGroqKey(groqKeyDraft)
-                        groqKeyDraft = ""
-                        savedConfirmation = true
-                    }
-                    .disabled(!coordinator.settings.cloudEnabled || groqKeyDraft.isEmpty)
-
-                    if coordinator.hasGroqKey {
-                        Button("Remove Key", role: .destructive) {
-                            coordinator.saveGroqKey("")
-                            groqKeyDraft = ""
-                            savedConfirmation = false
-                        }
-                        .disabled(!coordinator.settings.cloudEnabled)
-                    }
-
-                    Spacer()
-
-                    if savedConfirmation {
-                        Label("Saved", systemImage: "checkmark.circle.fill")
-                            .font(.caption)
-                            .foregroundStyle(.green)
-                            .labelStyle(.titleAndIcon)
-                    }
-                }
-
-                Text("Stored securely in your macOS Keychain — never in plain text, never synced by VoiceType.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } header: {
-                Text("Groq API key")
-            }
-            .opacity(coordinator.settings.cloudEnabled ? 1 : 0.5)
-
-            if !coordinator.settings.cloudEnabled {
-                Section {
-                    Label("Cloud engines stay disabled until you turn on cloud features above.",
-                          systemImage: "lock.fill")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-        .formStyle(.grouped)
-        .onChange(of: groqKeyDraft) { _, _ in savedConfirmation = false }
     }
 }
 
@@ -315,27 +213,5 @@ private struct EngineStatusRow: View {
         }
         .font(.caption)
         .foregroundStyle(.secondary)
-    }
-}
-
-/// Status line for a cloud engine: it can be blocked on consent, a missing key,
-/// or simply not reachable. Keeps the privacy gating legible.
-private struct CloudEngineStatusRow: View {
-    let cloudEnabled: Bool
-    let hasKey: Bool
-    let ready: Bool
-
-    var body: some View {
-        if !cloudEnabled {
-            EngineStatusRow(ready: false, readyText: "",
-                            pendingText: "Turn on cloud features in Privacy & Cloud to use this.")
-        } else if !hasKey {
-            EngineStatusRow(ready: false, readyText: "",
-                            pendingText: "Add your Groq API key in Privacy & Cloud.")
-        } else {
-            EngineStatusRow(ready: ready,
-                            readyText: "Ready. Sends audio/text to Groq when selected.",
-                            pendingText: "Key saved, but the service isn't reachable right now.")
-        }
     }
 }
