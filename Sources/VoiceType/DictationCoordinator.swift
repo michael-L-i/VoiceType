@@ -228,6 +228,69 @@ final class DictationCoordinator {
         HistoryStore.shared.save(history)
     }
 
+    // MARK: - Transcription models
+
+    /// Download/availability state per transcription engine, driving the engine
+    /// list in Settings. Apple is always `builtIn`; downloadable engines move
+    /// through `notDownloaded → downloading → ready`.
+    private(set) var modelStates: [TranscriptionEngineKind: ModelAvailability] = [:]
+
+    /// State for one engine, with sensible defaults before the first refresh.
+    func modelState(for kind: TranscriptionEngineKind) -> ModelAvailability {
+        if !kind.requiresDownload { return .builtIn }
+        return modelStates[kind] ?? .notDownloaded
+    }
+
+    /// Recompute model states from current availability, preserving any download
+    /// that's still in flight.
+    private func refreshModelStates() {
+        for kind in TranscriptionEngineKind.allCases {
+            if modelStates[kind]?.isDownloading == true { continue }
+            if !kind.requiresDownload { modelStates[kind] = .builtIn }
+            else if availableTranscription.contains(kind) { modelStates[kind] = .ready }
+            else { modelStates[kind] = .notDownloaded }
+        }
+    }
+
+    /// Fetch a downloadable engine's weights, streaming progress into
+    /// `modelStates`, then re-resolve availability so it becomes selectable.
+    func downloadModel(_ kind: TranscriptionEngineKind) {
+        guard kind.requiresDownload, let manager = EngineFactory.modelManager(for: kind) else { return }
+        guard modelStates[kind]?.isDownloading != true else { return }
+        modelStates[kind] = .downloading(nil)
+
+        // Strong self: the coordinator is app-lifetime, and the Task ends when the
+        // download does — no retain cycle, and it sidesteps weak-capture churn.
+        Task {
+            let onProgress: @Sendable (Double?) -> Void = { fraction in
+                Task { @MainActor in
+                    guard self.modelStates[kind]?.isDownloading == true else { return }
+                    self.modelStates[kind] = .downloading(fraction)
+                }
+            }
+            do {
+                try await manager.download(progress: onProgress)
+                await self.refreshAvailability()
+            } catch {
+                Log.engine.error("model download failed for \(kind.rawValue, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                self.modelStates[kind] = .failed("Download failed. Check your connection and try again.")
+            }
+        }
+    }
+
+    /// Remove a downloaded engine's weights. If it was the active engine, fall
+    /// back to Apple so dictation keeps working.
+    func deleteModel(_ kind: TranscriptionEngineKind) {
+        guard kind.requiresDownload, let manager = EngineFactory.modelManager(for: kind) else { return }
+        Task {
+            try? await manager.delete()
+            if self.settings.transcriptionEngine == kind {
+                self.settings.transcriptionEngine = .appleOnDevice
+            }
+            await self.refreshAvailability()
+        }
+    }
+
     // MARK: - Push-to-talk
 
     private func handlePress() {
@@ -552,5 +615,6 @@ final class DictationCoordinator {
         availableTranscription = await EngineFactory.availableTranscription()
         availableCleanup = await EngineFactory.availableCleanup()
         if availableTranscription.isEmpty { availableTranscription = [.appleOnDevice] }
+        refreshModelStates()
     }
 }

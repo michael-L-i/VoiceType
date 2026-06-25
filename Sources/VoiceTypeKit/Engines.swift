@@ -3,14 +3,54 @@ import Foundation
 // MARK: - Identity of the swappable backends
 
 /// Which transcription backend produced (or should produce) text. Everything
-/// runs on-device; more local engines (e.g. Parakeet) plug in here over time.
+/// runs on-device. Apple's model is built into the OS; the others download their
+/// weights on demand. More local engines plug in here over time.
 public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
-    /// Apple on-device `SpeechTranscriber` (macOS 26+).
+    /// Apple on-device `SpeechTranscriber` (macOS 26+). Built in; the default.
     case appleOnDevice
+    /// NVIDIA Parakeet (FastConformer-TDT) on the Neural Engine via FluidAudio.
+    case parakeet
+    /// OpenAI Whisper on the Neural Engine via WhisperKit (Argmax).
+    case whisperKit
 
     public var displayName: String {
         switch self {
         case .appleOnDevice: return "Apple (on-device)"
+        case .parakeet: return "Parakeet"
+        case .whisperKit: return "WhisperKit"
+        }
+    }
+
+    /// One-line description shown under the engine name in the picker.
+    public var summary: String {
+        switch self {
+        case .appleOnDevice: return "Built into macOS. Fast, streaming, always ready."
+        case .parakeet: return "NVIDIA's model — top accuracy and speed for English on Apple Silicon."
+        case .whisperKit: return "OpenAI Whisper — broad multilingual coverage."
+        }
+    }
+
+    /// True when the engine's weights must be downloaded before first use. Apple's
+    /// model ships with the OS; the others are fetched on demand.
+    public var requiresDownload: Bool { self != .appleOnDevice }
+
+    /// Rough on-disk download size, shown on the download button. Nil for the
+    /// built-in engine.
+    public var approxDownloadSize: String? {
+        switch self {
+        case .appleOnDevice: return nil
+        case .parakeet: return "~600 MB"
+        case .whisperKit: return "~150 MB"
+        }
+    }
+
+    /// Attribution we're obliged to surface (e.g. Parakeet's CC-BY-4.0). Nil when
+    /// none is required.
+    public var attribution: String? {
+        switch self {
+        case .appleOnDevice: return nil
+        case .parakeet: return "Speech model © NVIDIA, licensed under CC-BY-4.0."
+        case .whisperKit: return "Runs OpenAI Whisper via WhisperKit (Argmax)."
         }
     }
 }

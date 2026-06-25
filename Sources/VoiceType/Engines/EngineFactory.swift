@@ -13,6 +13,23 @@ enum EngineFactory {
         switch kind {
         case .appleOnDevice:
             return AppleSpeechEngine()
+        case .parakeet:
+            return ParakeetEngine()
+        case .whisperKit:
+            return WhisperKitEngine()
+        }
+    }
+
+    /// The download/cache manager for an engine's weights, or nil for the
+    /// built-in Apple engine which ships with the OS.
+    static func modelManager(for kind: TranscriptionEngineKind) -> TranscriptionModelManager? {
+        switch kind {
+        case .appleOnDevice:
+            return nil
+        case .parakeet:
+            return ParakeetModelManager()
+        case .whisperKit:
+            return WhisperKitModelManager()
         }
     }
 
