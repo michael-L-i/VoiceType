@@ -44,9 +44,9 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
     public var summary: String {
         switch self {
         case .appleOnDevice:
-            return "Apple's built-in on-device speech recognition. Fast, private, and always ready."
+            return "Ships with macOS and runs entirely on your Mac — ready the moment you are."
         case .parakeet:
-            return "Ultra-fast NVIDIA FastConformer model for conversational speech and voice commands."
+            return "NVIDIA's compact speech model — quick, multilingual, and punctuation-aware."
         }
     }
 

@@ -294,7 +294,9 @@ final class DictationCoordinator {
     // MARK: - Push-to-talk
 
     private func handlePress() {
-        guard !isProcessing else { return }
+        // Never start live dictation on top of an in-flight engine test (both
+        // share the one capture).
+        guard !isProcessing, activeTestKind == nil else { return }
         if !settings.hotkey.holdToTalk, state == .recording {
             finishRecording()
             return
@@ -335,6 +337,14 @@ final class DictationCoordinator {
     }
 
     private func handleAudioConfigurationChange() {
+        // A test recording owns the capture too; the capture cancels itself on a
+        // route change, so just sync our state and bail.
+        if let kind = activeTestKind {
+            activeTestKind = nil
+            inputLevel = 0
+            testStates[kind] = .failed("Audio device changed. Try again.")
+            return
+        }
         guard state == .recording else { return }
         SoundFeedback(enabled: settings.soundFeedback).stop()
         inputLevel = 0
@@ -554,6 +564,107 @@ final class DictationCoordinator {
     func clearImport() {
         guard !importState.isRunning else { return }
         importState = .idle
+    }
+
+    // MARK: - Engine test
+
+    /// Progress of an inline "test this engine" recording on the Models page.
+    /// Like file import, it transcribes without injecting anywhere — it just
+    /// shows the engine's raw output so the user can hear how it does.
+    enum TestState: Equatable {
+        case idle
+        case recording
+        case transcribing
+        case done(text: String)
+        case failed(String)
+
+        var isBusy: Bool {
+            switch self {
+            case .recording, .transcribing: return true
+            default: return false
+            }
+        }
+    }
+
+    private(set) var testStates: [TranscriptionEngineKind: TestState] = [:]
+    func testState(for kind: TranscriptionEngineKind) -> TestState { testStates[kind] ?? .idle }
+
+    /// The engine whose test currently owns the shared mic capture, if any. Acts
+    /// as the single-flight guard so a test can't overlap live dictation or
+    /// another test (there is one `capture`).
+    private var activeTestKind: TranscriptionEngineKind?
+    private var testTask: Task<Void, Never>?
+
+    /// Begin recording a short clip to test `kind`. No-ops if dictation, a test,
+    /// or processing is already in flight, or the model isn't ready.
+    func startTest(_ kind: TranscriptionEngineKind) {
+        guard state != .recording, !isProcessing, activeTestKind == nil else { return }
+        guard modelState(for: kind).isReady else { return }
+
+        guard microphonePermission == .granted else {
+            testStates[kind] = .failed("Allow microphone access to test an engine.")
+            Task { await request(.microphone) }
+            return
+        }
+        do {
+            try capture.start()
+            activeTestKind = kind
+            testStates[kind] = .recording
+        } catch {
+            Log.audio.error("test capture start failed: \(error.localizedDescription, privacy: .public)")
+            testStates[kind] = .failed("Couldn't access the microphone.")
+        }
+    }
+
+    /// Stop the test recording and transcribe it with `kind`'s exact engine
+    /// (bypassing the resolver), raw — no cleanup, no injection, no history.
+    func stopTest(_ kind: TranscriptionEngineKind) {
+        guard activeTestKind == kind, testStates[kind] == .recording else { return }
+        let audio = capture.stop()
+        inputLevel = 0
+        activeTestKind = nil
+
+        guard audio.duration >= 0.25, audio.rms > 0.002 else {
+            testStates[kind] = .failed("Didn't catch any speech. Try again.")
+            return
+        }
+        guard let transcriber = EngineFactory.makeTranscriber(kind) else {
+            testStates[kind] = .failed("This engine isn't available.")
+            return
+        }
+        testStates[kind] = .transcribing
+        let locale = settings.locale
+        testTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let result = try await transcriber.transcribe(audio, locale: locale)
+                let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                self.testStates[kind] = text.isEmpty
+                    ? .failed("Didn't catch any speech. Try again.")
+                    : .done(text: text)
+            } catch let error as TranscriptionError {
+                self.testStates[kind] = .failed(Self.describe(error))
+            } catch {
+                self.testStates[kind] = .failed(error.localizedDescription)
+            }
+        }
+    }
+
+    /// Abort a test (panel closed mid-recording) without transcribing.
+    func cancelTest(_ kind: TranscriptionEngineKind) {
+        if activeTestKind == kind {
+            capture.cancel()
+            inputLevel = 0
+            activeTestKind = nil
+        }
+        testTask?.cancel()
+        testStates[kind] = .idle
+    }
+
+    /// Reset a finished/failed test back to idle (for "Record again").
+    func clearTest(_ kind: TranscriptionEngineKind) {
+        guard !testState(for: kind).isBusy else { return }
+        testStates[kind] = .idle
     }
 
     // MARK: - State helpers
