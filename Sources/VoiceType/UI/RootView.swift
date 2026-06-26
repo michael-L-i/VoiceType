@@ -11,7 +11,7 @@ struct RootView: View {
     @State private var selection: SidebarItem = .home
 
     /// The primary destinations, shown at the top of the sidebar.
-    private let topItems: [SidebarItem] = [.home, .transcripts, .transcribe]
+    private let topItems: [SidebarItem] = [.home, .transcripts, .transcribe, .models]
 
     var body: some View {
         NavigationSplitView {
@@ -132,6 +132,8 @@ struct RootView: View {
             TranscriptsView(coordinator: coordinator)
         case .transcribe:
             TranscribeView(coordinator: coordinator)
+        case .models:
+            ModelsView(coordinator: coordinator)
         case .setup:
             SetupView(coordinator: coordinator) { selection = .home }
         }
@@ -141,7 +143,7 @@ struct RootView: View {
 /// The selectable destinations in the sidebar. (Settings is intentionally not
 /// here — it opens the standalone preferences window.)
 enum SidebarItem: String, CaseIterable, Identifiable {
-    case home, transcripts, transcribe, setup
+    case home, transcripts, transcribe, models, setup
 
     var id: String { rawValue }
 
@@ -150,6 +152,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .home: return "Home"
         case .transcripts: return "Transcripts"
         case .transcribe: return "Transcribe"
+        case .models: return "Models"
         case .setup: return "Setup"
         }
     }
@@ -159,6 +162,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .home: return "house"
         case .transcripts: return "text.book.closed"
         case .transcribe: return "waveform.badge.plus"
+        case .models: return "cpu"
         case .setup: return "person.badge.shield.checkmark"
         }
     }
