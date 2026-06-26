@@ -28,6 +28,8 @@ mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources"
 cp "$BIN" "$CONTENTS/MacOS/VoiceType"
 cp "$ROOT/Resources/Info.plist" "$CONTENTS/Info.plist"
 cp "$ROOT/Resources/AppIcon.icns" "$CONTENTS/Resources/AppIcon.icns"
+# Vendor logos (e.g. the NVIDIA mark shown on the Models page).
+cp "$ROOT"/Resources/*.svg "$CONTENTS/Resources/" 2>/dev/null || true
 
 # Embed dynamic frameworks (Sparkle ships as a framework with nested helpers)
 # next to the binary's runtime search path. SwiftPM builds the framework beside

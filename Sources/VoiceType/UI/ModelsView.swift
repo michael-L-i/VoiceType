@@ -24,7 +24,7 @@ struct ModelsView: View {
                         .padding(.leading, VT.Space.xs)
                 }
             }
-            .frame(maxWidth: 820, alignment: .leading)
+            .frame(maxWidth: 940, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(VT.Space.xl)
         }
@@ -66,7 +66,7 @@ struct ModelsView: View {
     }
 }
 
-private let featuresColumnWidth: CGFloat = 168
+private let featuresColumnWidth: CGFloat = 184
 
 /// One engine as a table row: radio + vendor logo + name/description/actions, with
 /// its feature chips in the right column.
@@ -78,7 +78,7 @@ private struct EngineRow: View {
     private var isSelected: Bool { coordinator.settings.transcriptionEngine == kind }
 
     var body: some View {
-        HStack(alignment: .top, spacing: VT.Space.m) {
+        HStack(alignment: .center, spacing: VT.Space.m) {
             Button {
                 if state.isReady { coordinator.settings.transcriptionEngine = kind }
             } label: {
@@ -91,7 +91,6 @@ private struct EngineRow: View {
             .disabled(!state.isReady)
 
             VendorMark(vendor: kind.vendor)
-                .padding(.top, 1)
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: VT.Space.s) {
@@ -172,36 +171,45 @@ private struct EngineRow: View {
     }
 }
 
-/// The model vendor's logo. Apple uses the system `apple.logo` glyph. NVIDIA's
-/// logo is a trademark we don't ship, so we draw a branded placeholder tile — and
-/// if a bundle image named "NVIDIALogo" is present, we use that instead.
+/// The model vendor's logo, sized and vertically centered in its cell. Apple uses
+/// the system `apple.logo` glyph; NVIDIA uses its official eye mark, shipped as
+/// `NVIDIALogo.svg` in the app bundle (with a branded tile as a safety fallback).
 private struct VendorMark: View {
     let vendor: EngineVendor
 
-    private static let size: CGFloat = 30
+    private static let size: CGFloat = 42
+
+    /// The NVIDIA mark loaded from the bundled SVG, if present.
+    private static let nvidiaLogo: NSImage? = {
+        guard let url = Bundle.main.url(forResource: "NVIDIALogo", withExtension: "svg") else { return nil }
+        return NSImage(contentsOf: url)
+    }()
 
     var body: some View {
-        switch vendor {
-        case .apple:
-            Image(systemName: "apple.logo")
-                .font(.system(size: 18))
-                .foregroundStyle(.primary)
-                .frame(width: Self.size, height: Self.size)
-        case .nvidia:
-            if let logo = NSImage(named: "NVIDIALogo") {
-                Image(nsImage: logo)
-                    .resizable().scaledToFit()
-                    .frame(width: Self.size, height: Self.size)
-            } else {
-                RoundedRectangle(cornerRadius: 7, style: .continuous)
-                    .fill(Color(red: 0.46, green: 0.73, blue: 0.0)) // NVIDIA green #76B900
-                    .frame(width: Self.size, height: Self.size)
-                    .overlay(
-                        Text("N")
-                            .font(.system(size: 17, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white))
+        Group {
+            switch vendor {
+            case .apple:
+                Image(systemName: "apple.logo")
+                    .font(.system(size: 26))
+                    .foregroundStyle(.primary)
+            case .nvidia:
+                if let logo = Self.nvidiaLogo {
+                    Image(nsImage: logo)
+                        .resizable()
+                        .interpolation(.high)
+                        .scaledToFit()
+                } else {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Color(red: 0.46, green: 0.73, blue: 0.0)) // NVIDIA green #76B900
+                        .overlay(
+                            Text("N")
+                                .font(.system(size: 22, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white))
+                }
             }
         }
+        .frame(width: Self.size, height: Self.size)
+        .frame(maxHeight: .infinity, alignment: .center)
     }
 }
 
