@@ -4,18 +4,16 @@ import Foundation
 
 @Suite("Transcription engine metadata")
 struct EngineMetadataTests {
-    @Test("only Apple is built-in; the rest require a download")
+    @Test("only Apple is built-in; downloadable engines require a download")
     func downloadRequirement() {
         #expect(TranscriptionEngineKind.appleOnDevice.requiresDownload == false)
         #expect(TranscriptionEngineKind.parakeet.requiresDownload == true)
-        #expect(TranscriptionEngineKind.whisperKit.requiresDownload == true)
     }
 
     @Test("downloadable engines advertise a size; the built-in one doesn't")
     func downloadSizes() {
         #expect(TranscriptionEngineKind.appleOnDevice.approxDownloadSize == nil)
         #expect(TranscriptionEngineKind.parakeet.approxDownloadSize != nil)
-        #expect(TranscriptionEngineKind.whisperKit.approxDownloadSize != nil)
     }
 
     @Test("Parakeet surfaces its required NVIDIA / CC-BY attribution")
@@ -24,11 +22,18 @@ struct EngineMetadataTests {
         #expect(attribution?.contains("NVIDIA") == true)
     }
 
-    @Test("every kind has a non-empty display name and summary")
+    @Test("vendors map to the right company")
+    func vendors() {
+        #expect(TranscriptionEngineKind.appleOnDevice.vendor == .apple)
+        #expect(TranscriptionEngineKind.parakeet.vendor == .nvidia)
+    }
+
+    @Test("every kind has a non-empty name, summary, and features")
     func displayStrings() {
         for kind in TranscriptionEngineKind.allCases {
             #expect(!kind.displayName.isEmpty)
             #expect(!kind.summary.isEmpty)
+            #expect(!kind.features.isEmpty)
         }
     }
 }

@@ -28,7 +28,7 @@ struct ResolverTests {
     @Test("falls back to an available engine when the preferred model isn't downloaded")
     func transcriptionPreferredNotDownloaded() {
         let resolved = EngineResolver.resolveTranscription(
-            preferred: .whisperKit, available: [.appleOnDevice])
+            preferred: .parakeet, available: [.appleOnDevice])
         #expect(resolved == .appleOnDevice)
     }
 

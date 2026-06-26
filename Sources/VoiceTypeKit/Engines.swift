@@ -2,31 +2,59 @@ import Foundation
 
 // MARK: - Identity of the swappable backends
 
+/// The company behind an engine's model, used to show its logo.
+public enum EngineVendor: String, Sendable {
+    case apple
+    case nvidia
+
+    public var name: String {
+        switch self {
+        case .apple: return "Apple"
+        case .nvidia: return "NVIDIA"
+        }
+    }
+}
+
 /// Which transcription backend produced (or should produce) text. Everything
 /// runs on-device. Apple's model is built into the OS; the others download their
 /// weights on demand. More local engines plug in here over time.
 public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
     /// Apple on-device `SpeechTranscriber` (macOS 26+). Built in; the default.
     case appleOnDevice
-    /// NVIDIA Parakeet (FastConformer-TDT) on the Neural Engine via FluidAudio.
+    /// NVIDIA Parakeet TDT 0.6B V3 (FastConformer-TDT) on the Neural Engine via
+    /// FluidAudio.
     case parakeet
-    /// OpenAI Whisper on the Neural Engine via WhisperKit (Argmax).
-    case whisperKit
 
     public var displayName: String {
         switch self {
-        case .appleOnDevice: return "Apple (on-device)"
-        case .parakeet: return "Parakeet"
-        case .whisperKit: return "WhisperKit"
+        case .appleOnDevice: return "Apple Speech"
+        case .parakeet: return "Parakeet TDT 0.6B V3"
         }
     }
 
-    /// One-line description shown under the engine name in the picker.
+    /// The model's vendor, for the logo shown next to it.
+    public var vendor: EngineVendor {
+        switch self {
+        case .appleOnDevice: return .apple
+        case .parakeet: return .nvidia
+        }
+    }
+
+    /// One-line description of what the model is, shown under its name.
     public var summary: String {
         switch self {
-        case .appleOnDevice: return "Built into macOS. Fast, streaming, always ready."
-        case .parakeet: return "NVIDIA's model — top accuracy and speed for English on Apple Silicon."
-        case .whisperKit: return "OpenAI Whisper — broad multilingual coverage."
+        case .appleOnDevice:
+            return "Apple's built-in on-device speech recognition. Fast, private, and always ready."
+        case .parakeet:
+            return "Ultra-fast NVIDIA FastConformer model for conversational speech and voice commands."
+        }
+    }
+
+    /// Short feature chips shown in the Models list (no accuracy/speed numbers).
+    public var features: [String] {
+        switch self {
+        case .appleOnDevice: return ["Built-in", "Streaming", "Multilingual"]
+        case .parakeet: return ["~500 MB", "Multilingual", "Punctuation built-in"]
         }
     }
 
@@ -39,8 +67,7 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
     public var approxDownloadSize: String? {
         switch self {
         case .appleOnDevice: return nil
-        case .parakeet: return "~600 MB"
-        case .whisperKit: return "~150 MB"
+        case .parakeet: return "~500 MB"
         }
     }
 
@@ -50,7 +77,6 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
         switch self {
         case .appleOnDevice: return nil
         case .parakeet: return "Speech model © NVIDIA, licensed under CC-BY-4.0."
-        case .whisperKit: return "Runs OpenAI Whisper via WhisperKit (Argmax)."
         }
     }
 }

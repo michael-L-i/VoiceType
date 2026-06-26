@@ -15,8 +15,6 @@ enum EngineFactory {
             return AppleSpeechEngine()
         case .parakeet:
             return ParakeetEngine()
-        case .whisperKit:
-            return WhisperKitEngine()
         }
     }
 
@@ -28,8 +26,6 @@ enum EngineFactory {
             return nil
         case .parakeet:
             return ParakeetModelManager()
-        case .whisperKit:
-            return WhisperKitModelManager()
         }
     }
 
