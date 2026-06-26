@@ -2,25 +2,17 @@ import Foundation
 
 // MARK: - Identity of the swappable backends
 
-/// Which transcription backend produced (or should produce) text.
+/// Which transcription backend produced (or should produce) text. Everything
+/// runs on-device; more local engines (e.g. Parakeet) plug in here over time.
 public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
-    /// Apple on-device `SpeechTranscriber` (macOS 26+). Default when available.
+    /// Apple on-device `SpeechTranscriber` (macOS 26+).
     case appleOnDevice
-    /// Bundled `whisper.cpp`. Local fallback for unsupported hardware/locales.
-    case whisperCpp
-    /// Groq cloud (whisper-large-v3-turbo). Opt-in, requires an API key.
-    case groqCloud
 
     public var displayName: String {
         switch self {
         case .appleOnDevice: return "Apple (on-device)"
-        case .whisperCpp: return "Whisper (local)"
-        case .groqCloud: return "Groq (cloud)"
         }
     }
-
-    /// True if using this engine sends audio off-device.
-    public var isCloud: Bool { self == .groqCloud }
 }
 
 /// Which cleanup backend tidies the raw transcript.
@@ -29,8 +21,6 @@ public enum CleanupEngineKind: String, Sendable, Codable, CaseIterable {
     case foundationModels
     /// Deterministic regex/heuristic cleanup. Always available; final fallback.
     case ruleBased
-    /// Groq cloud LLM. Opt-in, requires an API key.
-    case groqCloud
     /// No cleanup — inject the raw transcript verbatim.
     case none
 
@@ -38,12 +28,9 @@ public enum CleanupEngineKind: String, Sendable, Codable, CaseIterable {
         switch self {
         case .foundationModels: return "Apple Intelligence (on-device)"
         case .ruleBased: return "Built-in rules"
-        case .groqCloud: return "Groq (cloud)"
         case .none: return "None (raw)"
         }
     }
-
-    public var isCloud: Bool { self == .groqCloud }
 }
 
 // MARK: - Transcription
@@ -65,12 +52,10 @@ public struct TranscriptionResult: Sendable, Equatable {
 
 public enum TranscriptionError: Error, Sendable, Equatable {
     /// The engine cannot run in the current environment (model missing,
-    /// hardware unsupported, no API key, offline, etc).
+    /// hardware unsupported, etc).
     case unavailable(reason: String)
     /// Audio was empty or below the speech threshold.
     case noSpeechDetected
-    /// A networked engine failed to reach its provider.
-    case network(String)
     /// Anything else, carrying a human-readable message.
     case failed(String)
 }

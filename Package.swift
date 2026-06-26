@@ -13,12 +13,6 @@ let package = Package(
         .library(name: "VoiceTypeKit", targets: ["VoiceTypeKit"]),
     ],
     dependencies: [
-        // SwiftWhisper wraps whisper.cpp and accepts `[Float]` 16 kHz mono audio,
-        // which is exactly our `PCMBuffer.samples` shape — no resampling glue.
-        // The library has no tagged release newer than 1.2.0, so we pin to a
-        // specific master commit (its README points consumers at branch commits).
-        .package(url: "https://github.com/exPHAT/SwiftWhisper",
-                 revision: "c340197966ebd264f3135d3955874b40f8ed58bc"),
         // Sparkle: in-app auto-updates via a signed appcast (EdDSA). Standard
         // updater for non-App-Store Mac apps.
         .package(url: "https://github.com/sparkle-project/Sparkle",
@@ -31,13 +25,12 @@ let package = Package(
             name: "VoiceTypeKit",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
-        // The macOS app: menu-bar shell, hotkey, audio capture, system engines,
+        // The macOS app: Dock-app shell, hotkey, audio capture, system engines,
         // text injection, settings UI. Depends only on the Kit contracts.
         .executableTarget(
             name: "VoiceType",
             dependencies: [
                 "VoiceTypeKit",
-                .product(name: "SwiftWhisper", package: "SwiftWhisper"),
                 .product(name: "Sparkle", package: "Sparkle"),
             ],
             swiftSettings: [.swiftLanguageMode(.v5)]

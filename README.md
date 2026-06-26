@@ -8,7 +8,7 @@
 
 A fast, private, open-source voice-dictation app for macOS. Hold a key, talk, and
 your words land as clean, punctuated text in whatever app you're using. Your audio
-never leaves your Mac unless you choose to turn on a cloud engine.
+never leaves your Mac — everything runs on-device with Apple Intelligence.
 
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
@@ -23,16 +23,16 @@ never leaves your Mac unless you choose to turn on a cloud engine.
 ---
 
 > **North star:** Speak anywhere, get clean text instantly, with your audio never
-> leaving your control unless you opt in.
+> leaving your Mac.
 
 ## Why VoiceType
 
-- 🔒 **Private by default.** Audio and transcripts stay on your Mac. No account, no telemetry. Any cloud path is opt-in, clearly labeled, and off until you turn it on.
+- 🔒 **Private by design.** Audio and transcripts stay on your Mac. No account, no telemetry, no cloud — there's nothing to opt out of.
 - ⚡ **Latency is the feature.** Native Swift with Apple's on-device speech model — time-to-text is what we optimize.
 - 🎙️ **Press-to-talk anywhere.** A global hotkey works in any app; the cleaned text is inserted right where your cursor is.
 - ✨ **Smart cleanup.** Punctuation, capitalization, and filler removal — without ever changing your words.
 - 📊 **Your voice, visualized.** A calm Home dashboard tracks your words, pace, and day streaks, with a full activity heatmap and a friendly, on-device usage summary — all computed on your Mac.
-- 🧩 **Pluggable engines.** On-device by default, with a local Whisper fallback and an optional Groq cloud upgrade.
+- 🧩 **Pluggable engines.** Built entirely on Apple's on-device models, with a seam ready for more local engines.
 
 ## Download & install
 
@@ -61,10 +61,13 @@ the key, language, engines, and cleanup in **Settings**.
 
 ## Engines
 
-| Stage | Default (on-device) | Local fallback | Opt-in cloud |
-| --- | --- | --- | --- |
-| **Transcription** | Apple `SpeechTranscriber` | `whisper.cpp` | Groq `whisper-large-v3-turbo` |
-| **Cleanup** | Apple Intelligence (`FoundationModels`) | built-in rules | Groq (`llama-3.1-8b-instant`) |
+Everything runs on-device. The pipeline is a pluggable seam, so more local
+engines can slot in over time.
+
+| Stage | Engine | Fallback |
+| --- | --- | --- |
+| **Transcription** | Apple `SpeechTranscriber` | — |
+| **Cleanup** | Apple Intelligence (`FoundationModels`) | built-in rules |
 
 VoiceType automatically uses the best engine that's available and permitted, and
 always degrades to plain text rather than failing.
@@ -72,12 +75,11 @@ always degrades to plain text rather than failing.
 <a name="privacy"></a>
 ## Privacy
 
-Audio and transcripts stay on-device by default. The cloud engines (Groq) are
-inert until you flip a single master **"Enable cloud"** switch and add your own
-API key, which is stored in the macOS Keychain. Nothing is logged off-device, and
-audio is never written to disk. Even the friendly usage summary is built from
-aggregate counts only — never your transcript text. This is a constitutional
-invariant of the project, not a setting we might change later.
+Audio and transcripts stay on your Mac, full stop — there is no cloud path.
+Nothing is logged off-device, and audio is never written to disk. Even the
+friendly usage summary is built from aggregate counts only — never your transcript
+text. This is a constitutional invariant of the project, not a setting we might
+change later.
 
 ## Build from source
 

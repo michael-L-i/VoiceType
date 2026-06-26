@@ -1,9 +1,8 @@
 import Foundation
 
 /// Canonical few-shot examples that teach the cleanup model how to tidy a voice
-/// transcript. Kept here, in the pure Kit, so both LLM cleanup prompts (the Apple
-/// on-device `CleanupPrompt` and the Groq `systemPrompt`) compose the *same*
-/// guidance — they can't drift — and so the wording stays unit-testable.
+/// transcript. Kept here, in the pure Kit, so the Apple on-device `CleanupPrompt`
+/// composes them consistently and the wording stays unit-testable.
 ///
 /// The set deliberately mixes three lessons:
 ///  - **Compact code rendering:** spoken file names, symbols, and identifiers
@@ -25,9 +24,15 @@ public enum CleanupExamples {
         ("call get underscore user data", "call get_user_data"),
         ("define camel case parse request", "define parseRequest"),
         ("print open paren x comma y close paren", "print(x, y)"),
+        ("push it to michael dash L dash I profile page", "push it to michael-L-i profile page"),
         ("I want two, no three", "I want three"),
         ("so um we need to like parse it first", "We need to parse it first."),
+        ("um yeah just um make it work you know", "Yeah, just make it work."),
         ("compute the dot product of a and b", "Compute the dot product of a and b."),
+        // The dictation is itself a request — clean it and output it as text;
+        // do NOT answer it or add a lead-in. This is the key anti-instruction case.
+        ("can you clean up this table then push it to my repo",
+         "Can you clean up this table, then push it to my repo?"),
     ]
 
     /// The few-shot pairs rendered as prompt lines: `spoken: "…" → "…"`. Both
