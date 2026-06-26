@@ -42,6 +42,9 @@ struct ModelsView: View {
         .background(
             RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous)
                 .fill(Color(nsColor: .controlBackgroundColor)))
+        // Clip first so an expanding test panel can never paint outside the
+        // rounded border, then draw the hairline on top.
+        .clipShape(RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous)
                 .strokeBorder(VT.hairline))
@@ -126,7 +129,9 @@ private struct EngineRow: View {
                 TestPanel(coordinator: coordinator, kind: kind) { closeTest() }
                     .padding(.horizontal, VT.Space.l)
                     .padding(.bottom, VT.Space.l)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    // Fade in place; the row's height animates so it reads as the
+                    // row expanding, not a panel sliding in from above.
+                    .transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.18), value: showTest)
@@ -192,8 +197,9 @@ private struct EngineRow: View {
     }
 }
 
-/// Inline "test this engine" panel that expands under a row. Records a short clip
-/// and shows the engine's raw transcript in a copyable box. Never injects.
+/// Inline "test this engine" panel that expands within a row. Records a short clip
+/// and shows the engine's raw transcript in a copyable box. Never injects. Styled
+/// as a light inset (not a floating card) so it reads as part of the row.
 private struct TestPanel: View {
     @Bindable var coordinator: DictationCoordinator
     let kind: TranscriptionEngineKind
@@ -202,74 +208,135 @@ private struct TestPanel: View {
     private var test: DictationCoordinator.TestState { coordinator.testState(for: kind) }
 
     var body: some View {
-        FrostedCard(padding: VT.Space.m) {
-            VStack(alignment: .leading, spacing: VT.Space.m) {
-                switch test {
-                case .idle:
-                    Button { coordinator.startTest(kind) } label: {
-                        Label("Tap to record a test", systemImage: "mic.fill")
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(VT.tint)
+        VStack(alignment: .leading, spacing: VT.Space.s) {
+            header
+            content
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(VT.Space.m)
+        .background(
+            RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous)
+                .fill(Color.primary.opacity(0.04)))
+        .overlay(
+            RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous)
+                .strokeBorder(VT.hairline))
+    }
 
-                case .recording:
-                    HStack(spacing: VT.Space.s) {
-                        Circle().fill(VT.live).frame(width: 8, height: 8)
-                        Text("Recording… speak, then stop.")
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Button("Stop") { coordinator.stopTest(kind) }
-                            .buttonStyle(.borderedProminent)
-                            .tint(VT.live)
-                    }
+    // A quiet caption header with a close affordance, so every state shares one frame.
+    private var header: some View {
+        HStack(spacing: VT.Space.xs) {
+            Image(systemName: "waveform")
+                .font(.caption2)
+                .foregroundStyle(VT.tint)
+            Text("Test \(kind.displayName)")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Spacer()
+            Button(action: onClose) {
+                Image(systemName: "xmark")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Close")
+        }
+    }
 
-                case .transcribing:
-                    HStack(spacing: VT.Space.s) {
-                        ProgressView().controlSize(.small)
-                        Text("Transcribing with \(kind.displayName)…")
-                            .foregroundStyle(.secondary)
-                    }
+    @ViewBuilder
+    private var content: some View {
+        switch test {
+        case .idle:
+            HStack(spacing: VT.Space.m) {
+                Button { coordinator.startTest(kind) } label: {
+                    Label("Record", systemImage: "mic.fill")
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                .tint(VT.tint)
+                Text("Speak a short phrase to hear how it transcribes.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
-                case .done(let text):
-                    VStack(alignment: .leading, spacing: VT.Space.s) {
-                        HStack {
-                            Text("Heard by \(kind.displayName)")
-                                .font(.caption).foregroundStyle(.secondary)
-                            Spacer()
-                            CopyButton(text: text, style: .labeled)
-                        }
-                        ScrollView {
-                            Text(text)
-                                .textSelection(.enabled)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .frame(maxHeight: 140)
-                        .padding(VT.Space.s)
-                        .background(
-                            RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous)
-                                .fill(Color(nsColor: .textBackgroundColor)))
-                        Button("Record again") {
-                            coordinator.clearTest(kind)
-                            coordinator.startTest(kind)
-                        }
-                        .buttonStyle(.bordered)
-                    }
+        case .recording:
+            HStack(spacing: VT.Space.s) {
+                PulsingDot()
+                Text("Recording…")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button { coordinator.stopTest(kind) } label: {
+                    Label("Stop", systemImage: "stop.fill")
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                .tint(VT.live)
+            }
 
-                case .failed(let message):
-                    VStack(alignment: .leading, spacing: VT.Space.s) {
-                        Label(message, systemImage: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                            .font(.callout)
-                        Button("Try again") {
-                            coordinator.clearTest(kind)
-                            coordinator.startTest(kind)
-                        }
-                        .buttonStyle(.bordered)
+        case .transcribing:
+            HStack(spacing: VT.Space.s) {
+                ProgressView().controlSize(.small)
+                Text("Transcribing…")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+
+        case .done(let text):
+            VStack(alignment: .leading, spacing: VT.Space.s) {
+                ScrollView {
+                    Text(text)
+                        .font(.callout)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: 132)
+                .padding(VT.Space.s)
+                .background(
+                    RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous)
+                        .fill(Color(nsColor: .textBackgroundColor)))
+                .overlay(
+                    RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous)
+                        .strokeBorder(VT.hairline))
+
+                HStack(spacing: VT.Space.m) {
+                    Button { coordinator.clearTest(kind); coordinator.startTest(kind) } label: {
+                        Label("Record again", systemImage: "arrow.counterclockwise")
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    Spacer()
+                    CopyButton(text: text, style: .labeled)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+
+        case .failed(let message):
+            HStack(spacing: VT.Space.s) {
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout)
+                    .foregroundStyle(.orange)
+                Spacer()
+                Button("Try again") {
+                    coordinator.clearTest(kind)
+                    coordinator.startTest(kind)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
         }
+    }
+}
+
+/// A small live-red dot that gently pulses, signalling an active test recording.
+private struct PulsingDot: View {
+    @State private var on = false
+    var body: some View {
+        Circle()
+            .fill(VT.live)
+            .frame(width: 9, height: 9)
+            .scaleEffect(on ? 1.0 : 0.72)
+            .opacity(on ? 1.0 : 0.55)
+            .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: on)
+            .onAppear { on = true }
     }
 }
 
