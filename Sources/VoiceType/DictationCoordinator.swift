@@ -265,11 +265,20 @@ final class DictationCoordinator {
             let onProgress: @Sendable (Double?) -> Void = { fraction in
                 Task { @MainActor in
                     guard self.modelStates[kind]?.isDownloading == true else { return }
-                    self.modelStates[kind] = .downloading(fraction)
+                    // Cap below 1.0: the model isn't usable until download() returns
+                    // (it also compiles the CoreML model). We only show "done" once
+                    // it's genuinely ready, so the bar never sits at a fake 100%.
+                    self.modelStates[kind] = .downloading(fraction.map { min($0, 0.99) })
                 }
             }
             do {
+                // `manager.download` fetches the weights AND compiles/warms the
+                // model, so when it returns the engine is ready to use right now.
                 try await manager.download(progress: onProgress)
+                // Clear the in-flight state explicitly: `refreshModelStates()`
+                // deliberately skips engines still marked `.downloading`, so without
+                // this the row would stay stuck at the last progress value.
+                modelStates[kind] = .ready
                 await self.refreshAvailability()
             } catch {
                 Log.engine.error("model download failed for \(kind.rawValue, privacy: .public): \(error.localizedDescription, privacy: .public)")
