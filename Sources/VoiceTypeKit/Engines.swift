@@ -6,11 +6,13 @@ import Foundation
 public enum EngineVendor: String, Sendable {
     case apple
     case nvidia
+    case openai
 
     public var name: String {
         switch self {
         case .apple: return "Apple"
         case .nvidia: return "NVIDIA"
+        case .openai: return "OpenAI"
         }
     }
 }
@@ -24,11 +26,14 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
     /// NVIDIA Parakeet TDT 0.6B V3 (FastConformer-TDT) on the Neural Engine via
     /// FluidAudio.
     case parakeet
+    /// OpenAI Whisper "base" on the Neural Engine via WhisperKit — small and fast.
+    case whisperKit
 
     public var displayName: String {
         switch self {
         case .appleOnDevice: return "Apple Speech"
         case .parakeet: return "Parakeet TDT 0.6B V3"
+        case .whisperKit: return "Whisper Base"
         }
     }
 
@@ -37,6 +42,7 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
         switch self {
         case .appleOnDevice: return .apple
         case .parakeet: return .nvidia
+        case .whisperKit: return .openai
         }
     }
 
@@ -47,6 +53,8 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
             return "Ships with macOS and runs entirely on your Mac — ready the moment you are."
         case .parakeet:
             return "NVIDIA's compact speech model — quick, multilingual, and punctuation-aware."
+        case .whisperKit:
+            return "OpenAI's small Whisper model — lightweight, fast, and broadly multilingual."
         }
     }
 
@@ -55,6 +63,7 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
         switch self {
         case .appleOnDevice: return ["Built-in", "Streaming", "Multilingual"]
         case .parakeet: return ["~500 MB", "Multilingual", "Punctuation built-in"]
+        case .whisperKit: return ["~150 MB", "Multilingual", "Light & fast"]
         }
     }
 
@@ -68,6 +77,7 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
         switch self {
         case .appleOnDevice: return nil
         case .parakeet: return "~500 MB"
+        case .whisperKit: return "~150 MB"
         }
     }
 
@@ -77,6 +87,7 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
         switch self {
         case .appleOnDevice: return nil
         case .parakeet: return "Speech model © NVIDIA, licensed under CC-BY-4.0."
+        case .whisperKit: return "OpenAI Whisper (MIT), run on-device via WhisperKit (Argmax)."
         }
     }
 }

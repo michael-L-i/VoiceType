@@ -342,17 +342,18 @@ private struct PulsingDot: View {
 
 /// The model vendor's logo, sized and vertically centered in its cell. Apple uses
 /// the system `apple.logo` glyph; NVIDIA uses its official eye mark, shipped as
-/// `NVIDIALogo.svg` in the app bundle (with a branded tile as a safety fallback).
+/// `NVIDIALogo.svg`. Any vendor will use a bundled `<Vendor>Logo.svg` if present,
+/// otherwise a branded placeholder tile.
 private struct VendorMark: View {
     let vendor: EngineVendor
 
     private static let size: CGFloat = 42
 
-    /// The NVIDIA mark loaded from the bundled SVG, if present.
-    private static let nvidiaLogo: NSImage? = {
-        guard let url = Bundle.main.url(forResource: "NVIDIALogo", withExtension: "svg") else { return nil }
+    /// A bundled logo SVG for a vendor, if one was shipped (e.g. "NVIDIALogo.svg").
+    private static func bundledLogo(_ name: String) -> NSImage? {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "svg") else { return nil }
         return NSImage(contentsOf: url)
-    }()
+    }
 
     var body: some View {
         Group {
@@ -362,23 +363,37 @@ private struct VendorMark: View {
                     .font(.system(size: 26))
                     .foregroundStyle(.primary)
             case .nvidia:
-                if let logo = Self.nvidiaLogo {
-                    Image(nsImage: logo)
-                        .resizable()
-                        .interpolation(.high)
-                        .scaledToFit()
+                if let logo = Self.bundledLogo("NVIDIALogo") {
+                    Image(nsImage: logo).resizable().interpolation(.high).scaledToFit()
                 } else {
+                    tile(Color(red: 0.46, green: 0.73, blue: 0.0), glyph: "N") // NVIDIA green
+                }
+            case .openai:
+                if let logo = Self.bundledLogo("OpenAILogo") {
+                    Image(nsImage: logo).resizable().interpolation(.high).scaledToFit()
+                } else {
+                    // OpenAI's mark is a trademark we don't ship; a neutral blossom-ish
+                    // glyph stands in until an OpenAILogo.svg is added to the bundle.
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color(red: 0.46, green: 0.73, blue: 0.0)) // NVIDIA green #76B900
+                        .fill(Color.primary.opacity(0.88))
                         .overlay(
-                            Text("N")
-                                .font(.system(size: 22, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white))
+                            Image(systemName: "circle.hexagongrid.fill")
+                                .font(.system(size: 20))
+                                .foregroundStyle(Color(nsColor: .windowBackgroundColor)))
                 }
             }
         }
         .frame(width: Self.size, height: Self.size)
         .frame(maxHeight: .infinity, alignment: .center)
+    }
+
+    private func tile(_ color: Color, glyph: String) -> some View {
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(color)
+            .overlay(
+                Text(glyph)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white))
     }
 }
 

@@ -67,7 +67,7 @@ sidebar and switch between them (one is active at a time).
 
 | Stage | Default (built-in) | Optional on-device downloads |
 | --- | --- | --- |
-| **Transcription** | Apple `SpeechTranscriber` | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) |
+| **Transcription** | Apple `SpeechTranscriber` | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) |
 | **Cleanup** | Apple Intelligence (`FoundationModels`) | built-in rules |
 
 Downloadable models are fetched once on demand (no cloud at inference time — your
@@ -77,7 +77,7 @@ run, and always degrades to plain text rather than failing.
 
 > The Parakeet speech model is © NVIDIA, licensed under
 > [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/). FluidAudio is
-> Apache-2.0.
+> Apache-2.0. Whisper is OpenAI (MIT); WhisperKit is MIT.
 
 <a name="privacy"></a>
 ## Privacy

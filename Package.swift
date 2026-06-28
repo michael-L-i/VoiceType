@@ -17,6 +17,10 @@ let package = Package(
         // Apple Neural Engine. Our on-device Parakeet transcription path.
         .package(url: "https://github.com/FluidInference/FluidAudio",
                  from: "0.12.4"),
+        // WhisperKit (Argmax): OpenAI Whisper on CoreML/ANE. Powers the small,
+        // fast Whisper Base option.
+        .package(url: "https://github.com/argmaxinc/WhisperKit",
+                 from: "0.9.0"),
         // Sparkle: in-app auto-updates via a signed appcast (EdDSA). Standard
         // updater for non-App-Store Mac apps.
         .package(url: "https://github.com/sparkle-project/Sparkle",
@@ -36,6 +40,7 @@ let package = Package(
             dependencies: [
                 "VoiceTypeKit",
                 .product(name: "FluidAudio", package: "FluidAudio"),
+                .product(name: "WhisperKit", package: "WhisperKit"),
                 .product(name: "Sparkle", package: "Sparkle"),
             ],
             swiftSettings: [.swiftLanguageMode(.v5)]

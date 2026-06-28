@@ -8,12 +8,14 @@ struct EngineMetadataTests {
     func downloadRequirement() {
         #expect(TranscriptionEngineKind.appleOnDevice.requiresDownload == false)
         #expect(TranscriptionEngineKind.parakeet.requiresDownload == true)
+        #expect(TranscriptionEngineKind.whisperKit.requiresDownload == true)
     }
 
     @Test("downloadable engines advertise a size; the built-in one doesn't")
     func downloadSizes() {
         #expect(TranscriptionEngineKind.appleOnDevice.approxDownloadSize == nil)
         #expect(TranscriptionEngineKind.parakeet.approxDownloadSize != nil)
+        #expect(TranscriptionEngineKind.whisperKit.approxDownloadSize != nil)
     }
 
     @Test("Parakeet surfaces its required NVIDIA / CC-BY attribution")
@@ -26,6 +28,7 @@ struct EngineMetadataTests {
     func vendors() {
         #expect(TranscriptionEngineKind.appleOnDevice.vendor == .apple)
         #expect(TranscriptionEngineKind.parakeet.vendor == .nvidia)
+        #expect(TranscriptionEngineKind.whisperKit.vendor == .openai)
     }
 
     @Test("every kind has a non-empty name, summary, and features")
