@@ -370,16 +370,17 @@ private struct VendorMark: View {
                 }
             case .openai:
                 if let logo = Self.bundledLogo("OpenAILogo") {
-                    Image(nsImage: logo).resizable().interpolation(.high).scaledToFit()
+                    // Monochrome blossom — render as a template tinted to .primary so
+                    // it adapts to light/dark like Apple's glyph.
+                    Image(nsImage: logo)
+                        .resizable()
+                        .renderingMode(.template)
+                        .interpolation(.high)
+                        .scaledToFit()
+                        .foregroundStyle(.primary)
+                        .padding(2)
                 } else {
-                    // OpenAI's mark is a trademark we don't ship; a neutral blossom-ish
-                    // glyph stands in until an OpenAILogo.svg is added to the bundle.
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color.primary.opacity(0.88))
-                        .overlay(
-                            Image(systemName: "circle.hexagongrid.fill")
-                                .font(.system(size: 20))
-                                .foregroundStyle(Color(nsColor: .windowBackgroundColor)))
+                    tile(Color.primary.opacity(0.88), glyph: "O")
                 }
             }
         }
