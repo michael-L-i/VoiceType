@@ -32,7 +32,7 @@ never leaves your Mac — everything runs on-device with Apple Intelligence.
 - 🎙️ **Press-to-talk anywhere.** A global hotkey works in any app; the cleaned text is inserted right where your cursor is.
 - ✨ **Smart cleanup.** Punctuation, capitalization, and filler removal — without ever changing your words.
 - 📊 **Your voice, visualized.** A calm Home dashboard tracks your words, pace, and day streaks, with a full activity heatmap and a friendly, on-device usage summary — all computed on your Mac.
-- 🧩 **Pluggable engines.** Built entirely on Apple's on-device models, with a seam ready for more local engines.
+- 🧩 **Pluggable engines.** Apple's built-in model by default, with an optional on-device upgrade — NVIDIA Parakeet — you can download and switch to, one at a time.
 
 ## Download & install
 
@@ -61,16 +61,23 @@ the key, language, engines, and cleanup in **Settings**.
 
 ## Engines
 
-Everything runs on-device. The pipeline is a pluggable seam, so more local
-engines can slot in over time.
+Everything runs on-device. Apple's model is built into macOS and selected by
+default; you can download other local engines from the **Models** page in the
+sidebar and switch between them (one is active at a time).
 
-| Stage | Engine | Fallback |
+| Stage | Default (built-in) | Optional on-device downloads |
 | --- | --- | --- |
-| **Transcription** | Apple `SpeechTranscriber` | — |
+| **Transcription** | Apple `SpeechTranscriber` | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) |
 | **Cleanup** | Apple Intelligence (`FoundationModels`) | built-in rules |
 
-VoiceType automatically uses the best engine that's available and permitted, and
-always degrades to plain text rather than failing.
+Downloadable models are fetched once on demand (no cloud at inference time — your
+audio still never leaves the Mac) and run as CoreML on the Apple Neural Engine.
+VoiceType automatically falls back to an available engine if your choice can't
+run, and always degrades to plain text rather than failing.
+
+> The Parakeet speech model is © NVIDIA, licensed under
+> [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/). FluidAudio is
+> Apache-2.0. Whisper is OpenAI (MIT); WhisperKit is MIT.
 
 <a name="privacy"></a>
 ## Privacy
@@ -102,6 +109,10 @@ and evolve via `specs/`.
 ## License
 
 [MIT](./LICENSE) © 2026 Michael Li.
+
+Third-party components and on-device models bundled with the app retain their own
+licenses — see [`THIRD_PARTY_LICENSES.md`](./THIRD_PARTY_LICENSES.md) (also shipped
+inside the app bundle).
 
 ## How this repo is run
 

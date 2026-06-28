@@ -228,10 +228,84 @@ final class DictationCoordinator {
         HistoryStore.shared.save(history)
     }
 
+    // MARK: - Transcription models
+
+    /// Download/availability state per transcription engine, driving the engine
+    /// list in Settings. Apple is always `builtIn`; downloadable engines move
+    /// through `notDownloaded → downloading → ready`.
+    private(set) var modelStates: [TranscriptionEngineKind: ModelAvailability] = [:]
+
+    /// State for one engine, with sensible defaults before the first refresh.
+    func modelState(for kind: TranscriptionEngineKind) -> ModelAvailability {
+        if !kind.requiresDownload { return .builtIn }
+        return modelStates[kind] ?? .notDownloaded
+    }
+
+    /// Recompute model states from current availability, preserving any download
+    /// that's still in flight.
+    private func refreshModelStates() {
+        for kind in TranscriptionEngineKind.allCases {
+            if modelStates[kind]?.isDownloading == true { continue }
+            if !kind.requiresDownload { modelStates[kind] = .builtIn }
+            else if availableTranscription.contains(kind) { modelStates[kind] = .ready }
+            else { modelStates[kind] = .notDownloaded }
+        }
+    }
+
+    /// Fetch a downloadable engine's weights, streaming progress into
+    /// `modelStates`, then re-resolve availability so it becomes selectable.
+    func downloadModel(_ kind: TranscriptionEngineKind) {
+        guard kind.requiresDownload, let manager = EngineFactory.modelManager(for: kind) else { return }
+        guard modelStates[kind]?.isDownloading != true else { return }
+        modelStates[kind] = .downloading(nil)
+
+        // Strong self: the coordinator is app-lifetime, and the Task ends when the
+        // download does — no retain cycle, and it sidesteps weak-capture churn.
+        Task {
+            let onProgress: @Sendable (Double?) -> Void = { fraction in
+                Task { @MainActor in
+                    guard self.modelStates[kind]?.isDownloading == true else { return }
+                    // Cap below 1.0: the model isn't usable until download() returns
+                    // (it also compiles the CoreML model). We only show "done" once
+                    // it's genuinely ready, so the bar never sits at a fake 100%.
+                    self.modelStates[kind] = .downloading(fraction.map { min($0, 0.99) })
+                }
+            }
+            do {
+                // `manager.download` fetches the weights AND compiles/warms the
+                // model, so when it returns the engine is ready to use right now.
+                try await manager.download(progress: onProgress)
+                // Clear the in-flight state explicitly: `refreshModelStates()`
+                // deliberately skips engines still marked `.downloading`, so without
+                // this the row would stay stuck at the last progress value.
+                modelStates[kind] = .ready
+                await self.refreshAvailability()
+            } catch {
+                Log.engine.error("model download failed for \(kind.rawValue, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                self.modelStates[kind] = .failed("Download failed. Check your connection and try again.")
+            }
+        }
+    }
+
+    /// Remove a downloaded engine's weights. If it was the active engine, fall
+    /// back to Apple so dictation keeps working.
+    func deleteModel(_ kind: TranscriptionEngineKind) {
+        guard kind.requiresDownload, let manager = EngineFactory.modelManager(for: kind) else { return }
+        Task {
+            try? await manager.delete()
+            if self.settings.transcriptionEngine == kind {
+                self.settings.transcriptionEngine = .appleOnDevice
+            }
+            await self.refreshAvailability()
+        }
+    }
+
     // MARK: - Push-to-talk
 
     private func handlePress() {
-        guard !isProcessing else { return }
+        // Never start live dictation on top of an in-flight engine test (both
+        // share the one capture).
+        guard !isProcessing, activeTestKind == nil else { return }
         if !settings.hotkey.holdToTalk, state == .recording {
             finishRecording()
             return
@@ -272,6 +346,14 @@ final class DictationCoordinator {
     }
 
     private func handleAudioConfigurationChange() {
+        // A test recording owns the capture too; the capture cancels itself on a
+        // route change, so just sync our state and bail.
+        if let kind = activeTestKind {
+            activeTestKind = nil
+            inputLevel = 0
+            testStates[kind] = .failed("Audio device changed. Try again.")
+            return
+        }
         guard state == .recording else { return }
         SoundFeedback(enabled: settings.soundFeedback).stop()
         inputLevel = 0
@@ -493,6 +575,107 @@ final class DictationCoordinator {
         importState = .idle
     }
 
+    // MARK: - Engine test
+
+    /// Progress of an inline "test this engine" recording on the Models page.
+    /// Like file import, it transcribes without injecting anywhere — it just
+    /// shows the engine's raw output so the user can hear how it does.
+    enum TestState: Equatable {
+        case idle
+        case recording
+        case transcribing
+        case done(text: String)
+        case failed(String)
+
+        var isBusy: Bool {
+            switch self {
+            case .recording, .transcribing: return true
+            default: return false
+            }
+        }
+    }
+
+    private(set) var testStates: [TranscriptionEngineKind: TestState] = [:]
+    func testState(for kind: TranscriptionEngineKind) -> TestState { testStates[kind] ?? .idle }
+
+    /// The engine whose test currently owns the shared mic capture, if any. Acts
+    /// as the single-flight guard so a test can't overlap live dictation or
+    /// another test (there is one `capture`).
+    private var activeTestKind: TranscriptionEngineKind?
+    private var testTask: Task<Void, Never>?
+
+    /// Begin recording a short clip to test `kind`. No-ops if dictation, a test,
+    /// or processing is already in flight, or the model isn't ready.
+    func startTest(_ kind: TranscriptionEngineKind) {
+        guard state != .recording, !isProcessing, activeTestKind == nil else { return }
+        guard modelState(for: kind).isReady else { return }
+
+        guard microphonePermission == .granted else {
+            testStates[kind] = .failed("Allow microphone access to test an engine.")
+            Task { await request(.microphone) }
+            return
+        }
+        do {
+            try capture.start()
+            activeTestKind = kind
+            testStates[kind] = .recording
+        } catch {
+            Log.audio.error("test capture start failed: \(error.localizedDescription, privacy: .public)")
+            testStates[kind] = .failed("Couldn't access the microphone.")
+        }
+    }
+
+    /// Stop the test recording and transcribe it with `kind`'s exact engine
+    /// (bypassing the resolver), raw — no cleanup, no injection, no history.
+    func stopTest(_ kind: TranscriptionEngineKind) {
+        guard activeTestKind == kind, testStates[kind] == .recording else { return }
+        let audio = capture.stop()
+        inputLevel = 0
+        activeTestKind = nil
+
+        guard audio.duration >= 0.25, audio.rms > 0.002 else {
+            testStates[kind] = .failed("Didn't catch any speech. Try again.")
+            return
+        }
+        guard let transcriber = EngineFactory.makeTranscriber(kind) else {
+            testStates[kind] = .failed("This engine isn't available.")
+            return
+        }
+        testStates[kind] = .transcribing
+        let locale = settings.locale
+        testTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let result = try await transcriber.transcribe(audio, locale: locale)
+                let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                self.testStates[kind] = text.isEmpty
+                    ? .failed("Didn't catch any speech. Try again.")
+                    : .done(text: text)
+            } catch let error as TranscriptionError {
+                self.testStates[kind] = .failed(Self.describe(error))
+            } catch {
+                self.testStates[kind] = .failed(error.localizedDescription)
+            }
+        }
+    }
+
+    /// Abort a test (panel closed mid-recording) without transcribing.
+    func cancelTest(_ kind: TranscriptionEngineKind) {
+        if activeTestKind == kind {
+            capture.cancel()
+            inputLevel = 0
+            activeTestKind = nil
+        }
+        testTask?.cancel()
+        testStates[kind] = .idle
+    }
+
+    /// Reset a finished/failed test back to idle (for "Record again").
+    func clearTest(_ kind: TranscriptionEngineKind) {
+        guard !testState(for: kind).isBusy else { return }
+        testStates[kind] = .idle
+    }
+
     // MARK: - State helpers
 
     private func finish(state: DictationState) {
@@ -552,5 +735,6 @@ final class DictationCoordinator {
         availableTranscription = await EngineFactory.availableTranscription()
         availableCleanup = await EngineFactory.availableCleanup()
         if availableTranscription.isEmpty { availableTranscription = [.appleOnDevice] }
+        refreshModelStates()
     }
 }

@@ -15,9 +15,6 @@ struct SettingsView: View {
             GeneralTab(coordinator: coordinator)
                 .tabItem { Label("General", systemImage: "gearshape") }
 
-            TranscriptionTab(coordinator: coordinator)
-                .tabItem { Label("Transcription", systemImage: "waveform") }
-
             CleanupTab(coordinator: coordinator)
                 .tabItem { Label("Cleanup", systemImage: "wand.and.stars") }
         }
@@ -93,45 +90,6 @@ private struct GeneralTab: View {
             }
         }
         .formStyle(.grouped)
-    }
-}
-
-// MARK: - Transcription
-
-private struct TranscriptionTab: View {
-    @Bindable var coordinator: DictationCoordinator
-
-    var body: some View {
-        Form {
-            Section {
-                Picker("Engine", selection: $coordinator.settings.transcriptionEngine) {
-                    ForEach(TranscriptionEngineKind.allCases, id: \.self) { kind in
-                        Text(kind.displayName).tag(kind)
-                    }
-                }
-                .pickerStyle(.radioGroup)
-
-                statusNote(for: coordinator.settings.transcriptionEngine)
-            } header: {
-                Text("Speech-to-text")
-            } footer: {
-                Text("Speech-to-text runs entirely on your Mac — your audio never leaves the device.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .formStyle(.grouped)
-    }
-
-    @ViewBuilder
-    private func statusNote(for kind: TranscriptionEngineKind) -> some View {
-        switch kind {
-        case .appleOnDevice:
-            EngineStatusRow(
-                ready: coordinator.availableTranscription.contains(.appleOnDevice),
-                readyText: "Ready. Runs entirely on-device.",
-                pendingText: "Needs Speech Recognition permission to run.")
-        }
     }
 }
 

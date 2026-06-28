@@ -18,6 +18,20 @@ struct ResolverTests {
         #expect(resolved == .appleOnDevice)
     }
 
+    @Test("uses a downloaded engine (Parakeet) when it's the preference and available")
+    func transcriptionDownloadedPreferred() {
+        let resolved = EngineResolver.resolveTranscription(
+            preferred: .parakeet, available: [.appleOnDevice, .parakeet])
+        #expect(resolved == .parakeet)
+    }
+
+    @Test("falls back to an available engine when the preferred model isn't downloaded")
+    func transcriptionPreferredNotDownloaded() {
+        let resolved = EngineResolver.resolveTranscription(
+            preferred: .parakeet, available: [.appleOnDevice])
+        #expect(resolved == .appleOnDevice)
+    }
+
     @Test("cleanup uses Apple Intelligence when available")
     func cleanupPreferred() {
         let resolved = EngineResolver.resolveCleanup(
