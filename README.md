@@ -110,6 +110,10 @@ and evolve via `specs/`.
 
 [MIT](./LICENSE) © 2026 Michael Li.
 
+Third-party components and on-device models bundled with the app retain their own
+licenses — see [`THIRD_PARTY_LICENSES.md`](./THIRD_PARTY_LICENSES.md) (also shipped
+inside the app bundle).
+
 ## How this repo is run
 
 VoiceType is a standalone product repo run day-to-day by an agent (the **outer

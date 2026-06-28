@@ -17,13 +17,6 @@ struct ModelsView: View {
                            subtitle: "Pick the on-device engine that turns your voice into text — it all stays on your Mac.")
 
                 table
-
-                if let note = attributionNote {
-                    Text(note)
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .padding(.leading, VT.Space.xs)
-                }
             }
             .frame(maxWidth: 940, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -48,12 +41,6 @@ struct ModelsView: View {
         .overlay(
             RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous)
                 .strokeBorder(VT.hairline))
-    }
-
-    /// Collected attribution lines for any downloadable engines (e.g. NVIDIA CC-BY).
-    private var attributionNote: String? {
-        let lines = TranscriptionEngineKind.allCases.compactMap(\.attribution)
-        return lines.isEmpty ? nil : lines.joined(separator: "  ·  ")
     }
 }
 

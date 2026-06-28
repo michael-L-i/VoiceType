@@ -30,6 +30,8 @@ cp "$ROOT/Resources/Info.plist" "$CONTENTS/Info.plist"
 cp "$ROOT/Resources/AppIcon.icns" "$CONTENTS/Resources/AppIcon.icns"
 # Vendor logos (e.g. the NVIDIA mark shown on the Models page).
 cp "$ROOT"/Resources/*.svg "$CONTENTS/Resources/" 2>/dev/null || true
+# Third-party license notices, bundled so they ship with the distributed app.
+cp "$ROOT/THIRD_PARTY_LICENSES.md" "$CONTENTS/Resources/" 2>/dev/null || true
 
 # Embed dynamic frameworks (Sparkle ships as a framework with nested helpers)
 # next to the binary's runtime search path. SwiftPM builds the framework beside
