@@ -3,13 +3,22 @@ import WhisperKit
 import VoiceTypeKit
 
 /// The Whisper variant we run: multilingual "base" — small (~150 MB) and fast.
-/// Download and load must reference the same name and storage location.
+/// Download and load must reference the same variant and storage location.
 private let whisperVariant = "openai_whisper-base"
 
 /// We pin WhisperKit's storage to a folder we own so installs are deterministic
 /// to find and remove (its default location varies across versions).
 private func whisperDownloadBase() -> URL? {
     ModelCache.applicationSupport("VoiceType", "WhisperKit")
+}
+
+/// The exact folder WhisperKit downloads the variant into, holding the CoreML
+/// components (`AudioEncoder.mlmodelc`, `TextDecoder.mlmodelc`, `MelSpectrogram.mlmodelc`).
+/// We pass this as `modelFolder` so WhisperKit loads from disk instead of leaving
+/// the model folder unset (which throws "Model folder is not set").
+private func whisperModelFolder() -> URL? {
+    whisperDownloadBase()?.appendingPathComponent(
+        "models/argmaxinc/whisperkit-coreml/\(whisperVariant)", isDirectory: true)
 }
 
 /// Process-wide cache of the loaded WhisperKit pipeline. Loading compiles the
@@ -19,11 +28,19 @@ actor WhisperKitRuntime {
     static let shared = WhisperKitRuntime()
     private var pipe: WhisperKit?
 
-    /// A loaded pipeline, loading already-downloaded weights from disk (no network).
+    /// A loaded pipeline, loading the already-downloaded weights from our folder.
     func loadedPipe() async throws -> WhisperKit {
         if let pipe { return pipe }
-        let pipe = try await WhisperKit(
-            WhisperKitConfig(model: whisperVariant, downloadBase: whisperDownloadBase(), download: false))
+        guard let folder = whisperModelFolder() else {
+            throw TranscriptionError.unavailable(reason: "Couldn't locate the Whisper model folder.")
+        }
+        // Explicit modelFolder + load:true → WhisperKit loads from disk (no network).
+        let config = WhisperKitConfig(
+            model: whisperVariant,
+            downloadBase: whisperDownloadBase(),
+            modelFolder: folder.path,
+            load: true)
+        let pipe = try await WhisperKit(config)
         self.pipe = pipe
         return pipe
     }
@@ -31,12 +48,16 @@ actor WhisperKitRuntime {
     /// Download the model (reporting progress) then load/compile it so it's warm —
     /// when this returns, the engine is genuinely ready to use.
     func download(progress: @escaping @Sendable (Double?) -> Void) async throws {
-        _ = try await WhisperKit.download(
+        let folder = try await WhisperKit.download(
             variant: whisperVariant,
             downloadBase: whisperDownloadBase(),
             progressCallback: { progress($0.fractionCompleted) })
-        pipe = try await WhisperKit(
-            WhisperKitConfig(model: whisperVariant, downloadBase: whisperDownloadBase(), download: false))
+        let config = WhisperKitConfig(
+            model: whisperVariant,
+            downloadBase: whisperDownloadBase(),
+            modelFolder: folder.path,
+            load: true)
+        pipe = try await WhisperKit(config)
     }
 
     func unload() { pipe = nil }
@@ -83,15 +104,18 @@ final class WhisperKitEngine: TranscriptionEngine {
 struct WhisperKitModelManager: TranscriptionModelManager {
     let kind: TranscriptionEngineKind = .whisperKit
 
-    func isInstalled() -> Bool { ModelInstallMarker.isInstalled(.whisperKit) }
+    /// Real on-disk check: is the model folder present with the encoder bundle?
+    func isInstalled() -> Bool {
+        guard let folder = whisperModelFolder() else { return false }
+        return FileManager.default.fileExists(
+            atPath: folder.appendingPathComponent("AudioEncoder.mlmodelc").path)
+    }
 
     func download(progress: @escaping @Sendable (Double?) -> Void) async throws {
         try await WhisperKitRuntime.shared.download(progress: progress)
-        ModelInstallMarker.set(true, for: .whisperKit)
     }
 
     func delete() async throws {
-        ModelInstallMarker.set(false, for: .whisperKit)
         await WhisperKitRuntime.shared.unload()
         ModelCache.remove(at: whisperDownloadBase())
     }

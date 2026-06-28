@@ -20,23 +20,6 @@ protocol TranscriptionModelManager: Sendable {
     func delete() async throws
 }
 
-/// Persisted "this model finished downloading" flag, for engines whose SDK has no
-/// cheap on-disk check (e.g. WhisperKit). Set once a download completes so the UI's
-/// `isInstalled()` stays cheap and synchronous. (Parakeet uses a real file check
-/// instead and doesn't need this.)
-enum ModelInstallMarker {
-    private static let defaults = UserDefaults.standard
-    private static func key(_ kind: TranscriptionEngineKind) -> String {
-        "voicetype.model.installed.\(kind.rawValue)"
-    }
-    static func isInstalled(_ kind: TranscriptionEngineKind) -> Bool {
-        defaults.bool(forKey: key(kind))
-    }
-    static func set(_ installed: Bool, for kind: TranscriptionEngineKind) {
-        defaults.set(installed, forKey: key(kind))
-    }
-}
-
 /// Best-effort removal of a cached model directory under Application Support. The
 /// SDKs re-download on demand, so a failure here is non-fatal — we just log it.
 enum ModelCache {
