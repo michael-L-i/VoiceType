@@ -4,30 +4,28 @@ import VoiceTypeKit
 
 /// VoiceType's settings. Shown both as the **Settings** sidebar page (in the Home
 /// window) and as the standard ⌘, preferences window (the `Settings` scene sizes
-/// it). Focused tabs bind straight to `coordinator.settings` (mutations
-/// auto-persist via the coordinator's `didSet`). The design goal is a calm,
-/// native macOS utility — everything runs on your Mac, no cloud path.
+/// it). One scrolling page — General and Cleanup sections together, not separate
+/// tabs. Everything binds straight to `coordinator.settings` (mutations
+/// auto-persist via the coordinator's `didSet`). Everything runs on your Mac.
 struct SettingsView: View {
     @Bindable var coordinator: DictationCoordinator
 
     var body: some View {
-        TabView {
-            GeneralTab(coordinator: coordinator)
-                .tabItem { Label("General", systemImage: "gearshape") }
-
-            CleanupTab(coordinator: coordinator)
-                .tabItem { Label("Cleanup", systemImage: "wand.and.stars") }
+        Form {
+            GeneralSections(coordinator: coordinator)
+            CleanupSections(coordinator: coordinator)
         }
+        .formStyle(.grouped)
     }
 }
 
 // MARK: - General
 
-private struct GeneralTab: View {
+private struct GeneralSections: View {
     @Bindable var coordinator: DictationCoordinator
 
     var body: some View {
-        Form {
+        Group {
             Section {
                 HotkeySelector(coordinator: coordinator)
                     .padding(.vertical, VT.Space.xs)
@@ -76,17 +74,16 @@ private struct GeneralTab: View {
                 Text("Language")
             }
         }
-        .formStyle(.grouped)
     }
 }
 
 // MARK: - Cleanup
 
-private struct CleanupTab: View {
+private struct CleanupSections: View {
     @Bindable var coordinator: DictationCoordinator
 
     var body: some View {
-        Form {
+        Group {
             Section {
                 Picker("Engine", selection: $coordinator.settings.cleanupEngine) {
                     ForEach(CleanupEngineKind.allCases, id: \.self) { kind in
@@ -97,7 +94,7 @@ private struct CleanupTab: View {
 
                 cleanupStatusNote(for: coordinator.settings.cleanupEngine)
             } header: {
-                Text("Tidy-up engine")
+                Text("Cleanup")
             } footer: {
                 Text("Cleanup only changes delivery — punctuation, casing, fillers — never your meaning. It falls back to raw text if it can't run.")
                     .font(.caption)
@@ -116,7 +113,6 @@ private struct CleanupTab: View {
             }
             .disabled(coordinator.settings.cleanupEngine == .none)
         }
-        .formStyle(.grouped)
     }
 
     @ViewBuilder
