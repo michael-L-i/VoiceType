@@ -64,12 +64,11 @@ private struct GeneralSections: View {
             }
 
             Section {
-                TextField("Language", text: $coordinator.settings.locale,
-                          prompt: Text("en-US"))
-                    .frame(maxWidth: 160)
-                Text("BCP-47 code for the spoken language, e.g. en-US, en-GB, es-ES.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Picker("Language", selection: $coordinator.settings.locale) {
+                    ForEach(SettingsLanguage.all, id: \.code) { language in
+                        Text(language.name).tag(language.code)
+                    }
+                }
             } header: {
                 Text("Language")
             }
@@ -227,4 +226,28 @@ struct HotkeySelector: View {
             : "anywhere to start, then tap again to insert."
         return "\(verb) \(hotkey.trigger.displayName) \(tail)"
     }
+}
+
+// MARK: - Language
+
+/// The languages offered in the Settings picker, mapped to their BCP-47 codes
+/// (which is what the transcription engines expect). English (US) is the default.
+private struct SettingsLanguage {
+    let name: String
+    let code: String
+
+    static let all: [SettingsLanguage] = [
+        .init(name: "English (US)", code: "en-US"),
+        .init(name: "English (UK)", code: "en-GB"),
+        .init(name: "Spanish", code: "es-ES"),
+        .init(name: "French", code: "fr-FR"),
+        .init(name: "German", code: "de-DE"),
+        .init(name: "Italian", code: "it-IT"),
+        .init(name: "Portuguese (Brazil)", code: "pt-BR"),
+        .init(name: "Dutch", code: "nl-NL"),
+        .init(name: "Japanese", code: "ja-JP"),
+        .init(name: "Chinese (Simplified)", code: "zh-CN"),
+        .init(name: "Korean", code: "ko-KR"),
+        .init(name: "Russian", code: "ru-RU"),
+    ]
 }
