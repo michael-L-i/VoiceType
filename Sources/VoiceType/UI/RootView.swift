@@ -50,11 +50,11 @@ struct RootView: View {
 
             Spacer()
 
-            // Bottom group: Setup (a real tab) sits just above Settings (which
-            // opens the standalone preferences window).
+            // Bottom group: Setup sits just above Settings, both real in-window
+            // pages now. (⌘, still opens the standalone preferences window too.)
             VStack(spacing: 2) {
                 sidebarRow(.setup, badge: setupBadge)
-                settingsRow
+                sidebarRow(.settings)
             }
             .padding(.horizontal, VT.Space.s)
             .padding(.bottom, VT.Space.xs)
@@ -106,21 +106,6 @@ struct RootView: View {
         .buttonStyle(.plain)
     }
 
-    private var settingsRow: some View {
-        Button {
-            coordinator.openSettings()
-        } label: {
-            Label("Settings", systemImage: "gearshape")
-                .font(.body)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, VT.Space.s)
-                .padding(.vertical, VT.Space.s)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(.primary)
-    }
-
     // MARK: Detail
 
     @ViewBuilder
@@ -135,7 +120,13 @@ struct RootView: View {
         case .models:
             ModelsView(coordinator: coordinator)
         case .setup:
-            SetupView(coordinator: coordinator) { selection = .home }
+            // Setup finishes by sliding the user into Settings (where the
+            // dictation key now lives), rather than popping up an inline picker.
+            SetupView(coordinator: coordinator) {
+                withAnimation(.easeInOut(duration: 0.35)) { selection = .settings }
+            }
+        case .settings:
+            SettingsView(coordinator: coordinator)
         }
     }
 }
@@ -143,7 +134,7 @@ struct RootView: View {
 /// The selectable destinations in the sidebar. (Settings is intentionally not
 /// here — it opens the standalone preferences window.)
 enum SidebarItem: String, CaseIterable, Identifiable {
-    case home, transcripts, transcribe, models, setup
+    case home, transcripts, transcribe, models, setup, settings
 
     var id: String { rawValue }
 
@@ -154,6 +145,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .transcribe: return "Transcribe"
         case .models: return "Models"
         case .setup: return "Setup"
+        case .settings: return "Settings"
         }
     }
 
@@ -164,6 +156,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .transcribe: return "waveform.badge.plus"
         case .models: return "cpu"
         case .setup: return "person.badge.shield.checkmark"
+        case .settings: return "gearshape"
         }
     }
 }

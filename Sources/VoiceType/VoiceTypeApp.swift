@@ -16,7 +16,10 @@ struct VoiceTypeApp: App {
         // main Home window is managed by the AppDelegate via AppKit so we keep
         // precise control over launch, close-to-hide, and Dock reopen.
         Settings {
+            // The ⌘, window needs an explicit size; the in-window Settings page
+            // (SettingsView used in RootView) fills its detail area instead.
             SettingsView(coordinator: appDelegate.coordinator)
+                .frame(width: 520, height: 460)
         }
     }
 }
