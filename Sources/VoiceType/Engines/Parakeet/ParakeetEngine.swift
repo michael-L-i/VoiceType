@@ -65,7 +65,12 @@ final class ParakeetEngine: TranscriptionEngine {
         let text: String
         do {
             var state = try TdtDecoderState()
-            let result = try await manager.transcribe(AudioSamples.mono16k(audio), decoderState: &state)
+            // Pass the selected language as a hint: on the multilingual V3 model it
+            // biases token selection toward that language's script. Codes V3 doesn't
+            // model (e.g. "ja") map to nil, leaving the model to decide on its own.
+            let language = Language(rawValue: LanguageTag.code(for: locale))
+            let result = try await manager.transcribe(AudioSamples.mono16k(audio),
+                                                      decoderState: &state, language: language)
             text = result.text
         } catch {
             throw TranscriptionError.failed("Parakeet transcription failed: \(error.localizedDescription)")
