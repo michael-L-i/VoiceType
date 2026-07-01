@@ -181,7 +181,10 @@ public protocol CleanupEngine: Sendable {
 
     func isAvailable() async -> Bool
 
-    func cleanup(_ text: String, options: CleanupOptions) async throws -> String
+    /// Tidy a transcript's delivery. `locale` is the BCP-47 language the text is
+    /// in (the same one transcription used); engines must keep the output in that
+    /// language and may use it to apply language-appropriate rules.
+    func cleanup(_ text: String, options: CleanupOptions, locale: String) async throws -> String
 }
 
 public enum CleanupError: Error, Sendable, Equatable {

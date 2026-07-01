@@ -29,7 +29,7 @@ struct FoundationModelsCleanupEngine: CleanupEngine {
         #endif
     }
 
-    func cleanup(_ text: String, options: CleanupOptions) async throws -> String {
+    func cleanup(_ text: String, options: CleanupOptions, locale: String) async throws -> String {
         // Empty/whitespace-only input has nothing to clean; short-circuit so we
         // never spin up the model for it.
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -37,7 +37,7 @@ struct FoundationModelsCleanupEngine: CleanupEngine {
 
         #if canImport(FoundationModels)
         if #available(macOS 26.0, *) {
-            return try await Self.run(trimmed, options: options)
+            return try await Self.run(trimmed, options: options, locale: locale)
         }
         throw CleanupError.unavailable(reason: "FoundationModels requires macOS 26 or later.")
         #else
@@ -63,7 +63,7 @@ extension FoundationModelsCleanupEngine {
     }
 
     /// Run one batch cleanup request and return the corrected text.
-    static func run(_ text: String, options: CleanupOptions) async throws -> String {
+    static func run(_ text: String, options: CleanupOptions, locale: String) async throws -> String {
         // Re-check availability rather than assume the caller did: the model can
         // go unavailable between selection and use.
         switch SystemLanguageModel.default.availability {
@@ -74,7 +74,7 @@ extension FoundationModelsCleanupEngine {
         }
 
         let session = LanguageModelSession(
-            instructions: CleanupPrompt.instructions(for: options)
+            instructions: CleanupPrompt.instructions(for: options, locale: locale)
         )
 
         // Low temperature keeps the model faithful to the input (we want a tidy,

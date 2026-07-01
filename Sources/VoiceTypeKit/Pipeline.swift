@@ -95,7 +95,7 @@ public struct DictationPipeline: Sendable {
         let cleaned: String
         let usedCleanup: CleanupEngineKind
         do {
-            cleaned = try await cleaner.cleanup(raw, options: options)
+            cleaned = try await cleaner.cleanup(raw, options: options, locale: locale)
             usedCleanup = cleaner.kind
         } catch {
             // Degrade gracefully: ship the raw text.
