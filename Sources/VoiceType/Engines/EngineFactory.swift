@@ -17,6 +17,8 @@ enum EngineFactory {
             return ParakeetEngine()
         case .whisperKit:
             return WhisperKitEngine()
+        case .nemotron:
+            return NemotronEngine()
         }
     }
 
@@ -30,6 +32,8 @@ enum EngineFactory {
             return ParakeetModelManager()
         case .whisperKit:
             return WhisperKitModelManager()
+        case .nemotron:
+            return NemotronModelManager()
         }
     }
 

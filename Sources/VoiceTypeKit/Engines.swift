@@ -28,12 +28,16 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
     case parakeet
     /// OpenAI Whisper "base" on the Neural Engine via WhisperKit — small and fast.
     case whisperKit
+    /// NVIDIA Nemotron 3.5 ASR streaming 0.6B (multilingual FastConformer-RNNT)
+    /// on the Neural Engine via FluidAudio.
+    case nemotron
 
     public var displayName: String {
         switch self {
         case .appleOnDevice: return "Apple Speech"
         case .parakeet: return "Parakeet TDT 0.6B V3"
         case .whisperKit: return "Whisper Base"
+        case .nemotron: return "Nemotron 3.5 ASR 0.6B"
         }
     }
 
@@ -43,6 +47,7 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
         case .appleOnDevice: return .apple
         case .parakeet: return .nvidia
         case .whisperKit: return .openai
+        case .nemotron: return .nvidia
         }
     }
 
@@ -55,6 +60,8 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
             return "NVIDIA's compact speech model — quick, multilingual, and punctuation-aware."
         case .whisperKit:
             return "OpenAI's small Whisper model — lightweight, fast, and broadly multilingual."
+        case .nemotron:
+            return "NVIDIA's newest speech model — broad language coverage with a per-language hint."
         }
     }
 
@@ -64,6 +71,7 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
         case .appleOnDevice: return ["Built-in", "Streaming", "Multilingual"]
         case .parakeet: return ["~500 MB", "Multilingual", "Punctuation built-in"]
         case .whisperKit: return ["~150 MB", "Multilingual", "Light & fast"]
+        case .nemotron: return ["~665 MB", "100+ languages", "Punctuation built-in"]
         }
     }
 
@@ -78,6 +86,7 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
         case .appleOnDevice: return nil
         case .parakeet: return "~500 MB"
         case .whisperKit: return "~150 MB"
+        case .nemotron: return "~665 MB"
         }
     }
 
@@ -88,6 +97,7 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
         case .appleOnDevice: return nil
         case .parakeet: return "Speech model © NVIDIA, licensed under CC-BY-4.0."
         case .whisperKit: return "OpenAI Whisper (MIT), run on-device via WhisperKit (Argmax)."
+        case .nemotron: return "Nemotron 3.5 ASR © NVIDIA, licensed under OpenMDW-1.1."
         }
     }
 }
