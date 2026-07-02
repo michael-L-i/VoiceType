@@ -35,4 +35,15 @@ enum ModelCache {
         do { try FileManager.default.removeItem(at: url) }
         catch { Log.engine.error("model cache removal failed: \(error.localizedDescription, privacy: .public)") }
     }
+
+    /// The on-disk roots where downloadable model weights live, for a
+    /// "reveal in Finder" affordance. Downloads span two vendors — FluidAudio
+    /// (Parakeet, Nemotron) and our own WhisperKit cache — so there is no single
+    /// folder. Only roots that currently exist are returned.
+    static func modelRoots() -> [URL] {
+        [applicationSupport("FluidAudio", "Models"),
+         applicationSupport("VoiceType", "WhisperKit")]
+            .compactMap { $0 }
+            .filter { FileManager.default.fileExists(atPath: $0.path) }
+    }
 }

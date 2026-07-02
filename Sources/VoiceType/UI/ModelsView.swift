@@ -23,6 +23,40 @@ struct ModelsView: View {
             .padding(VT.Space.xl)
         }
         .background(.background)
+        .safeAreaInset(edge: .bottom, spacing: 0) { finderFooter }
+    }
+
+    /// A quiet footer pinned to the bottom center: reveals where the downloaded
+    /// models live on disk, so people can see (and manage) what they've fetched.
+    private var finderFooter: some View {
+        VStack(spacing: 0) {
+            Divider()
+            Button(action: revealModels) {
+                Label("Show downloaded models in Finder", systemImage: "folder")
+                    .font(.callout)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(VT.tint)
+            .padding(.vertical, VT.Space.m)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+            .help("Open the folders on disk that hold your downloaded speech models")
+        }
+        .background(.bar)
+    }
+
+    /// Open Finder at the model storage. Selects the vendor roots that exist; if
+    /// nothing has been downloaded yet, opens the app's support folder so people
+    /// can see where models will land.
+    private func revealModels() {
+        let roots = ModelCache.modelRoots()
+        if roots.isEmpty {
+            if let base = ModelCache.applicationSupport("VoiceType") ?? ModelCache.applicationSupport() {
+                NSWorkspace.shared.open(base)
+            }
+        } else {
+            NSWorkspace.shared.activateFileViewerSelecting(roots)
+        }
     }
 
     private var table: some View {
