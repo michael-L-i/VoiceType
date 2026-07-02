@@ -70,7 +70,7 @@ private struct StubTranscriber: TranscriptionEngine {
 private struct FailingCleaner: CleanupEngine {
     let kind: CleanupEngineKind = .foundationModels
     func isAvailable() async -> Bool { true }
-    func cleanup(_ text: String, options: CleanupOptions) async throws -> String {
+    func cleanup(_ text: String, options: CleanupOptions, locale: String) async throws -> String {
         throw CleanupError.failed("stub")
     }
 }

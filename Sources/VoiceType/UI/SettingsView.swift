@@ -2,48 +2,33 @@ import SwiftUI
 import AppKit
 import VoiceTypeKit
 
-/// The preferences window, opened with ⌘, or from the Home window. Focused tabs
-/// that bind straight to `coordinator.settings` (mutations auto-persist via the
-/// coordinator's `didSet`). The design goal is a calm, native macOS utility:
-/// `Form` + `GroupBox` idioms, SF Symbols, and copy that makes the on-device
-/// default obvious. Everything runs on your Mac — there is no cloud path.
+/// VoiceType's settings. Shown both as the **Settings** sidebar page (in the Home
+/// window) and as the standard ⌘, preferences window (the `Settings` scene sizes
+/// it). One scrolling page — General and Cleanup sections together, not separate
+/// tabs. Everything binds straight to `coordinator.settings` (mutations
+/// auto-persist via the coordinator's `didSet`). Everything runs on your Mac.
 struct SettingsView: View {
     @Bindable var coordinator: DictationCoordinator
 
     var body: some View {
-        TabView {
-            GeneralTab(coordinator: coordinator)
-                .tabItem { Label("General", systemImage: "gearshape") }
-
-            CleanupTab(coordinator: coordinator)
-                .tabItem { Label("Cleanup", systemImage: "wand.and.stars") }
+        Form {
+            GeneralSections(coordinator: coordinator)
+            CleanupSections(coordinator: coordinator)
         }
-        .frame(width: 520, height: 460)
+        .formStyle(.grouped)
     }
 }
 
 // MARK: - General
 
-private struct GeneralTab: View {
+private struct GeneralSections: View {
     @Bindable var coordinator: DictationCoordinator
 
     var body: some View {
-        Form {
+        Group {
             Section {
-                Picker("Push-to-talk key", selection: $coordinator.settings.hotkey.trigger) {
-                    ForEach(Hotkey.Trigger.allCases, id: \.self) { trigger in
-                        Text(trigger.displayName).tag(trigger)
-                    }
-                }
-
-                Toggle("Hold to talk", isOn: $coordinator.settings.hotkey.holdToTalk)
-                Text(coordinator.settings.hotkey.holdToTalk
-                     ? "Hold the key while speaking; release to insert."
-                     : "Tap once to start, tap again to stop and insert.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } header: {
-                Text("Dictation key")
+                HotkeySelector(coordinator: coordinator)
+                    .padding(.vertical, VT.Space.xs)
             }
 
             Section {
@@ -51,7 +36,7 @@ private struct GeneralTab: View {
                        isOn: $coordinator.settings.soundFeedback)
                 Toggle("Keep an on-device history of recent dictations",
                        isOn: $coordinator.settings.keepHistory)
-                Text("History is stored locally and never leaves your Mac. Audio is never saved.")
+                Text("Stored locally and never leaves your Mac; audio is never saved. Turning this off just pauses new recordings — your existing transcripts are kept. Delete them anytime from Transcripts.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } header: {
@@ -79,27 +64,25 @@ private struct GeneralTab: View {
             }
 
             Section {
-                TextField("Language", text: $coordinator.settings.locale,
-                          prompt: Text("en-US"))
-                    .frame(maxWidth: 160)
-                Text("BCP-47 code for the spoken language, e.g. en-US, en-GB, es-ES.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Picker("Language", selection: $coordinator.settings.locale) {
+                    ForEach(SettingsLanguage.all, id: \.code) { language in
+                        Text(language.name).tag(language.code)
+                    }
+                }
             } header: {
                 Text("Language")
             }
         }
-        .formStyle(.grouped)
     }
 }
 
 // MARK: - Cleanup
 
-private struct CleanupTab: View {
+private struct CleanupSections: View {
     @Bindable var coordinator: DictationCoordinator
 
     var body: some View {
-        Form {
+        Group {
             Section {
                 Picker("Engine", selection: $coordinator.settings.cleanupEngine) {
                     ForEach(CleanupEngineKind.allCases, id: \.self) { kind in
@@ -110,7 +93,7 @@ private struct CleanupTab: View {
 
                 cleanupStatusNote(for: coordinator.settings.cleanupEngine)
             } header: {
-                Text("Tidy-up engine")
+                Text("Cleanup")
             } footer: {
                 Text("Cleanup only changes delivery — punctuation, casing, fillers — never your meaning. It falls back to raw text if it can't run.")
                     .font(.caption)
@@ -129,7 +112,6 @@ private struct CleanupTab: View {
             }
             .disabled(coordinator.settings.cleanupEngine == .none)
         }
-        .formStyle(.grouped)
     }
 
     @ViewBuilder
@@ -172,4 +154,100 @@ private struct EngineStatusRow: View {
         .font(.caption)
         .foregroundStyle(.secondary)
     }
+}
+
+// MARK: - Dictation key
+
+/// The push-to-talk key picker: tappable key caps + a hold/tap mode toggle and a
+/// live preview line. Lives here in Settings (it used to be the final step of
+/// onboarding, but setup now hands off to this page instead).
+struct HotkeySelector: View {
+    @Bindable var coordinator: DictationCoordinator
+
+    private var hotkey: Hotkey { coordinator.settings.hotkey }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: VT.Space.m) {
+            SectionLabel("Dictation key")
+
+            HStack(spacing: VT.Space.s) {
+                ForEach(Hotkey.Trigger.allCases, id: \.self) { trigger in
+                    keyCap(trigger)
+                }
+            }
+
+            Picker("", selection: $coordinator.settings.hotkey.holdToTalk) {
+                Text("Hold to talk").tag(true)
+                Text("Tap to talk").tag(false)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .tint(VT.tintAmber)
+            .fixedSize()
+            .padding(.vertical, VT.Space.s)
+
+            Text(previewLine)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func keyCap(_ trigger: Hotkey.Trigger) -> some View {
+        let selected = hotkey.trigger == trigger
+        return Button {
+            coordinator.settings.hotkey.trigger = trigger
+        } label: {
+            VStack(spacing: 3) {
+                Text(trigger.keyCap)
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                Text(trigger.shortName)
+                    .font(.caption2)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 58)
+            .padding(.horizontal, 4)
+            .background(selected ? AnyShapeStyle(VT.tint) : AnyShapeStyle(.regularMaterial),
+                        in: RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous))
+            .foregroundStyle(selected ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
+            .overlay(RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous)
+                .strokeBorder(selected ? Color.clear : VT.hairline, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .animation(.spring(response: 0.25, dampingFraction: 0.85), value: selected)
+    }
+
+    private var previewLine: String {
+        let verb = hotkey.holdToTalk ? "Hold" : "Tap"
+        let tail = hotkey.holdToTalk
+            ? "anywhere and start talking — release to insert."
+            : "anywhere to start, then tap again to insert."
+        return "\(verb) \(hotkey.trigger.displayName) \(tail)"
+    }
+}
+
+// MARK: - Language
+
+/// The languages offered in the Settings picker, mapped to their BCP-47 codes
+/// (which is what the transcription engines expect). English (US) is the default.
+private struct SettingsLanguage {
+    let name: String
+    let code: String
+
+    static let all: [SettingsLanguage] = [
+        .init(name: "English (US)", code: "en-US"),
+        .init(name: "English (UK)", code: "en-GB"),
+        .init(name: "Spanish", code: "es-ES"),
+        .init(name: "French", code: "fr-FR"),
+        .init(name: "German", code: "de-DE"),
+        .init(name: "Italian", code: "it-IT"),
+        .init(name: "Portuguese (Brazil)", code: "pt-BR"),
+        .init(name: "Dutch", code: "nl-NL"),
+        .init(name: "Japanese", code: "ja-JP"),
+        .init(name: "Chinese (Simplified)", code: "zh-CN"),
+        .init(name: "Korean", code: "ko-KR"),
+        .init(name: "Russian", code: "ru-RU"),
+    ]
 }

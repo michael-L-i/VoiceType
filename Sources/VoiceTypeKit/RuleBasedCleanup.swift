@@ -11,17 +11,22 @@ public struct RuleBasedCleanup: CleanupEngine {
 
     public func isAvailable() async -> Bool { true }
 
-    public func cleanup(_ text: String, options: CleanupOptions) async throws -> String {
-        Self.process(text, options: options)
+    public func cleanup(_ text: String, options: CleanupOptions, locale: String) async throws -> String {
+        Self.process(text, options: options, locale: locale)
     }
 
     // Exposed as a static, synchronous helper so other engines can reuse it as
     // their own fallback and so it is trivially testable.
-    public static func process(_ input: String, options: CleanupOptions) -> String {
+    public static func process(_ input: String, options: CleanupOptions, locale: String = "en-US") -> String {
         var text = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return "" }
 
-        if options.removeFillers {
+        // Our deterministic filler list and the standalone-"I" rule are English.
+        // Applying them to other languages does nothing useful and can be wrong
+        // (e.g. Italian "i" is a real word), so gate them on the language.
+        let isEnglish = LanguageTag.code(for: locale) == "en"
+
+        if options.removeFillers && isEnglish {
             text = removeFillers(text)
         }
 
@@ -33,7 +38,7 @@ public struct RuleBasedCleanup: CleanupEngine {
 
         if options.fixCapitalization {
             text = capitalizeSentences(text)
-            text = capitalizeStandaloneI(text)
+            if isEnglish { text = capitalizeStandaloneI(text) }
         }
 
         if options.addPunctuation {

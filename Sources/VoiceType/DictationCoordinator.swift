@@ -537,7 +537,7 @@ final class DictationCoordinator {
                 var cleaned = raw
                 var usedCleanup: CleanupEngineKind = .none
                 do {
-                    let c = try await engines.cleaner.cleanup(raw, options: self.settings.cleanupOptions)
+                    let c = try await engines.cleaner.cleanup(raw, options: self.settings.cleanupOptions, locale: self.settings.locale)
                     if !c.isEmpty { cleaned = c; usedCleanup = engines.cleaner.kind }
                 } catch { /* keep raw */ }
 

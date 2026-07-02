@@ -86,8 +86,13 @@ final class WhisperKitEngine: TranscriptionEngine {
 
         let text: String
         do {
+            // Force the selected language rather than letting Whisper auto-detect:
+            // with `usePrefillPrompt` on (the default) a set `language` pins the
+            // decoder to it. Whisper keys on the ISO 639-1 code ("en", "es", ...).
+            let options = DecodingOptions(language: LanguageTag.code(for: locale))
             // The array overload returns one result per decoded segment; join them.
-            let results = try await pipe.transcribe(audioArray: AudioSamples.mono16k(audio))
+            let results = try await pipe.transcribe(audioArray: AudioSamples.mono16k(audio),
+                                                    decodeOptions: options)
             text = results.map(\.text).joined(separator: " ")
         } catch {
             throw TranscriptionError.failed("Whisper transcription failed: \(error.localizedDescription)")

@@ -3,14 +3,17 @@ import VoiceTypeKit
 
 /// Guided setup, shown as its own sidebar destination. One step at a time:
 /// granted permissions collapse to slim "ready" rows, the first ungranted one is
-/// the single focused card, and once all three are granted the focus becomes the
-/// push-to-talk key picker — the last step before Home. Privacy and window
-/// behavior are quiet footnotes. Status polls live so System Settings changes
-/// reflect without a prompt.
+/// the single focused card, and once all three are granted a short "you're ready"
+/// card shows before the view hands off to the Settings page (where the dictation
+/// key now lives). Privacy and window behavior are quiet footnotes. Status polls
+/// live so System Settings changes reflect without a prompt.
 struct SetupView: View {
     @Bindable var coordinator: DictationCoordinator
-    /// Jump to Home once setup is complete.
-    var goHome: () -> Void
+    /// Called once all permissions are granted — hands the user off to Settings.
+    var onComplete: () -> Void
+
+    /// Guards the one-shot auto-handoff so it fires only when the final grant lands.
+    @State private var handedOff = false
 
     private var granted: [Permission] {
         Permission.allCases.filter { coordinator.status(for: $0) == .granted }
@@ -21,11 +24,11 @@ struct SetupView: View {
     private var grantedCount: Int { granted.count }
     private var allGranted: Bool { pending.isEmpty }
 
-    /// The one thing in focus: the first ungranted permission, else the key step.
-    private enum Step: Hashable { case permission(Permission), hotkey }
+    /// The one thing in focus: the first ungranted permission, else the done card.
+    private enum Step: Hashable { case permission(Permission), done }
     private var currentStep: Step {
         if let next = pending.first { return .permission(next) }
-        return .hotkey
+        return .done
     }
 
     var body: some View {
@@ -65,6 +68,17 @@ struct SetupView: View {
                 try? await Task.sleep(for: .seconds(1))
             }
         }
+        // The moment the final grant lands, slide the user into Settings (once).
+        // Bound to the always-mounted body so it fires on the false→true flip,
+        // unlike the done card, which only appears after setup is already complete.
+        .onChange(of: allGranted) { _, done in
+            guard done, !handedOff else { return }
+            handedOff = true
+            Task {
+                try? await Task.sleep(for: .milliseconds(700))
+                onComplete()
+            }
+        }
     }
 
     // MARK: Header (slim)
@@ -80,7 +94,7 @@ struct SetupView: View {
                     Text("Set up VoiceType")
                         .font(.system(.title, design: .rounded).weight(.bold))
                     Text(allGranted
-                         ? "You're all set — pick your key below."
+                         ? "You're all set!"
                          : "\(grantedCount) of \(Permission.allCases.count) ready")
                         .font(.callout)
                         .foregroundStyle(.secondary)
@@ -127,19 +141,36 @@ struct SetupView: View {
             PermissionStepCard(permission: permission, coordinator: coordinator) {
                 Task { await coordinator.request(permission) }
             }
-        case .hotkey:
-            VStack(alignment: .leading, spacing: VT.Space.l) {
-                HotkeySelector(coordinator: coordinator)
-                Button("Go to Home", action: goHome)
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .tint(VT.tint)
-            }
-            .padding(VT.Space.l)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous)
-                .strokeBorder(VT.hairline, lineWidth: 1))
+        case .done:
+            doneCard
         }
+    }
+
+    /// Shown for a beat once everything is granted, then we slide into Settings.
+    private var doneCard: some View {
+        VStack(alignment: .leading, spacing: VT.Space.m) {
+            HStack(spacing: VT.Space.s) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.title2)
+                    .foregroundStyle(VT.tint)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("VoiceType is ready")
+                        .font(.system(.headline, design: .rounded))
+                    Text("Opening Settings so you can pick your dictation key…")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Button("Open Settings", action: onComplete)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(VT.tint)
+        }
+        .padding(VT.Space.l)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous)
+            .strokeBorder(VT.hairline, lineWidth: 1))
     }
 
     // MARK: Upcoming + footnotes
@@ -244,74 +275,3 @@ private struct PermissionStepCard: View {
     }
 }
 
-// MARK: - Hotkey selector
-
-/// Pick the push-to-talk key and hold-vs-tap, right here on Setup. Bound straight
-/// to `coordinator.settings.hotkey` — the coordinator's `didSet` re-arms the
-/// global monitor, so a change takes effect immediately.
-private struct HotkeySelector: View {
-    @Bindable var coordinator: DictationCoordinator
-
-    private var hotkey: Hotkey { coordinator.settings.hotkey }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: VT.Space.m) {
-            SectionLabel("Dictation key")
-
-            HStack(spacing: VT.Space.s) {
-                ForEach(Hotkey.Trigger.allCases, id: \.self) { trigger in
-                    keyCap(trigger)
-                }
-            }
-
-            Picker("", selection: $coordinator.settings.hotkey.holdToTalk) {
-                Text("Hold to talk").tag(true)
-                Text("Tap to talk").tag(false)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .tint(VT.tintAmber)
-            .fixedSize()
-            .padding(.vertical, VT.Space.s)
-
-            Text(previewLine)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private func keyCap(_ trigger: Hotkey.Trigger) -> some View {
-        let selected = hotkey.trigger == trigger
-        return Button {
-            coordinator.settings.hotkey.trigger = trigger
-        } label: {
-            VStack(spacing: 3) {
-                Text(trigger.keyCap)
-                    .font(.system(size: 20, weight: .semibold, design: .rounded))
-                Text(trigger.shortName)
-                    .font(.caption2)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 58)
-            .padding(.horizontal, 4)
-            .background(selected ? AnyShapeStyle(VT.tint) : AnyShapeStyle(.regularMaterial),
-                        in: RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous))
-            .foregroundStyle(selected ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
-            .overlay(RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous)
-                .strokeBorder(selected ? Color.clear : VT.hairline, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .animation(.spring(response: 0.25, dampingFraction: 0.85), value: selected)
-    }
-
-    private var previewLine: String {
-        let verb = hotkey.holdToTalk ? "Hold" : "Tap"
-        let tail = hotkey.holdToTalk
-            ? "anywhere and start talking — release to insert."
-            : "anywhere to start, then tap again to insert."
-        return "\(verb) \(hotkey.trigger.displayName) \(tail)"
-    }
-}
