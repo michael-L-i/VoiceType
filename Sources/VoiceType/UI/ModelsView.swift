@@ -45,17 +45,20 @@ struct ModelsView: View {
         .background(.bar)
     }
 
-    /// Open Finder at the model storage. Selects the vendor roots that exist; if
-    /// nothing has been downloaded yet, opens the app's support folder so people
-    /// can see where models will land.
+    /// Open Finder at each model storage location. Selecting each path separately
+    /// keeps the NVIDIA/FluidAudio cache visible even though it lives outside
+    /// VoiceType's own Application Support folder.
     private func revealModels() {
-        let roots = ModelCache.modelRoots()
-        if roots.isEmpty {
+        let locations = ModelCache.modelLocations()
+        if locations.isEmpty {
             if let base = ModelCache.applicationSupport("VoiceType") ?? ModelCache.applicationSupport() {
                 NSWorkspace.shared.open(base)
             }
         } else {
-            NSWorkspace.shared.activateFileViewerSelecting(roots)
+            for location in locations {
+                NSWorkspace.shared.selectFile(location.path,
+                                              inFileViewerRootedAtPath: location.deletingLastPathComponent().path)
+            }
         }
     }
 
