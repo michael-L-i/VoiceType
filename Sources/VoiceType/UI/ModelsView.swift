@@ -45,20 +45,15 @@ struct ModelsView: View {
         .background(.bar)
     }
 
-    /// Open Finder at each model storage location. Selecting each path separately
-    /// keeps the NVIDIA/FluidAudio cache visible even though it lives outside
-    /// VoiceType's own Application Support folder.
+    /// Open a single Finder window showing every downloaded model. The weights
+    /// live in two separate SDK caches, so we open one aggregated folder that
+    /// links to each installed model rather than spawning a window per cache.
     private func revealModels() {
-        let locations = ModelCache.modelLocations()
-        if locations.isEmpty {
-            if let base = ModelCache.applicationSupport("VoiceType") ?? ModelCache.applicationSupport() {
-                NSWorkspace.shared.open(base)
-            }
-        } else {
-            for location in locations {
-                NSWorkspace.shared.selectFile(location.path,
-                                              inFileViewerRootedAtPath: location.deletingLastPathComponent().path)
-            }
+        if let folder = ModelCache.aggregatedModelsFolder() {
+            NSWorkspace.shared.open(folder)
+        } else if let base = ModelCache.applicationSupport("VoiceType") ?? ModelCache.applicationSupport() {
+            // Nothing downloaded yet — show where models will land.
+            NSWorkspace.shared.open(base)
         }
     }
 
