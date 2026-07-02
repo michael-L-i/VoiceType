@@ -35,4 +35,39 @@ enum ModelCache {
         do { try FileManager.default.removeItem(at: url) }
         catch { Log.engine.error("model cache removal failed: \(error.localizedDescription, privacy: .public)") }
     }
+
+    /// Each downloadable model paired with where its weights actually live on
+    /// disk. Downloads span two SDK caches — FluidAudio (the NVIDIA models) and
+    /// our own WhisperKit cache — so there is no single canonical folder. Only
+    /// models that are currently installed are returned.
+    static func installedModelDirs() -> [(name: String, url: URL)] {
+        let candidates: [(String, URL?)] = [
+            ("Parakeet TDT 0.6B V3", applicationSupport("FluidAudio", "Models", "parakeet-tdt-0.6b-v3")),
+            ("Nemotron 3.5 ASR 0.6B", applicationSupport("FluidAudio", "Models", "nemotron-multilingual")),
+            ("Whisper Base", applicationSupport("VoiceType", "WhisperKit", "models", "argmaxinc", "whisperkit-coreml", "openai_whisper-base")),
+        ]
+        return candidates.compactMap { name, url in
+            guard let url, FileManager.default.fileExists(atPath: url.path) else { return nil }
+            return (name, url)
+        }
+    }
+
+    /// A single folder the user can open to see everything they've downloaded.
+    /// The real weights sit in separate per-SDK caches we can't merge without
+    /// forcing a re-download, so we assemble one tidy folder of symlinks — one
+    /// per installed model, named for the model — and return it. Rebuilt on every
+    /// call so a deleted model never leaves a dangling link. Returns nil when
+    /// nothing is downloaded yet.
+    static func aggregatedModelsFolder() -> URL? {
+        let installed = installedModelDirs()
+        guard !installed.isEmpty,
+              let root = applicationSupport("VoiceType", "Downloaded Models") else { return nil }
+        let fm = FileManager.default
+        try? fm.removeItem(at: root)
+        guard (try? fm.createDirectory(at: root, withIntermediateDirectories: true)) != nil else { return nil }
+        for (name, target) in installed {
+            try? fm.createSymbolicLink(at: root.appendingPathComponent(name), withDestinationURL: target)
+        }
+        return root
+    }
 }

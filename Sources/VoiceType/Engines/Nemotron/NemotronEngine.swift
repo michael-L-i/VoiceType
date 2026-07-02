@@ -89,6 +89,7 @@ final class NemotronEngine: TranscriptionEngine {
             throw TranscriptionError.unavailable(reason: "Couldn't load the Nemotron model: \(error.localizedDescription)")
         }
 
+        let samples = AudioSamples.mono16k(audio)
         let text: String
         do {
             // The manager is stateful and reused across dictations: clear any
@@ -96,8 +97,20 @@ final class NemotronEngine: TranscriptionEngine {
             // utterance, then feed the whole buffer and flush the tail.
             await manager.reset()
             await manager.setLanguage(locale)
-            _ = try await manager.process(samples: AudioSamples.mono16k(audio))
-            text = try await manager.finish()
+            _ = try await manager.process(samples: samples)
+            var out = try await manager.finish()
+
+            // Nemotron's per-language prompt is a hard *script* filter: fed speech
+            // that doesn't match the selected language (e.g. English with a
+            // Chinese prompt), it emits nothing at all. Rather than report "didn't
+            // catch that", retry once letting the model auto-detect the language.
+            if out.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                await manager.reset()
+                await manager.setLanguage("auto")
+                _ = try await manager.process(samples: samples)
+                out = try await manager.finish()
+            }
+            text = out
         } catch {
             throw TranscriptionError.failed("Nemotron transcription failed: \(error.localizedDescription)")
         }

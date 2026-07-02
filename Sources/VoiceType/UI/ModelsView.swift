@@ -23,6 +23,38 @@ struct ModelsView: View {
             .padding(VT.Space.xl)
         }
         .background(.background)
+        .safeAreaInset(edge: .bottom, spacing: 0) { finderFooter }
+    }
+
+    /// A quiet footer pinned to the bottom center: reveals where the downloaded
+    /// models live on disk, so people can see (and manage) what they've fetched.
+    private var finderFooter: some View {
+        VStack(spacing: 0) {
+            Divider()
+            Button(action: revealModels) {
+                Label("Show downloaded models in Finder", systemImage: "folder")
+                    .font(.callout)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(VT.tint)
+            .padding(.vertical, VT.Space.m)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+            .help("Open the folders on disk that hold your downloaded speech models")
+        }
+        .background(.bar)
+    }
+
+    /// Open a single Finder window showing every downloaded model. The weights
+    /// live in two separate SDK caches, so we open one aggregated folder that
+    /// links to each installed model rather than spawning a window per cache.
+    private func revealModels() {
+        if let folder = ModelCache.aggregatedModelsFolder() {
+            NSWorkspace.shared.open(folder)
+        } else if let base = ModelCache.applicationSupport("VoiceType") ?? ModelCache.applicationSupport() {
+            // Nothing downloaded yet — show where models will land.
+            NSWorkspace.shared.open(base)
+        }
     }
 
     private var table: some View {
