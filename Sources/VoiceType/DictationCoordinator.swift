@@ -64,6 +64,7 @@ final class DictationCoordinator {
     private let capture = AudioCaptureService()
     private let hotkey: HotkeyMonitor
     private let injector: TextInjector = PasteboardInjector()
+    private let sounds = SoundFeedback()
 
     // Resolved availability, refreshed on launch and when settings change.
     // Exposed read-only so the Settings UI can show which engines are ready vs.
@@ -328,17 +329,20 @@ final class DictationCoordinator {
             setError("Allow microphone access in System Settings.")
             return
         }
+        // Cue before the mic grabs the audio route: on Bluetooth headphones,
+        // starting capture flips the output from A2DP to HFP, and a cue played
+        // mid-flip is swallowed. play() is async, so this costs no latency.
+        sounds.start(enabled: settings.soundFeedback)
         // Non-blocking: hardware spin-up happens on the capture's own queue, so
         // this returns instantly and the hotkey event tap is never stalled
         // (a blocked tap callback is how macOS decides to disable the tap).
         capture.start()
-        SoundFeedback(enabled: settings.soundFeedback).start()
         state = .recording
     }
 
     private func finishRecording() {
         guard state == .recording else { return }
-        SoundFeedback(enabled: settings.soundFeedback).stop()
+        sounds.stop(enabled: settings.soundFeedback)
         let audio = capture.stop()
         inputLevel = 0
 
@@ -363,7 +367,7 @@ final class DictationCoordinator {
             return
         }
         guard state == .recording else { return }
-        SoundFeedback(enabled: settings.soundFeedback).stop()
+        sounds.stop(enabled: settings.soundFeedback)
         inputLevel = 0
         state = .idle
     }
@@ -378,7 +382,7 @@ final class DictationCoordinator {
             return
         }
         guard state == .recording else { return }
-        SoundFeedback(enabled: settings.soundFeedback).stop()
+        sounds.stop(enabled: settings.soundFeedback)
         inputLevel = 0
         setError("Couldn't access the microphone.")
     }
