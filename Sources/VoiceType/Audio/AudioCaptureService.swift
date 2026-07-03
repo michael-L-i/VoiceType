@@ -1,31 +1,51 @@
 import AVFoundation
+import CoreMedia
 import VoiceTypeKit
 
 /// Captures microphone audio while push-to-talk is held, then hands back a
 /// mono 16 kHz Float `PCMBuffer` — the format every transcription engine wants.
 ///
-/// We accumulate the input node's native float samples on the realtime tap
-/// thread (guarded by a lock) and resample once at stop, keeping the hot path
-/// cheap. Audio never leaves this object except as the in-memory buffer the
-/// pipeline consumes; nothing is written to disk.
-final class AudioCaptureService {
+/// Built on **AVCaptureSession + AVCaptureAudioDataOutput**, not AVAudioEngine.
+/// The distinction matters: AVAudioEngine compiles a DSP graph against one
+/// device's exact hardware format, and any route change (AirPods connecting,
+/// the A2DP→HFP profile flip that *starting the mic itself* triggers on
+/// Bluetooth headsets) invalidates the graph and kills the recording. A capture
+/// session instead owns device management and format conversion internally —
+/// we declare the output format we want and buffers keep flowing across route
+/// churn.
+///
+/// `start()` is asynchronous and never blocks the caller: hardware spin-up
+/// (seconds on Bluetooth) happens on a private session queue, so the hotkey
+/// event-tap callback and the UI stay responsive. `stop()`/`cancel()` return
+/// immediately as well. Audio never leaves this object except as the in-memory
+/// buffer the pipeline consumes; nothing is written to disk.
+final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferDelegate {
     /// Target sample rate for speech models.
     static let targetSampleRate: Double = 16_000
 
-    /// Why a capture attempt couldn't start. `noInputAvailable` is the transient
-    /// state an input device reports mid-route-change (0 channels / 0 Hz) — e.g.
-    /// the instant AirPods finish connecting.
-    enum CaptureError: Error { case noInputAvailable }
+    private let session = AVCaptureSession()
+    private let output = AVCaptureAudioDataOutput()
+    /// Serializes all session mutations (configure/start/stop) off the caller.
+    private let sessionQueue = DispatchQueue(label: "com.voicetype.app.capture.session")
+    /// Delivery queue for sample buffers.
+    private let sampleQueue = DispatchQueue(label: "com.voicetype.app.capture.samples")
 
-    private let engine = AVAudioEngine()
     private let lock = NSLock()
-    private var nativeSamples: [Float] = []
-    private var nativeSampleRate: Double = 48_000
+    private var samples: [Float] = []
+    /// Lock-guarded gate: the delegate appends only while true, so buffers that
+    /// straggle in after stop()/cancel() can't leak into the next recording.
+    private var accumulating = false
+
+    /// Main-thread view of "a capture is in flight" (set in start, cleared in
+    /// stop/cancel). All public methods are called from the main actor.
     private(set) var isRunning = false
-    private var configurationObserver: NSObjectProtocol?
+
+    private var runtimeErrorObserver: NSObjectProtocol?
 
     /// Watchdog state: `bufferTick` (lock-guarded) advances on every captured
     /// buffer; the watchdog fires if it hasn't moved since the last check.
+    /// Covers every "recording but no audio is arriving" state — missing
+    /// device, session failure, dead input — with one detector.
     private var watchdog: Timer?
     private var bufferTick = 0
     private var watchdogBaseline = 0
@@ -33,97 +53,136 @@ final class AudioCaptureService {
 
     /// Live input level (0...1), published on the main actor for the UI meter.
     var onLevel: (@Sendable (Float) -> Void)?
+    /// Capture died mid-flight (device vanished, session error, no buffers).
+    /// Fired on the main queue after the capture has already been cancelled.
     var onConfigurationChange: (@Sendable () -> Void)?
+    /// Capture could not start at all (no input device / setup failure).
+    /// Fired on the main queue; the capture is already torn down.
+    var onStartFailure: (@Sendable () -> Void)?
 
-    init() {
-        configurationObserver = NotificationCenter.default.addObserver(
-            forName: .AVAudioEngineConfigurationChange,
-            object: engine,
-            queue: .main) { [weak self] _ in
-                self?.handleConfigurationChange()
+    override init() {
+        super.init()
+
+        // Ask the output for exactly the format the pipeline wants; the session
+        // converts from whatever the hardware produces, on every device. This
+        // replaces a hand-rolled accumulate-native-then-resample pass — and is
+        // what makes mid-capture format changes a non-event.
+        output.audioSettings = [
+            AVFormatIDKey: kAudioFormatLinearPCM,
+            AVSampleRateKey: Self.targetSampleRate,
+            AVNumberOfChannelsKey: 1,
+            AVLinearPCMBitDepthKey: 32,
+            AVLinearPCMIsFloatKey: true,
+            AVLinearPCMIsBigEndianKey: false,
+            AVLinearPCMIsNonInterleaved: false,
+        ]
+        output.setSampleBufferDelegate(self, queue: sampleQueue)
+        if session.canAddOutput(output) { session.addOutput(output) }
+
+        runtimeErrorObserver = NotificationCenter.default.addObserver(
+            forName: AVCaptureSession.runtimeErrorNotification,
+            object: session,
+            queue: .main) { [weak self] note in
+                guard let self, self.isRunning else { return }
+                let error = note.userInfo?[AVCaptureSessionErrorKey] as? NSError
+                Log.audio.error("capture session runtime error: \(error?.localizedDescription ?? "unknown", privacy: .public)")
+                self.cancel()
+                self.onConfigurationChange?()
             }
     }
 
     deinit {
-        if let configurationObserver {
-            NotificationCenter.default.removeObserver(configurationObserver)
+        if let runtimeErrorObserver {
+            NotificationCenter.default.removeObserver(runtimeErrorObserver)
         }
     }
 
-    func start() throws {
+    /// Begin capturing. Returns immediately; hardware spin-up happens on the
+    /// session queue. If the session can't start, `onStartFailure` fires (and
+    /// the buffer watchdog backstops anything that fails silently).
+    func start() {
         guard !isRunning else { return }
-        lock.lock(); nativeSamples.removeAll(keepingCapacity: true); lock.unlock()
-
-        do {
-            try startEngine()
-        } catch {
-            // A route change (AirPods just connected, default input swapped) can
-            // leave the engine briefly reporting an invalid input format or refuse
-            // to start. Reset the audio graph and try once more before giving up.
-            Log.audio.info("capture start failed (\(error.localizedDescription, privacy: .public)); resetting and retrying")
-            engine.reset()
-            try startEngine()
-        }
-
+        lock.lock()
+        samples.removeAll(keepingCapacity: true)
+        accumulating = true
+        lock.unlock()
         isRunning = true
         startWatchdog()
-        Log.audio.info("capture started @ \(self.nativeSampleRate, privacy: .public)Hz")
-    }
 
-    /// Install the tap at the input's native format and start the engine. Throws
-    /// `CaptureError.noInputAvailable` when the input reports a transient invalid
-    /// format, so the caller can retry rather than silently record nothing.
-    private func startEngine() throws {
-        let input = engine.inputNode
-        let format = input.outputFormat(forBus: 0)
-        guard format.sampleRate > 0, format.channelCount > 0 else {
-            throw CaptureError.noInputAvailable
-        }
-        nativeSampleRate = format.sampleRate
-
-        input.installTap(onBus: 0, bufferSize: 2048, format: format) { [weak self] buffer, _ in
-            self?.append(buffer)
-        }
-        engine.prepare()
-        do {
-            try engine.start()
-        } catch {
-            input.removeTap(onBus: 0)
-            throw error
+        sessionQueue.async { [weak self] in
+            guard let self else { return }
+            do {
+                try self.configureInput()
+                if !self.session.isRunning { self.session.startRunning() }
+                Log.audio.info("capture session started")
+            } catch {
+                Log.audio.error("capture start failed: \(error.localizedDescription, privacy: .public)")
+                DispatchQueue.main.async {
+                    guard self.isRunning else { return }
+                    self.cancel()
+                    self.onStartFailure?()
+                }
+            }
         }
     }
 
-    /// Stop capture and return the resampled mono 16 kHz buffer.
+    /// Point the session at the current default input. Re-resolved on every
+    /// start so we follow the device the user expects; once capturing, the
+    /// session keeps its device regardless of later default-input changes.
+    private func configureInput() throws {
+        enum SetupError: Error { case noInputAvailable }
+
+        let current = session.inputs.compactMap { $0 as? AVCaptureDeviceInput }
+        guard let device = AVCaptureDevice.default(for: .audio) else {
+            throw SetupError.noInputAvailable
+        }
+        if current.count == 1, current[0].device.uniqueID == device.uniqueID { return }
+
+        session.beginConfiguration()
+        defer { session.commitConfiguration() }
+        current.forEach { session.removeInput($0) }
+        let input = try AVCaptureDeviceInput(device: device)
+        guard session.canAddInput(input) else { throw SetupError.noInputAvailable }
+        session.addInput(input)
+    }
+
+    /// Stop capture and return the accumulated mono 16 kHz buffer. Returns
+    /// immediately — session teardown happens on the session queue.
     func stop() -> PCMBuffer {
         guard isRunning else { return PCMBuffer(samples: [], sampleRate: Self.targetSampleRate) }
         stopWatchdog()
-        engine.inputNode.removeTap(onBus: 0)
-        engine.stop()
         isRunning = false
 
         lock.lock()
-        let samples = nativeSamples
-        let rate = nativeSampleRate
-        nativeSamples.removeAll(keepingCapacity: false)
+        accumulating = false
+        let captured = samples
+        samples.removeAll(keepingCapacity: false)
         lock.unlock()
 
-        let resampled = Self.resampleToTarget(samples, from: rate)
-        Log.audio.info("capture stopped: \(resampled.count, privacy: .public) samples")
-        return PCMBuffer(samples: resampled, sampleRate: Self.targetSampleRate)
+        sessionQueue.async { [weak self] in
+            guard let self, self.session.isRunning else { return }
+            self.session.stopRunning()
+        }
+
+        Log.audio.info("capture stopped: \(captured.count, privacy: .public) samples")
+        return PCMBuffer(samples: captured, sampleRate: Self.targetSampleRate)
     }
 
-    /// Abort the current recording without returning audio. Used when the audio
-    /// hardware graph changes under us, e.g. AirPods reconnecting mid-capture.
+    /// Abort the current recording without returning audio.
     func cancel() {
         guard isRunning else { return }
         stopWatchdog()
-        engine.inputNode.removeTap(onBus: 0)
-        engine.stop()
         isRunning = false
 
         lock.lock()
-        nativeSamples.removeAll(keepingCapacity: false)
+        accumulating = false
+        samples.removeAll(keepingCapacity: false)
         lock.unlock()
+
+        sessionQueue.async { [weak self] in
+            guard let self, self.session.isRunning else { return }
+            self.session.stopRunning()
+        }
 
         onLevel?(0)
         Log.audio.info("capture cancelled")
@@ -133,8 +192,8 @@ final class AudioCaptureService {
 
     /// Catch a "recording but no audio is arriving" state — a dead input that
     /// would otherwise leave the HUD spinning forever. If no buffers land within
-    /// `watchdogInterval`, abort and surface it through the same recovery path as
-    /// a configuration change (resets the UI to idle).
+    /// `watchdogInterval`, abort and surface it through the same recovery path
+    /// as a runtime error (resets the UI to idle).
     private func startWatchdog() {
         lock.lock(); watchdogBaseline = bufferTick; lock.unlock()
         watchdog?.invalidate()
@@ -157,23 +216,29 @@ final class AudioCaptureService {
         watchdog = nil
     }
 
-    private func handleConfigurationChange() {
-        guard isRunning else { return }
-        Log.audio.info("audio configuration changed while capturing")
-        cancel()
-        onConfigurationChange?()
-    }
+    // MARK: - Sample delivery
 
-    // MARK: - Realtime tap
+    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer,
+                       from connection: AVCaptureConnection) {
+        var bufferList = AudioBufferList()
+        var blockBuffer: CMBlockBuffer?
+        let status = CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(
+            sampleBuffer,
+            bufferListSizeNeededOut: nil,
+            bufferListOut: &bufferList,
+            bufferListSize: MemoryLayout<AudioBufferList>.size,
+            blockBufferAllocator: nil,
+            blockBufferMemoryAllocator: nil,
+            flags: kCMSampleBufferFlag_AudioBufferList_Assure16ByteAlignment,
+            blockBufferOut: &blockBuffer)
+        guard status == noErr, blockBuffer != nil,
+              let data = bufferList.mBuffers.mData else { return }
 
-    private func append(_ buffer: AVAudioPCMBuffer) {
-        guard let channel = buffer.floatChannelData else { return }
-        let frames = Int(buffer.frameLength)
-        // Downmix to mono by taking the first channel — laptop/USB mics are
-        // effectively mono and this avoids per-frame averaging on the hot path.
-        let ptr = channel[0]
-        var chunk = [Float](repeating: 0, count: frames)
-        for i in 0..<frames { chunk[i] = ptr[i] }
+        // Mono float32 per `audioSettings` — one buffer, 4 bytes per frame.
+        let frames = Int(bufferList.mBuffers.mDataByteSize) / MemoryLayout<Float>.size
+        guard frames > 0 else { return }
+        let ptr = data.assumingMemoryBound(to: Float.self)
+        let chunk = Array(UnsafeBufferPointer(start: ptr, count: frames))
 
         // Cheap level meter off the same chunk.
         if let onLevel {
@@ -183,7 +248,7 @@ final class AudioCaptureService {
         }
 
         lock.lock()
-        nativeSamples.append(contentsOf: chunk)
+        if accumulating { samples.append(contentsOf: chunk) }
         bufferTick &+= 1
         lock.unlock()
     }
@@ -192,6 +257,8 @@ final class AudioCaptureService {
 
     /// Resample mono float samples to 16 kHz using AVAudioConverter for quality.
     /// Falls back to returning the input unchanged if conversion can't be set up.
+    /// (Live capture no longer needs this — the session converts — but the file
+    /// import decoder still does.)
     static func resampleToTarget(_ samples: [Float], from sourceRate: Double) -> [Float] {
         guard !samples.isEmpty else { return [] }
         if abs(sourceRate - targetSampleRate) < 1 { return samples }

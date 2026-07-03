@@ -20,6 +20,9 @@ import VoiceTypeKit
 /// re-arms us once the grant flips.
 @MainActor
 final class HotkeyMonitor {
+    /// Called synchronously from the tap callback — handlers must return
+    /// immediately (flip state, kick async work) or macOS will disable the tap
+    /// for unresponsiveness and key events get dropped.
     var onPress: (() -> Void)?
     var onRelease: (() -> Void)?
 
