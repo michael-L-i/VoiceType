@@ -84,6 +84,9 @@ final class DictationCoordinator {
         capture.onConfigurationChange = { [weak self] in
             Task { @MainActor in self?.handleAudioConfigurationChange() }
         }
+        capture.onStartFailure = { [weak self] in
+            Task { @MainActor in self?.handleCaptureStartFailure() }
+        }
         hotkey.onPress = { [weak self] in self?.handlePress() }
         hotkey.onRelease = { [weak self] in self?.handleRelease() }
 
@@ -321,14 +324,16 @@ final class DictationCoordinator {
 
     private func beginRecording() {
         resetTask?.cancel()
-        do {
-            try capture.start()
-            SoundFeedback(enabled: settings.soundFeedback).start()
-            state = .recording
-        } catch {
-            Log.audio.error("capture start failed: \(error.localizedDescription, privacy: .public)")
-            setError("Couldn't access the microphone.")
+        guard microphonePermission != .denied else {
+            setError("Allow microphone access in System Settings.")
+            return
         }
+        // Non-blocking: hardware spin-up happens on the capture's own queue, so
+        // this returns instantly and the hotkey event tap is never stalled
+        // (a blocked tap callback is how macOS decides to disable the tap).
+        capture.start()
+        SoundFeedback(enabled: settings.soundFeedback).start()
+        state = .recording
     }
 
     private func finishRecording() {
@@ -345,9 +350,12 @@ final class DictationCoordinator {
         runPipeline(on: audio)
     }
 
+    /// Capture died mid-flight (device vanished, session error, buffer
+    /// watchdog). Route changes no longer land here — the capture session
+    /// absorbs those — so this is a genuine failure, not AirPods connecting.
     private func handleAudioConfigurationChange() {
-        // A test recording owns the capture too; the capture cancels itself on a
-        // route change, so just sync our state and bail.
+        // A test recording owns the capture too; the capture cancels itself, so
+        // just sync our state and bail.
         if let kind = activeTestKind {
             activeTestKind = nil
             inputLevel = 0
@@ -358,6 +366,21 @@ final class DictationCoordinator {
         SoundFeedback(enabled: settings.soundFeedback).stop()
         inputLevel = 0
         state = .idle
+    }
+
+    /// The capture session couldn't start at all (no input device / setup
+    /// failure). The capture has already torn itself down.
+    private func handleCaptureStartFailure() {
+        if let kind = activeTestKind {
+            activeTestKind = nil
+            inputLevel = 0
+            testStates[kind] = .failed("Couldn't access the microphone.")
+            return
+        }
+        guard state == .recording else { return }
+        SoundFeedback(enabled: settings.soundFeedback).stop()
+        inputLevel = 0
+        setError("Couldn't access the microphone.")
     }
 
     // MARK: - Pipeline
@@ -615,14 +638,9 @@ final class DictationCoordinator {
             Task { await request(.microphone) }
             return
         }
-        do {
-            try capture.start()
-            activeTestKind = kind
-            testStates[kind] = .recording
-        } catch {
-            Log.audio.error("test capture start failed: \(error.localizedDescription, privacy: .public)")
-            testStates[kind] = .failed("Couldn't access the microphone.")
-        }
+        capture.start()
+        activeTestKind = kind
+        testStates[kind] = .recording
     }
 
     /// Stop the test recording and transcribe it with `kind`'s exact engine
