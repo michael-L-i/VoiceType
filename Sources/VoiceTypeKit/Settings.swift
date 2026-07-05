@@ -23,13 +23,17 @@ public struct AppSettings: Sendable, Codable, Equatable {
     /// Keep a local, on-device history of dictations for review/redo.
     public var keepHistory: Bool
 
+    /// Show the floating pill/waveform indicator while dictation is active.
+    public var showDictationIndicator: Bool
+
     public init(transcriptionEngine: TranscriptionEngineKind = .appleOnDevice,
                 cleanupEngine: CleanupEngineKind = .foundationModels,
                 cleanupOptions: CleanupOptions = .default,
                 locale: String = "en-US",
                 hotkey: Hotkey = .default,
                 soundFeedback: Bool = true,
-                keepHistory: Bool = true) {
+                keepHistory: Bool = true,
+                showDictationIndicator: Bool = true) {
         self.transcriptionEngine = transcriptionEngine
         self.cleanupEngine = cleanupEngine
         self.cleanupOptions = cleanupOptions
@@ -37,6 +41,7 @@ public struct AppSettings: Sendable, Codable, Equatable {
         self.hotkey = hotkey
         self.soundFeedback = soundFeedback
         self.keepHistory = keepHistory
+        self.showDictationIndicator = showDictationIndicator
     }
 
     public static let `default` = AppSettings()

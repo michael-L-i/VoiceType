@@ -34,6 +34,8 @@ private struct GeneralSections: View {
             Section {
                 Toggle("Play a sound when recording starts and stops",
                        isOn: $coordinator.settings.soundFeedback)
+                Toggle("Show the dictation indicator on screen",
+                       isOn: $coordinator.settings.showDictationIndicator)
                 Toggle("Keep an on-device history of recent dictations",
                        isOn: $coordinator.settings.keepHistory)
                 Text("Stored locally and never leaves your Mac; audio is never saved. Turning this off just pauses new recordings — your existing transcripts are kept. Delete them anytime from Transcripts.")

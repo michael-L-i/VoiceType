@@ -48,10 +48,12 @@ final class RecordingHUDController {
 
     // MARK: - State observation
 
-    /// Track `coordinator.state` via Observation and re-arm after each change.
+    /// Track `coordinator.state` and the show/hide setting via Observation and
+    /// re-arm after each change.
     private func observeState() {
         withObservationTracking {
             _ = coordinator.state
+            _ = coordinator.settings.showDictationIndicator
         } onChange: { [weak self] in
             Task { @MainActor in
                 self?.apply()
@@ -61,9 +63,14 @@ final class RecordingHUDController {
     }
 
     private func apply() {
-        // The pill is always on screen; state only changes its size and content.
-        // Re-fit and re-assert front on every change so it tracks the active
-        // screen and stays above other windows.
+        // By default the pill is always on screen; state only changes its size
+        // and content. Re-fit and re-assert front on every change so it tracks
+        // the active screen and stays above other windows. Users can turn the
+        // indicator off entirely in Settings.
+        guard coordinator.settings.showDictationIndicator else {
+            panel.orderOut(nil)
+            return
+        }
         reposition()
         panel.orderFrontRegardless()
     }
