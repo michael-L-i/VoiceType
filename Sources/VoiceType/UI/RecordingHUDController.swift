@@ -2,12 +2,12 @@ import AppKit
 import SwiftUI
 import Observation
 
-/// Owns the floating recording HUD panel. The pill is **always present** — a
-/// small resting oval at the bottom of the screen that expands into a live
-/// waveform while you dictate (the Wispr Flow model: always there, just smaller).
-/// The panel is a non-activating, click-through, all-spaces floating pill:
-/// critically it never becomes key, so the app you're dictating into keeps focus
-/// and the injected text lands there — not on the HUD.
+/// Owns the floating recording HUD panel. The pill is **hidden at rest** and
+/// pops up at the bottom of the screen the moment you start dictating,
+/// expanding into a live waveform, then hides again once idle. The panel is a
+/// non-activating, click-through, all-spaces floating pill: critically it
+/// never becomes key, so the app you're dictating into keeps focus and the
+/// injected text lands there — not on the HUD.
 @MainActor
 final class RecordingHUDController {
     /// Fixed canvas large enough to hold the widest/tallest pill state (the error
@@ -42,7 +42,7 @@ final class RecordingHUDController {
         panel.contentView = hosting
 
         observeState()
-        // Show the resting pill immediately so it's there from launch.
+        // Nothing to show yet — the pill only appears once dictation starts.
         apply()
     }
 
@@ -61,9 +61,14 @@ final class RecordingHUDController {
     }
 
     private func apply() {
-        // The pill is always on screen; state only changes its size and content.
-        // Re-fit and re-assert front on every change so it tracks the active
-        // screen and stays above other windows.
+        // At rest the pill is fully hidden; it appears the moment you start
+        // dictating and stays up through processing/injection, then hides again
+        // once idle. Re-fit and re-assert front on every change so it tracks the
+        // active screen and stays above other windows while visible.
+        guard DictationStateKind(coordinator.state) != .idle else {
+            panel.orderOut(nil)
+            return
+        }
         reposition()
         panel.orderFrontRegardless()
     }

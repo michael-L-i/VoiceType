@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// The signature surface: a small dark-gray pill that floats above whatever
-/// you're working in. It is always present — a small resting oval that expands
-/// into a compact live waveform while you dictate, then settles back to rest. It
+/// you're working in. It's hidden at rest and appears the moment you dictate,
+/// expanding into a compact live waveform, then hides again once idle. It
 /// never takes focus — text still lands in the app underneath.
 struct RecordingHUDView: View {
     @Bindable var coordinator: DictationCoordinator
