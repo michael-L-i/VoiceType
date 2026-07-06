@@ -96,6 +96,12 @@ extension FoundationModelsCleanupEngine {
             guard !cleaned.isEmpty else {
                 throw CleanupError.failed("Model returned empty output.")
             }
+            // Second safety net: if the model summarized instead of tidying,
+            // fail so the pipeline degrades to the rule-based floor rather
+            // than shipping a truncated transcript.
+            guard !CleanupGuard.looksLikeSummary(raw: text, cleaned: cleaned) else {
+                throw CleanupError.failed("Model output suspiciously short; treating as a summary.")
+            }
             return cleaned
         } catch let error as CleanupError {
             throw error

@@ -59,8 +59,9 @@ public struct RuleBasedCleanup: CleanupEngine {
 
     /// Standalone disfluencies to drop. Kept conservative: only tokens that are
     /// almost never meaningful content. We deliberately do NOT strip "like",
-    /// "so", "well" — they're too often real words.
-    private static let fillers: Set<String> = [
+    /// "so", "well" — they're too often real words. Internal (not private) so
+    /// `CleanupGuard` counts content words with the same lexicon.
+    static let fillers: Set<String> = [
         "um", "umm", "uh", "uhh", "uhm", "er", "erm", "ah", "hmm", "mhm",
     ]
 
