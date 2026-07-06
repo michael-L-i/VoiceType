@@ -50,5 +50,14 @@ let package = Package(
             dependencies: ["VoiceTypeKit"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        // Dev-only eval harness: runs transcripts through the production cleanup
+        // prompt against the real on-device FoundationModels model and prints
+        // per-case results with deterministic faithfulness metrics. Not part of
+        // the app bundle. Usage: swift run CleanupEval Scripts/cleanup-eval/cases.json
+        .executableTarget(
+            name: "CleanupEval",
+            dependencies: ["VoiceTypeKit"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
     ]
 )
