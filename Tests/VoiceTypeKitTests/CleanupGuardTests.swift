@@ -50,6 +50,32 @@ struct CleanupGuardTests {
         #expect(!CleanupGuard.looksLikeSummary(raw: raw, cleaned: "one two three four five"))
     }
 
+    @Test("fabricated output much longer than the input is flagged")
+    func flagsFabrication() {
+        // The observed failure mode: a 12-word dictation answered with a
+        // regurgitated 40-word prompt example.
+        let raw = "the meeting I think we should move to thursday because wednesday is packed"
+        #expect(CleanupGuard.looksFabricated(raw: raw, cleaned: ramble))
+        #expect(CleanupGuard.looksUnfaithful(raw: raw, cleaned: ramble))
+    }
+
+    @Test("punctuation-only growth is not fabrication")
+    func allowsPunctuationGrowth() {
+        let raw = "okay lets do it"
+        #expect(!CleanupGuard.looksFabricated(raw: raw, cleaned: "Okay, let's do it."))
+    }
+
+    @Test("tiny utterances are exempt from the fabrication check")
+    func shortFabricationExempt() {
+        #expect(!CleanupGuard.looksFabricated(raw: "yes", cleaned: "Yes, absolutely, let's do that."))
+    }
+
+    @Test("unfaithful combines both directions")
+    func unfaithfulBothDirections() {
+        #expect(CleanupGuard.looksUnfaithful(raw: ramble, cleaned: "Move the review."))
+        #expect(!CleanupGuard.looksUnfaithful(raw: ramble, cleaned: ramble))
+    }
+
     @Test("fillers and symbols are excluded from the raw content count")
     func contentWordCount() {
         #expect(CleanupGuard.contentWordCount("um uh open paren hello world close paren") == 2)

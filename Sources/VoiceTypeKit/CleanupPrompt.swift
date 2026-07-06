@@ -36,6 +36,9 @@ public enum CleanupPrompt {
         speaker talks for five sentences, you output five sentences. You tidy the \
         transcript; you NEVER summarize, shorten, condense, or skip anything, no \
         matter how long or rambling it is.
+        - Output plain flowing text, exactly as spoken. NEVER reformat it into \
+        bullet points, a numbered list, headings, or any other structure — spoken \
+        words like "first" and "second" stay words, never "1." and "2.".
         - Output ONLY the cleaned dictation. No preamble, no sign-off, no quotation \
         marks around it, no commentary. NEVER write anything like "Sure, here's the \
         cleaned transcript:".
@@ -48,14 +51,14 @@ public enum CleanupPrompt {
 
         var tasks: [String] = []
         if options.addPunctuation {
-            tasks.append("- Add or correct punctuation so it reads as clean sentences.")
+            tasks.append("- Add or correct punctuation so it reads as clean sentences. A dictated question ends with a question mark.")
         }
         if options.fixCapitalization {
-            tasks.append("- Fix capitalization (sentence starts, the pronoun \"I\", proper nouns).")
+            tasks.append("- Fix capitalization: start every sentence with a capital letter, always capitalize the pronoun \"I\", and capitalize proper nouns (names, days, places).")
         }
         if options.removeFillers {
             tasks.append("- Remove filler words and disfluencies: \"um\", \"uh\", \"er\", \"hmm\", and throwaway \"you know\" / \"I mean\" / \"like\" / \"so\" when they carry no meaning.")
-            tasks.append("- Resolve self-corrections: when the speaker changes their mind mid-sentence (e.g. \"two, no three\"), keep only the corrected version and drop the abandoned attempt.")
+            tasks.append("- Resolve self-corrections: when the speaker changes their mind mid-sentence, keep only the corrected version — the one spoken LAST — and drop the earlier attempt: \"five, no six copies\" → \"six copies\", never \"five copies\".")
         }
 
         // No tasks enabled → verbatim passthrough, but the contract (full
@@ -85,6 +88,9 @@ public enum CleanupPrompt {
         get_user_data, "camel case parse request" → parseRequest, "michael dash L \
         dash I" → michael-L-i (join with hyphens; keep handles lowercase unless a \
         letter is spoken on its own).
+        - The trigger word is consumed, never kept: "max underscore retries" → \
+        max_retries, never max_underscore_retries. And never join words the \
+        speaker did not mark: "the session token" stays three separate words.
         - But a trigger word inside ordinary prose stays prose: "the dot product" \
         is NOT "the.product".
         \(categoryGuidance(for: context.category))

@@ -38,6 +38,31 @@ public enum CleanupGuard {
         "pound", "dollar", "caret", "at", "sign", "mark", "point", "space",
     ]
 
+    /// Cleaned output growing past this ratio of the raw word count (plus a
+    /// small absolute slack) means the model added words that were never
+    /// spoken. Cleanup only removes and re-punctuates; it has no legitimate
+    /// reason to grow the text. Observed failure mode: the model regurgitating
+    /// a few-shot example verbatim when the dictation resembles it.
+    public static let maximumGrowthRatio = 1.5
+
+    /// The combined production check: true when the output is either a
+    /// summary (too short) or a fabrication (too long). Either way the engine
+    /// must discard it and fall back to the deterministic floor.
+    public static func looksUnfaithful(raw: String, cleaned: String) -> Bool {
+        looksLikeSummary(raw: raw, cleaned: cleaned)
+            || looksFabricated(raw: raw, cleaned: cleaned)
+    }
+
+    /// True when `cleaned` is suspiciously long relative to `raw` — i.e. the
+    /// model invented content (e.g. echoed a prompt example) instead of
+    /// cleaning what was spoken.
+    public static func looksFabricated(raw: String, cleaned: String) -> Bool {
+        let rawCount = wordCount(raw)
+        guard rawCount >= 3 else { return false }
+        let cleanedCount = wordCount(cleaned)
+        return Double(cleanedCount) > maximumGrowthRatio * Double(rawCount) + 3
+    }
+
     /// True when `cleaned` is suspiciously short relative to `raw` — i.e. the
     /// model likely summarized instead of cleaning.
     public static func looksLikeSummary(raw: String, cleaned: String) -> Bool {

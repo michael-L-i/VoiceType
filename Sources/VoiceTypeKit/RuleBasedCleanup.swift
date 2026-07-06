@@ -114,8 +114,9 @@ public struct RuleBasedCleanup: CleanupEngine {
         return String(chars)
     }
 
-    /// Capitalize the standalone pronoun "i" -> "I".
-    private static func capitalizeStandaloneI(_ text: String) -> String {
+    /// Capitalize the standalone pronoun "i" -> "I". Internal (not private) so
+    /// `CleanupPolish` applies the same rule to model output.
+    static func capitalizeStandaloneI(_ text: String) -> String {
         replace(text, pattern: "\\bi\\b", template: "I")
     }
 

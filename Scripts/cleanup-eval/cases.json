@@ -9,8 +9,9 @@
   {
     "id": "ramble-long-2",
     "transcript": "okay so the way I see it there are three problems with the current design uh first the sidebar takes up way too much space on small screens second um the color contrast fails accessibility in dark mode and third the settings page has like nine toggles that nobody understands and honestly I think we should just delete most of them",
-    "mustContain": ["sidebar", "color contrast", "nine toggles", "delete most of them"],
-    "note": "Anti-summarization: enumerated list must survive with all three items and the conclusion."
+    "mustContain": ["the way I see it", "irst", "sidebar", "color contrast", "nine toggles", "delete most of them"],
+    "mustNotContain": ["1.", "2.", "\n"],
+    "note": "Anti-summarization AND anti-restructuring: enumerated speech stays flowing prose with the lead-in intact — never a markdown list."
   },
   {
     "id": "ramble-medium",
@@ -223,6 +224,25 @@
     "transcript": "it's a really really long way from being done",
     "mustContain": ["really really"],
     "note": "Deliberate repetition is emphasis, not a disfluency — keep both."
+  },
+  {
+    "id": "capitalization-sentences",
+    "transcript": "the deploy finished this morning and everything looks stable so far",
+    "mustContain": ["The deploy finished"],
+    "note": "Lowercase ASR output gets a sentence-initial capital."
+  },
+  {
+    "id": "capitalization-pronoun",
+    "transcript": "honestly i think the second option is better",
+    "mustContain": ["I think the second option"],
+    "note": "Standalone lowercase i becomes I."
+  },
+  {
+    "id": "no-list-reformat",
+    "transcript": "we have to do three things um update the docs bump the version and then tag the release",
+    "mustContain": ["update the docs", "tag the release"],
+    "mustNotContain": ["1.", "- ", "\n"],
+    "note": "Another enumeration phrasing that must stay flowing prose (distinct wording from the few-shot example)."
   },
   {
     "id": "email-address",

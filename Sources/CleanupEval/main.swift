@@ -136,6 +136,10 @@ struct CleanupEval {
                         options: GenerationOptions(temperature: 0.2))
                     cleaned = CleanupSanitizer.strip(
                         response.content.trimmingCharacters(in: .whitespacesAndNewlines))
+                    // Mirror the engine: polish only what the guard would ship.
+                    if !CleanupGuard.looksUnfaithful(raw: c.transcript, cleaned: cleaned) {
+                        cleaned = CleanupPolish.apply(cleaned, options: .default, context: context)
+                    }
                 } catch {
                     cleaned = "<<ERROR: \(error)>>"
                 }
@@ -146,7 +150,7 @@ struct CleanupEval {
                 let common = lcs(rawWords, cleanedWords)
                 let orderScore = cleanedWords.isEmpty ? 0 : Double(common) / Double(cleanedWords.count)
                 let retention = rawWords.isEmpty ? 1 : Double(cleanedWords.count) / Double(rawWords.count)
-                let tripped = CleanupGuard.looksLikeSummary(raw: c.transcript, cleaned: cleaned)
+                let tripped = CleanupGuard.looksUnfaithful(raw: c.transcript, cleaned: cleaned)
 
                 var failures: [String] = []
                 var ok: Bool? = nil

@@ -96,13 +96,16 @@ extension FoundationModelsCleanupEngine {
             guard !cleaned.isEmpty else {
                 throw CleanupError.failed("Model returned empty output.")
             }
-            // Second safety net: if the model summarized instead of tidying,
+            // Second safety net: if the model summarized (too short) or
+            // fabricated content (too long — e.g. echoed a prompt example),
             // fail so the pipeline degrades to the rule-based floor rather
-            // than shipping a truncated transcript.
-            guard !CleanupGuard.looksLikeSummary(raw: text, cleaned: cleaned) else {
-                throw CleanupError.failed("Model output suspiciously short; treating as a summary.")
+            // than shipping words the user never said.
+            guard !CleanupGuard.looksUnfaithful(raw: text, cleaned: cleaned) else {
+                throw CleanupError.failed("Model output length is unfaithful to the input.")
             }
-            return cleaned
+            // Deterministic touch-ups the model is unreliable at (leading
+            // capital, lone "i", stray joiner words).
+            return CleanupPolish.apply(cleaned, options: options, context: context, locale: locale)
         } catch let error as CleanupError {
             throw error
         } catch {

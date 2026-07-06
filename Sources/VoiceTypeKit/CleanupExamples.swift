@@ -34,6 +34,9 @@ public enum CleanupExamples {
          "I was thinking about the design review tomorrow, and I think we should probably move it to Thursday, because half the team is going to be out on Wednesday. Also, we still need to finish the mockups before we can really talk about anything."),
         ("okay so first open config dot pie and um change the timeout to thirty, no wait sixty seconds, then uh run the tests again and let me know if the auth ones still fail",
          "Okay, so first open config.py and change the timeout to sixty seconds, then run the tests again and let me know if the auth ones still fail."),
+        // Enumerated speech stays flowing prose — never a bullet or numbered list.
+        ("there are two problems here um first the build is really slow and second the tests are flaky",
+         "There are two problems here. First, the build is really slow, and second, the tests are flaky."),
         ("so um we need to like parse it first", "We need to parse it first."),
         ("um yeah just um make it work you know", "Yeah, just make it work."),
         ("compute the dot product of a and b", "Compute the dot product of a and b."),
