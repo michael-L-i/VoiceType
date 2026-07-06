@@ -70,8 +70,19 @@ private struct StubTranscriber: TranscriptionEngine {
 private struct FailingCleaner: CleanupEngine {
     let kind: CleanupEngineKind = .foundationModels
     func isAvailable() async -> Bool { true }
-    func cleanup(_ text: String, options: CleanupOptions, locale: String) async throws -> String {
+    func cleanup(_ text: String, options: CleanupOptions, context: CleanupContext, locale: String) async throws -> String {
         throw CleanupError.failed("stub")
+    }
+}
+
+/// Records the context it was handed so tests can assert threading.
+private final class RecordingCleaner: CleanupEngine, @unchecked Sendable {
+    let kind: CleanupEngineKind = .foundationModels
+    var seenContext: CleanupContext?
+    func isAvailable() async -> Bool { true }
+    func cleanup(_ text: String, options: CleanupOptions, context: CleanupContext, locale: String) async throws -> String {
+        seenContext = context
+        return text
     }
 }
 
@@ -90,14 +101,26 @@ struct PipelineTests {
         #expect(result.cleanupEngine == .ruleBased)
     }
 
-    @Test("cleanup failure degrades to raw text, not an error")
+    @Test("cleanup failure degrades to the rule-based floor, not an error")
     func cleanupDegrades() async throws {
         let pipe = DictationPipeline(
-            transcriber: StubTranscriber(kind: .appleOnDevice, text: "hello world"),
+            transcriber: StubTranscriber(kind: .appleOnDevice, text: "um hello world"),
             cleaner: FailingCleaner())
         let result = try await pipe.run(audio, options: .default)
-        #expect(result.finalText == "hello world")
-        #expect(result.cleanupEngine == .none)
+        #expect(result.finalText == "Hello world.")
+        #expect(result.cleanupEngine == .ruleBased)
+    }
+
+    @Test("app context reaches the cleanup engine")
+    func contextThreading() async throws {
+        let cleaner = RecordingCleaner()
+        let pipe = DictationPipeline(
+            transcriber: StubTranscriber(kind: .appleOnDevice, text: "git status"),
+            cleaner: cleaner)
+        let context = CleanupContext(appBundleID: "com.apple.Terminal",
+                                     appName: "Terminal", category: .terminal)
+        _ = try await pipe.run(audio, options: .default, context: context)
+        #expect(cleaner.seenContext == context)
     }
 
     @Test("empty transcript is not an error")

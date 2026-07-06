@@ -44,6 +44,16 @@ private struct GeneralSections: View {
             }
 
             Section {
+                Toggle("Show a resting indicator when idle",
+                       isOn: $coordinator.settings.showRestingIndicator)
+                Text("The oval still appears normally whenever you dictate — this only hides the small sliver shown at rest.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Indicator")
+            }
+
+            Section {
                 Toggle("Open VoiceType at login", isOn: Binding(
                     get: { coordinator.launchAtLoginEnabled },
                     set: { coordinator.setLaunchAtLogin($0) }))

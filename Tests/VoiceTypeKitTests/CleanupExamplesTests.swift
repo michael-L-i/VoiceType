@@ -57,4 +57,39 @@ struct CleanupExamplesTests {
         #expect(lines.count == CleanupExamples.fewShot.count)
         #expect(lines.allSatisfy { $0.contains("→") })
     }
+
+    @Test("teaches length preservation with a long example")
+    func longExample() {
+        // At least one pair must be a genuinely long, multi-clause dictation
+        // whose cleaned side keeps (nearly) all of it — otherwise the example
+        // set itself teaches the model that short outputs are normal.
+        let long = CleanupExamples.fewShot.filter {
+            $0.spoken.split(separator: " ").count >= 30
+        }
+        #expect(!long.isEmpty)
+        for pair in long {
+            let spokenWords = pair.spoken.split(separator: " ").count
+            let cleanedWords = pair.cleaned.split(separator: " ").count
+            #expect(Double(cleanedWords) >= 0.6 * Double(spokenWords),
+                    "long example lost too much: \(pair.spoken)")
+        }
+    }
+
+    @Test("terminal block appends command examples; general block has none")
+    func terminalBlock() {
+        let terminal = CleanupExamples.block(for: .terminal)
+        #expect(terminal.contains("git commit -m"))
+        #expect(terminal.contains("--verbose"))
+        #expect(!CleanupExamples.block().contains("git commit -m"))
+        #expect(!CleanupExamples.block(for: .codeEditor).contains("git commit -m"))
+    }
+
+    @Test("terminal pairs are well-formed and command-shaped")
+    func terminalPairs() {
+        for pair in CleanupExamples.terminalFewShot {
+            #expect(!pair.cleaned.isEmpty)
+            #expect(!pair.cleaned.hasSuffix("."), "commands must not gain a period: \(pair.cleaned)")
+            #expect(pair.cleaned.first?.isUppercase != true, "commands stay lowercase: \(pair.cleaned)")
+        }
+    }
 }

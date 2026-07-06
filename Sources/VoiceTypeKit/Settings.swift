@@ -23,13 +23,18 @@ public struct AppSettings: Sendable, Codable, Equatable {
     /// Keep a local, on-device history of dictations for review/redo.
     public var keepHistory: Bool
 
+    /// Show the small resting pill when idle. Off only hides the at-rest
+    /// sliver — the oval still appears normally once dictation starts.
+    public var showRestingIndicator: Bool
+
     public init(transcriptionEngine: TranscriptionEngineKind = .appleOnDevice,
                 cleanupEngine: CleanupEngineKind = .foundationModels,
                 cleanupOptions: CleanupOptions = .default,
                 locale: String = "en-US",
                 hotkey: Hotkey = .default,
                 soundFeedback: Bool = true,
-                keepHistory: Bool = true) {
+                keepHistory: Bool = true,
+                showRestingIndicator: Bool = true) {
         self.transcriptionEngine = transcriptionEngine
         self.cleanupEngine = cleanupEngine
         self.cleanupOptions = cleanupOptions
@@ -37,6 +42,22 @@ public struct AppSettings: Sendable, Codable, Equatable {
         self.hotkey = hotkey
         self.soundFeedback = soundFeedback
         self.keepHistory = keepHistory
+        self.showRestingIndicator = showRestingIndicator
+    }
+
+    // Custom decoding so settings saved before `showRestingIndicator` existed
+    // still load instead of silently resetting to defaults (SettingsStore
+    // discards the whole struct on any decode failure).
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        transcriptionEngine = try c.decode(TranscriptionEngineKind.self, forKey: .transcriptionEngine)
+        cleanupEngine = try c.decode(CleanupEngineKind.self, forKey: .cleanupEngine)
+        cleanupOptions = try c.decode(CleanupOptions.self, forKey: .cleanupOptions)
+        locale = try c.decode(String.self, forKey: .locale)
+        hotkey = try c.decode(Hotkey.self, forKey: .hotkey)
+        soundFeedback = try c.decode(Bool.self, forKey: .soundFeedback)
+        keepHistory = try c.decode(Bool.self, forKey: .keepHistory)
+        showRestingIndicator = try c.decodeIfPresent(Bool.self, forKey: .showRestingIndicator) ?? true
     }
 
     public static let `default` = AppSettings()

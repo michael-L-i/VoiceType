@@ -11,13 +11,15 @@ public struct RuleBasedCleanup: CleanupEngine {
 
     public func isAvailable() async -> Bool { true }
 
-    public func cleanup(_ text: String, options: CleanupOptions, locale: String) async throws -> String {
-        Self.process(text, options: options, locale: locale)
+    public func cleanup(_ text: String, options: CleanupOptions, context: CleanupContext, locale: String) async throws -> String {
+        Self.process(text, options: options, context: context, locale: locale)
     }
 
     // Exposed as a static, synchronous helper so other engines can reuse it as
     // their own fallback and so it is trivially testable.
-    public static func process(_ input: String, options: CleanupOptions, locale: String = "en-US") -> String {
+    public static func process(_ input: String, options: CleanupOptions,
+                               context: CleanupContext = .general,
+                               locale: String = "en-US") -> String {
         var text = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return "" }
 
@@ -36,12 +38,17 @@ public struct RuleBasedCleanup: CleanupEngine {
         // raw transcribers occasionally emit " ," or doubled marks.
         text = fixPunctuationSpacing(text)
 
+        // In a terminal the text is likely a shell command: capitalizing the
+        // first word ("Git status") or appending a period breaks it, while a
+        // missing period on prose is merely cosmetic. Fail conservative.
+        let isTerminal = context.category == .terminal
+
         if options.fixCapitalization {
-            text = capitalizeSentences(text)
+            if !isTerminal { text = capitalizeSentences(text) }
             if isEnglish { text = capitalizeStandaloneI(text) }
         }
 
-        if options.addPunctuation {
+        if options.addPunctuation && !isTerminal {
             text = ensureTerminalPunctuation(text)
         }
 
@@ -52,8 +59,9 @@ public struct RuleBasedCleanup: CleanupEngine {
 
     /// Standalone disfluencies to drop. Kept conservative: only tokens that are
     /// almost never meaningful content. We deliberately do NOT strip "like",
-    /// "so", "well" — they're too often real words.
-    private static let fillers: Set<String> = [
+    /// "so", "well" — they're too often real words. Internal (not private) so
+    /// `CleanupGuard` counts content words with the same lexicon.
+    static let fillers: Set<String> = [
         "um", "umm", "uh", "uhh", "uhm", "er", "erm", "ah", "hmm", "mhm",
     ]
 
@@ -106,9 +114,14 @@ public struct RuleBasedCleanup: CleanupEngine {
         return String(chars)
     }
 
-    /// Capitalize the standalone pronoun "i" -> "I".
-    private static func capitalizeStandaloneI(_ text: String) -> String {
-        replace(text, pattern: "\\bi\\b", template: "I")
+    /// Capitalize the standalone pronoun "i" -> "I". Internal (not private) so
+    /// `CleanupPolish` applies the same rule to model output.
+    ///
+    /// Plain `\b` treats `-`, `.`, `/` as boundaries, which would corrupt
+    /// identifiers ("michael-L-i" → "michael-L-I"), so the lookarounds also
+    /// reject symbol neighbors. Apostrophes stay allowed ("i'll" → "I'll").
+    static func capitalizeStandaloneI(_ text: String) -> String {
+        replace(text, pattern: "(?<![\\w.\\-_/@~])i(?![\\w.\\-_/@~])", template: "I")
     }
 
     // MARK: - Terminal punctuation

@@ -48,6 +48,26 @@ struct CleanupTests {
         #expect(RuleBasedCleanup.process("   ", options: opts).isEmpty)
     }
 
+    @Test("terminal context keeps commands lowercase with no trailing period")
+    func terminalContext() {
+        let terminal = CleanupContext(appBundleID: "com.apple.Terminal", category: .terminal)
+        let out = RuleBasedCleanup.process("git status", options: opts, context: terminal)
+        #expect(out == "git status")
+    }
+
+    @Test("terminal context still strips fillers and fixes spacing")
+    func terminalStillCleans() {
+        let terminal = CleanupContext(category: .terminal)
+        let out = RuleBasedCleanup.process("um git   commit", options: opts, context: terminal)
+        #expect(out == "git commit")
+    }
+
+    @Test("general context is unchanged by the context parameter")
+    func generalContext() {
+        let out = RuleBasedCleanup.process("this is a test", options: opts, context: .general)
+        #expect(out == "This is a test.")
+    }
+
     @Test("respects disabled options")
     func disabledOptions() {
         let raw = CleanupOptions(removeFillers: false, addPunctuation: false, fixCapitalization: false)

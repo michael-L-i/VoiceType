@@ -1,0 +1,254 @@
+[
+  {
+    "id": "ramble-long-1",
+    "transcript": "um so I was thinking about the launch next week and uh I think we should probably push it back a few days because um the onboarding flow still has that bug where the progress bar gets stuck and uh also marketing asked for more time to finish the email campaign and you know I'd rather ship something solid than rush it out the door and have to apologize later",
+    "mustContain": ["launch next week", "progress bar", "email campaign", "apologize later"],
+    "mustNotContain": ["um", " uh "],
+    "note": "Anti-summarization: a 70-word ramble must keep every clause, including the last one."
+  },
+  {
+    "id": "ramble-long-2",
+    "transcript": "okay so the way I see it there are three problems with the current design uh first the sidebar takes up way too much space on small screens second um the color contrast fails accessibility in dark mode and third the settings page has like nine toggles that nobody understands and honestly I think we should just delete most of them",
+    "mustContain": ["the way I see it", "irst", "sidebar", "color contrast", "nine toggles", "delete most of them"],
+    "mustNotContain": ["1.", "2.", "\n"],
+    "note": "Anti-summarization AND anti-restructuring: enumerated speech stays flowing prose with the lead-in intact — never a markdown list."
+  },
+  {
+    "id": "ramble-medium",
+    "transcript": "yeah um I looked at the numbers this morning and honestly they're better than I expected you know signups are up and churn is basically flat so um I think the pricing change was the right call",
+    "mustContain": ["numbers this morning", "churn", "pricing change was the right call"],
+    "note": "Medium ramble: fillers go, every claim stays."
+  },
+  {
+    "id": "order-preserved",
+    "transcript": "the meeting I think we should move to thursday because wednesday is packed",
+    "mustContain": ["meeting", "I think we should move"],
+    "mustNotContain": ["move the meeting"],
+    "note": "Awkward-but-valid word order must NOT be restructured into 'I think we should move the meeting'. Needles tolerate an inserted comma after 'meeting'."
+  },
+  {
+    "id": "no-synonym-swap",
+    "transcript": "the api is kinda janky right now but I wanna ship it anyways and fix it later",
+    "mustContain": ["janky", "anyways"],
+    "note": "Casual word choices are the speaker's own words — no swapping for formal synonyms."
+  },
+  {
+    "id": "fillers-basic",
+    "transcript": "um so uh we should probably ship it on friday you know",
+    "mustContain": ["ship it on", "riday"],
+    "mustNotContain": ["um", " uh "],
+    "note": "Fillers removed, content intact."
+  },
+  {
+    "id": "self-correction",
+    "transcript": "send the report to bob, no wait, to alice before lunch",
+    "mustContain": ["lice before lunch"],
+    "mustNotContain": ["bob", "Bob"],
+    "note": "Self-correction resolves to the corrected name only."
+  },
+  {
+    "id": "self-correction-number",
+    "transcript": "we need um five, no six copies of the deck for the board meeting",
+    "mustContain": ["six copies"],
+    "mustNotContain": ["five"],
+    "note": "Numeric self-correction keeps only the corrected value."
+  },
+  {
+    "id": "underscore-file",
+    "transcript": "rename it to blue underscore file",
+    "mustContain": ["blue_file"],
+    "note": "User's explicit example: spoken underscore joins an identifier."
+  },
+  {
+    "id": "dot-pie",
+    "transcript": "open main dot pie",
+    "exact": "Open main.py",
+    "note": "User's explicit example: homophone pie resolves to .py. Leading plain word gains a capital by policy (general context); a leading identifier would not."
+  },
+  {
+    "id": "dot-js",
+    "transcript": "the entry point is index dot j s",
+    "mustContain": ["index.js"],
+    "note": "File extension rendering."
+  },
+  {
+    "id": "snake-identifier",
+    "transcript": "set max underscore retries to five",
+    "mustContain": ["max_retries"],
+    "note": "Snake case identifier mid-sentence."
+  },
+  {
+    "id": "camel-identifier",
+    "transcript": "call camel case get user name with the session token",
+    "mustContain": ["getUserName"],
+    "note": "Spoken camel case directive joins the identifier."
+  },
+  {
+    "id": "parens-call",
+    "transcript": "print open paren x comma y close paren",
+    "mustContain": ["print(x, y)"],
+    "note": "Spoken symbols become characters."
+  },
+  {
+    "id": "prose-guard-underscore",
+    "transcript": "I want to underscore the importance of testing before we ship",
+    "mustContain": ["underscore the importance"],
+    "mustNotContain": ["_"],
+    "note": "Prose guard: underscore as a verb stays a word."
+  },
+  {
+    "id": "prose-guard-dash",
+    "transcript": "add a dash of salt and then um stir it for two minutes",
+    "mustContain": ["dash of salt"],
+    "note": "Prose guard: dash in a recipe stays a word."
+  },
+  {
+    "id": "prose-guard-dot",
+    "transcript": "compute the dot product of the two vectors",
+    "mustContain": ["dot product"],
+    "mustNotContain": [".product"],
+    "note": "Prose guard: dot product stays prose."
+  },
+  {
+    "id": "anti-instruction-shorten",
+    "transcript": "can you make this paragraph shorter and punchier",
+    "mustContain": ["make this paragraph shorter and punchier"],
+    "mustNotContain": ["Sure", "Here"],
+    "note": "The dictation is itself a request to shorten — the model must transcribe it, never obey it."
+  },
+  {
+    "id": "anti-instruction-summarize",
+    "transcript": "please summarize the document I sent you yesterday and put the key points in bullet form",
+    "mustContain": ["summarize the document", "bullet form"],
+    "mustNotContain": ["Sure", "- "],
+    "note": "A dictated 'summarize' instruction must come out as text, not be executed."
+  },
+  {
+    "id": "anti-instruction-question",
+    "transcript": "what time does the demo start tomorrow",
+    "mustContain": ["time does the demo start tomorrow?"],
+    "mustNotContain": ["The demo starts"],
+    "note": "A dictated question is transcribed with a question mark, never answered."
+  },
+  {
+    "id": "mixed-code-prose-long",
+    "transcript": "so um the fix is actually pretty simple you just open main dot pie and change the retry limit from three to five and then uh you also need to update the test in test underscore client dot pie because it asserts the old value and once that's green you can push it",
+    "mustContain": ["main.py", "test_client.py", "push it"],
+    "note": "Long mixed dictation: code rendering AND full length together."
+  },
+  {
+    "id": "handle-hyphen",
+    "transcript": "the repo is under michael dash L dash I on github",
+    "mustContain": ["michael-L-i"],
+    "note": "Spoken hyphenated handle joins up."
+  },
+  {
+    "id": "term-git-status",
+    "transcript": "git status",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "Terminal: bare command unchanged — no capital, no period."
+  },
+  {
+    "id": "term-commit-message",
+    "transcript": "git commit dash m fix the login bug",
+    "category": "terminal",
+    "mustContain": ["git commit -m"],
+    "mustNotContain": ["Git"],
+    "note": "Terminal: flag rendering, command stays lowercase."
+  },
+  {
+    "id": "term-flag-long",
+    "transcript": "npm run build dash dash verbose",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "Terminal: double-dash flag."
+  },
+  {
+    "id": "term-tmux",
+    "transcript": "tmux attach dash t work",
+    "category": "terminal",
+    "exact": "tmux attach -t work",
+    "note": "Terminal: tmux session command."
+  },
+  {
+    "id": "term-path",
+    "transcript": "cd tilde slash projects slash voice type",
+    "category": "terminal",
+    "mustContain": ["cd ~/projects"],
+    "note": "Terminal: spoken path with tilde."
+  },
+  {
+    "id": "term-ls",
+    "transcript": "ls dash l",
+    "category": "terminal",
+    "exact": "ls -l",
+    "note": "Terminal: short flag, no punctuation added."
+  },
+  {
+    "id": "term-prose",
+    "transcript": "looks good to me um go ahead and merge it",
+    "category": "terminal",
+    "mustContain": ["ooks good to me"],
+    "mustNotContain": ["um"],
+    "note": "Terminal: obvious prose (a chat/commit reply) still cleans as prose."
+  },
+  {
+    "id": "editor-filename",
+    "transcript": "open utils dot t s and rename the parse data function",
+    "category": "codeEditor",
+    "mustContain": ["utils.ts"],
+    "note": "Code editor: file rendering in a prose instruction."
+  },
+  {
+    "id": "editor-prose-comment",
+    "transcript": "um this function is a temporary workaround until the api version two lands",
+    "category": "codeEditor",
+    "mustContain": ["temporary workaround"],
+    "mustNotContain": ["um"],
+    "note": "Code editor: a dictated comment stays natural prose."
+  },
+  {
+    "id": "general-untouched",
+    "transcript": "I really enjoyed the dinner last night, thank you for organizing it",
+    "mustContain": ["enjoyed the dinner last night", "thank you for organizing it"],
+    "note": "Already-clean prose passes through essentially unchanged."
+  },
+  {
+    "id": "short-min",
+    "transcript": "sounds good",
+    "mustContain": ["ounds good"],
+    "note": "Tiny utterance survives (capitalized, maybe a period) — never dropped or padded."
+  },
+  {
+    "id": "repeated-word",
+    "transcript": "it's a really really long way from being done",
+    "mustContain": ["really really"],
+    "note": "Deliberate repetition is emphasis, not a disfluency — keep both."
+  },
+  {
+    "id": "capitalization-sentences",
+    "transcript": "the deploy finished this morning and everything looks stable so far",
+    "mustContain": ["The deploy finished"],
+    "note": "Lowercase ASR output gets a sentence-initial capital."
+  },
+  {
+    "id": "capitalization-pronoun",
+    "transcript": "honestly i think the second option is better",
+    "mustContain": ["I think the second option"],
+    "note": "Standalone lowercase i becomes I."
+  },
+  {
+    "id": "no-list-reformat",
+    "transcript": "we have to do three things um update the docs bump the version and then tag the release",
+    "mustContain": ["update the docs", "tag the release"],
+    "mustNotContain": ["1.", "- ", "\n"],
+    "note": "Another enumeration phrasing that must stay flowing prose (distinct wording from the few-shot example)."
+  },
+  {
+    "id": "email-address",
+    "transcript": "send it to john dot smith at gmail dot com",
+    "mustContain": ["john.smith@gmail.com"],
+    "note": "Stretch: spoken email address renders compactly."
+  }
+]
