@@ -22,8 +22,9 @@
   {
     "id": "order-preserved",
     "transcript": "the meeting I think we should move to thursday because wednesday is packed",
-    "mustContain": ["meeting I think we should move"],
-    "note": "Awkward-but-valid word order must NOT be restructured into 'I think we should move the meeting'."
+    "mustContain": ["meeting", "I think we should move"],
+    "mustNotContain": ["move the meeting"],
+    "note": "Awkward-but-valid word order must NOT be restructured into 'I think we should move the meeting'. Needles tolerate an inserted comma after 'meeting'."
   },
   {
     "id": "no-synonym-swap",
@@ -61,8 +62,8 @@
   {
     "id": "dot-pie",
     "transcript": "open main dot pie",
-    "exact": "open main.py",
-    "note": "User's explicit example: homophone pie resolves to .py."
+    "exact": "Open main.py",
+    "note": "User's explicit example: homophone pie resolves to .py. Leading plain word gains a capital by policy (general context); a leading identifier would not."
   },
   {
     "id": "dot-js",

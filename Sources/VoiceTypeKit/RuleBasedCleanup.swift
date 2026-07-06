@@ -116,8 +116,12 @@ public struct RuleBasedCleanup: CleanupEngine {
 
     /// Capitalize the standalone pronoun "i" -> "I". Internal (not private) so
     /// `CleanupPolish` applies the same rule to model output.
+    ///
+    /// Plain `\b` treats `-`, `.`, `/` as boundaries, which would corrupt
+    /// identifiers ("michael-L-i" → "michael-L-I"), so the lookarounds also
+    /// reject symbol neighbors. Apostrophes stay allowed ("i'll" → "I'll").
     static func capitalizeStandaloneI(_ text: String) -> String {
-        replace(text, pattern: "\\bi\\b", template: "I")
+        replace(text, pattern: "(?<![\\w.\\-_/@~])i(?![\\w.\\-_/@~])", template: "I")
     }
 
     // MARK: - Terminal punctuation

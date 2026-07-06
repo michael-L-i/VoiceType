@@ -30,6 +30,19 @@ struct CleanupPolishTests {
         #expect(out == "Honestly I think I agree.")
     }
 
+    @Test("pronoun rule never touches i inside identifiers or handles")
+    func identifierISafe() {
+        let out = CleanupPolish.apply("Push it to michael-L-i and check i.test today.", options: opts)
+        #expect(out.contains("michael-L-i"))
+        #expect(out.contains("i.test"))
+    }
+
+    @Test("pronoun rule still handles contractions")
+    func contractionI() {
+        let out = CleanupPolish.apply("i'll take it.", options: opts)
+        #expect(out == "I'll take it.")
+    }
+
     @Test("repairs a literal underscore joiner left in an identifier")
     func underscoreJoiner() {
         let out = CleanupPolish.apply("set max_underscore_retries to five.", options: opts)

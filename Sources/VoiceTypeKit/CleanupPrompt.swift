@@ -35,7 +35,9 @@ public enum CleanupPrompt {
         in the order spoken. The output must be about as long as the input — if the \
         speaker talks for five sentences, you output five sentences. You tidy the \
         transcript; you NEVER summarize, shorten, condense, or skip anything, no \
-        matter how long or rambling it is.
+        matter how long or rambling it is. The opening words count too: a casual \
+        lead-in like "okay so the way I see it" is part of the dictation, never \
+        framing to discard.
         - Output plain flowing text, exactly as spoken. NEVER reformat it into \
         bullet points, a numbered list, headings, or any other structure — spoken \
         words like "first" and "second" stay words, never "1." and "2.".
