@@ -44,6 +44,9 @@ public enum CleanupExamples {
         // do NOT answer it or add a lead-in. This is the key anti-instruction case.
         ("can you clean up this table then push it to my repo",
          "Can you clean up this table, then push it to my repo?"),
+        // A question with a knowable answer is still just text to transcribe —
+        // the answer must never appear.
+        ("do you know what seven plus one is", "Do you know what seven plus one is?"),
     ]
 
     /// Extra pairs appended for terminal dictation: shell commands with spoken

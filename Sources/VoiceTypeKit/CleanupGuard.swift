@@ -46,12 +46,92 @@ public enum CleanupGuard {
     public static let maximumGrowthRatio = 1.5
 
     /// The combined production check: true when the output is a summary (too
-    /// short), a fabrication (too long), or lost its opening. Either way the
-    /// engine must discard it and fall back to the deterministic floor.
+    /// short), a fabrication (too long), lost its opening, or contains words
+    /// the user never spoke. Either way the engine must discard it and fall
+    /// back to the deterministic floor.
     public static func looksUnfaithful(raw: String, cleaned: String) -> Bool {
         looksLikeSummary(raw: raw, cleaned: cleaned)
             || looksFabricated(raw: raw, cleaned: cleaned)
             || droppedOpening(raw: raw, cleaned: cleaned)
+            || !inventedWords(raw: raw, cleaned: cleaned).isEmpty
+    }
+
+    /// Words in `cleaned` that cannot be traced back to anything in `raw` —
+    /// the model answering a dictated question ("one plus one" → "… is two"),
+    /// or echoing prompt content. Cleanup only removes and re-renders; every
+    /// output word must come from input words.
+    ///
+    /// A cleaned token counts as traceable when it, or each of its fragments
+    /// (split on join symbols and camelCase boundaries: utils.ts → utils, ts;
+    /// parseRequest → parse, request), is a raw word, a short join artifact
+    /// (≤ 2 chars, like "py" from "pie"), or a concatenation of raw words
+    /// ("voicetype" ← "voice type").
+    public static func inventedWords(raw: String, cleaned: String) -> [String] {
+        let rawNorms = Set(words(raw).map { $0.replacingOccurrences(of: "'", with: "") })
+        let rawHasDigits = rawNorms.contains { $0.contains(where: \.isNumber) }
+        var invented: [String] = []
+        for token in caseTokens(cleaned) {
+            let norm = token.lowercased().replacingOccurrences(of: "'", with: "")
+            if norm.isEmpty || rawNorms.contains(norm) { continue }
+            // A digit the user never spoke as a digit is invented content
+            // ("one plus one" → "2"), regardless of length.
+            if norm.contains(where: \.isNumber) && !rawHasDigits {
+                invented.append(norm)
+                continue
+            }
+            if norm.count <= 2 { continue }
+            let traceable = fragments(of: token).allSatisfy { fragment in
+                fragment.count <= 2 || composable(fragment, from: rawNorms)
+            }
+            if !traceable { invented.append(norm) }
+        }
+        return invented
+    }
+
+    /// Whitespace-split tokens with edge punctuation trimmed but CASE KEPT,
+    /// so camelCase boundaries survive for fragment splitting.
+    private static func caseTokens(_ text: String) -> [String] {
+        text.split(whereSeparator: { $0.isWhitespace || $0.isNewline })
+            .map { $0.trimmingCharacters(in: .punctuationCharacters) }
+            .filter { !$0.isEmpty }
+    }
+
+    /// Split a token on join symbols and lowercase→uppercase camel boundaries,
+    /// returning lowercased, apostrophe-free fragments.
+    private static func fragments(of token: String) -> [String] {
+        var parts: [String] = []
+        var current = ""
+        var previous: Character?
+        for char in token {
+            if symbolSeparators.contains(char) || "()[]{},".contains(char) {
+                if !current.isEmpty { parts.append(current); current = "" }
+            } else {
+                if char.isUppercase, let previous, previous.isLowercase {
+                    parts.append(current)
+                    current = ""
+                }
+                current.append(char)
+            }
+            previous = char
+        }
+        if !current.isEmpty { parts.append(current) }
+        return parts.map { $0.lowercased().replacingOccurrences(of: "'", with: "") }
+            .filter { !$0.isEmpty }
+    }
+
+    /// True when `fragment` is a raw word or a left-to-right concatenation of
+    /// raw words ("voicetype" ← "voice" + "type").
+    private static func composable(_ fragment: String, from rawNorms: Set<String>) -> Bool {
+        if rawNorms.contains(fragment) { return true }
+        guard fragment.count >= 4 else { return false }
+        for i in fragment.indices.dropFirst() {
+            let prefix = String(fragment[..<i])
+            if rawNorms.contains(prefix),
+               composable(String(fragment[i...]), from: rawNorms) || fragment[i...].count <= 2 {
+                return true
+            }
+        }
+        return false
     }
 
     /// Function words too common to prove anything about whether the opening

@@ -121,6 +121,44 @@ struct CleanupGuardTests {
             cleaned: "There are three problems with the current design. First, the sidebar takes up way too much space on small screens."))
     }
 
+    @Test("an answered question is flagged as invented content")
+    func flagsAnsweredQuestion() {
+        // The real bug: dictating a question, getting the answer typed.
+        #expect(CleanupGuard.inventedWords(
+            raw: "do you know what one plus one is",
+            cleaned: "One plus one is two.") == ["two"])
+        #expect(CleanupGuard.looksUnfaithful(
+            raw: "do you know what one plus one is",
+            cleaned: "One + one is 2."))
+        #expect(!CleanupGuard.looksUnfaithful(
+            raw: "do you know what one plus one is",
+            cleaned: "Do you know what one plus one is?"))
+    }
+
+    @Test("legitimate code rendering is never invented content")
+    func renderingNotInvented() {
+        for (raw, cleaned) in [
+            ("open utils dot t s and rename it", "open utils.ts and rename it"),
+            ("define camel case parse request", "define parseRequest"),
+            ("cd tilde slash projects slash voice type", "cd ~/projects/voicetype"),
+            ("send it to john dot smith at gmail dot com", "send it to john.smith@gmail.com"),
+            ("npm run build dash dash verbose", "npm run build --verbose"),
+            ("print open paren x comma y close paren", "print(x, y)"),
+            ("okay lets do it", "Okay, let's do it."),
+        ] {
+            #expect(CleanupGuard.inventedWords(raw: raw, cleaned: cleaned).isEmpty,
+                    "false invention in: \(cleaned)")
+        }
+    }
+
+    @Test("every few-shot example is free of invented content")
+    func fewShotNotInvented() {
+        for pair in CleanupExamples.fewShot + CleanupExamples.terminalFewShot {
+            #expect(CleanupGuard.inventedWords(raw: pair.spoken, cleaned: pair.cleaned).isEmpty,
+                    "example invents words: \(pair.spoken)")
+        }
+    }
+
     @Test("fillers and symbols are excluded from the raw content count")
     func contentWordCount() {
         #expect(CleanupGuard.contentWordCount("um uh open paren hello world close paren") == 2)
