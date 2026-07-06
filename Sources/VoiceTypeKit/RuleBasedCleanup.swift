@@ -11,13 +11,15 @@ public struct RuleBasedCleanup: CleanupEngine {
 
     public func isAvailable() async -> Bool { true }
 
-    public func cleanup(_ text: String, options: CleanupOptions, locale: String) async throws -> String {
-        Self.process(text, options: options, locale: locale)
+    public func cleanup(_ text: String, options: CleanupOptions, context: CleanupContext, locale: String) async throws -> String {
+        Self.process(text, options: options, context: context, locale: locale)
     }
 
     // Exposed as a static, synchronous helper so other engines can reuse it as
     // their own fallback and so it is trivially testable.
-    public static func process(_ input: String, options: CleanupOptions, locale: String = "en-US") -> String {
+    public static func process(_ input: String, options: CleanupOptions,
+                               context: CleanupContext = .general,
+                               locale: String = "en-US") -> String {
         var text = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return "" }
 
@@ -36,12 +38,17 @@ public struct RuleBasedCleanup: CleanupEngine {
         // raw transcribers occasionally emit " ," or doubled marks.
         text = fixPunctuationSpacing(text)
 
+        // In a terminal the text is likely a shell command: capitalizing the
+        // first word ("Git status") or appending a period breaks it, while a
+        // missing period on prose is merely cosmetic. Fail conservative.
+        let isTerminal = context.category == .terminal
+
         if options.fixCapitalization {
-            text = capitalizeSentences(text)
+            if !isTerminal { text = capitalizeSentences(text) }
             if isEnglish { text = capitalizeStandaloneI(text) }
         }
 
-        if options.addPunctuation {
+        if options.addPunctuation && !isTerminal {
             text = ensureTerminalPunctuation(text)
         }
 

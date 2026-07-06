@@ -185,7 +185,7 @@ public struct CleanupOptions: Sendable, Equatable, Codable {
 /// user's meaning — only delivery (fillers, punctuation, casing).
 ///
 /// Contract: cleanup degrades gracefully. If an implementation cannot run, it
-/// throws and the pipeline falls back to the raw text rather than failing.
+/// throws and the pipeline falls back to the deterministic rule-based floor.
 public protocol CleanupEngine: Sendable {
     var kind: CleanupEngineKind { get }
 
@@ -193,8 +193,17 @@ public protocol CleanupEngine: Sendable {
 
     /// Tidy a transcript's delivery. `locale` is the BCP-47 language the text is
     /// in (the same one transcription used); engines must keep the output in that
-    /// language and may use it to apply language-appropriate rules.
-    func cleanup(_ text: String, options: CleanupOptions, locale: String) async throws -> String
+    /// language and may use it to apply language-appropriate rules. `context`
+    /// describes the app the text will be injected into so engines can bias
+    /// toward the right register (shell commands vs. prose).
+    func cleanup(_ text: String, options: CleanupOptions, context: CleanupContext, locale: String) async throws -> String
+}
+
+public extension CleanupEngine {
+    /// Context-free convenience: cleanup with no known target app.
+    func cleanup(_ text: String, options: CleanupOptions, locale: String) async throws -> String {
+        try await cleanup(text, options: options, context: .general, locale: locale)
+    }
 }
 
 public enum CleanupError: Error, Sendable, Equatable {

@@ -69,6 +69,7 @@ public struct DictationPipeline: Sendable {
     public func run(_ audio: PCMBuffer,
                     locale: String = "en-US",
                     options: CleanupOptions,
+                    context: CleanupContext = .general,
                     onState: (@Sendable (DictationState) -> Void)? = nil) async throws -> PipelineResult {
         var metrics = LatencyMetrics()
         metrics.audioDuration = audio.duration
@@ -95,12 +96,13 @@ public struct DictationPipeline: Sendable {
         let cleaned: String
         let usedCleanup: CleanupEngineKind
         do {
-            cleaned = try await cleaner.cleanup(raw, options: options, locale: locale)
+            cleaned = try await cleaner.cleanup(raw, options: options, context: context, locale: locale)
             usedCleanup = cleaner.kind
         } catch {
-            // Degrade gracefully: ship the raw text.
-            cleaned = raw
-            usedCleanup = .none
+            // Degrade gracefully to the deterministic floor: the user still
+            // gets fillers stripped and punctuation tidied, never raw verbatim.
+            cleaned = RuleBasedCleanup.process(raw, options: options, context: context, locale: locale)
+            usedCleanup = .ruleBased
         }
         metrics.cleanup = clock() - cStart
         metrics.timeToText = clock() - started
