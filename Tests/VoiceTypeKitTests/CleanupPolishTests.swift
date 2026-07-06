@@ -71,6 +71,20 @@ struct CleanupPolishTests {
         #expect(!out.contains(" I "))
     }
 
+    @Test("unpunctuated question gains a question mark")
+    func questionMark() {
+        let out = CleanupPolish.apply("what time does the demo start tomorrow", options: opts)
+        #expect(out == "What time does the demo start tomorrow?")
+    }
+
+    @Test("question mark respects the model's own punctuation and statements")
+    func questionMarkRestraint() {
+        #expect(CleanupPolish.apply("What is the plan.", options: opts) == "What is the plan.")
+        #expect(CleanupPolish.apply("the demo starts at noon", options: opts) == "The demo starts at noon")
+        let terminal = CleanupContext(category: .terminal)
+        #expect(CleanupPolish.apply("which app", options: opts, context: terminal) == "which app")
+    }
+
     @Test("already-capitalized output passes through unchanged")
     func alreadyClean() {
         let text = "The build is green. I pushed it."

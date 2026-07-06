@@ -76,6 +76,32 @@ struct CleanupGuardTests {
         #expect(!CleanupGuard.looksUnfaithful(raw: ramble, cleaned: ramble))
     }
 
+    @Test("a dropped opening clause is flagged even when the rest survives")
+    func flagsDroppedOpening() {
+        #expect(CleanupGuard.droppedOpening(
+            raw: "we have to do three things um update the docs bump the version and then tag the release",
+            cleaned: "Update the docs bump the version and then tag the release"))
+        #expect(CleanupGuard.droppedOpening(
+            raw: "okay so the way I see it there are three problems with the current design and we should fix them",
+            cleaned: "There are three problems with the current design and we should fix them."))
+    }
+
+    @Test("intact openings are not flagged")
+    func allowsIntactOpening() {
+        #expect(!CleanupGuard.droppedOpening(
+            raw: "um so I was thinking about the launch next week and whether we should delay it",
+            cleaned: "I was thinking about the launch next week and whether we should delay it."))
+        // A self-correction near the opening legitimately drops one probe word.
+        #expect(!CleanupGuard.droppedOpening(
+            raw: "send the report to bob no wait to alice before lunch and copy the team as well",
+            cleaned: "Send the report to Alice before lunch and copy the team as well."))
+    }
+
+    @Test("short inputs are exempt from the opening probe")
+    func shortOpeningExempt() {
+        #expect(!CleanupGuard.droppedOpening(raw: "I want two, no three", cleaned: "I want three"))
+    }
+
     @Test("fillers and symbols are excluded from the raw content count")
     func contentWordCount() {
         #expect(CleanupGuard.contentWordCount("um uh open paren hello world close paren") == 2)

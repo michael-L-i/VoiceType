@@ -21,16 +21,35 @@ public enum CleanupPolish {
         out = out.replacingOccurrences(
             of: "_underscore_", with: "_", options: [.caseInsensitive])
 
-        // Capitalization repairs are prose rules: skip them entirely when the
-        // user disabled the option or is dictating into a terminal, where
-        // "git status" must never become "Git status".
-        guard options.fixCapitalization, context.category != .terminal else {
-            return out
+        // The remaining repairs are prose rules: skip them in a terminal,
+        // where "git status" must never gain a capital or a "?".
+        let isTerminal = context.category == .terminal
+
+        if options.addPunctuation && !isTerminal {
+            out = ensureQuestionMark(out)
         }
+        guard options.fixCapitalization, !isTerminal else { return out }
         if LanguageTag.code(for: locale) == "en" {
             out = RuleBasedCleanup.capitalizeStandaloneI(out)
         }
         return capitalizeFirstPlainWord(out)
+    }
+
+    /// English words that open a direct question.
+    static let interrogatives: Set<String> = [
+        "what", "where", "when", "who", "whom", "whose", "why", "how",
+        "is", "are", "am", "was", "were", "do", "does", "did",
+        "can", "could", "will", "would", "should", "shall", "may", "might",
+    ]
+
+    /// Append "?" to an unpunctuated output that opens like a question. Fires
+    /// only when the model left NO terminal punctuation at all — if it chose
+    /// "." or anything else, we respect that choice.
+    static func ensureQuestionMark(_ text: String) -> String {
+        guard let last = text.last, last.isLetter || last.isNumber else { return text }
+        let first = text.prefix(while: { !$0.isWhitespace }).lowercased()
+        guard interrogatives.contains(first) else { return text }
+        return text + "?"
     }
 
     /// Uppercase the first letter, but only when the leading token is a plain

@@ -45,12 +45,50 @@ public enum CleanupGuard {
     /// a few-shot example verbatim when the dictation resembles it.
     public static let maximumGrowthRatio = 1.5
 
-    /// The combined production check: true when the output is either a
-    /// summary (too short) or a fabrication (too long). Either way the engine
-    /// must discard it and fall back to the deterministic floor.
+    /// The combined production check: true when the output is a summary (too
+    /// short), a fabrication (too long), or lost its opening. Either way the
+    /// engine must discard it and fall back to the deterministic floor.
     public static func looksUnfaithful(raw: String, cleaned: String) -> Bool {
         looksLikeSummary(raw: raw, cleaned: cleaned)
             || looksFabricated(raw: raw, cleaned: cleaned)
+            || droppedOpening(raw: raw, cleaned: cleaned)
+    }
+
+    /// Function words too common to prove anything about whether the opening
+    /// of the dictation survived into the output.
+    static let openerStopwords: Set<String> = [
+        "the", "a", "an", "and", "or", "but", "so", "to", "of", "in", "on",
+        "at", "for", "with", "about", "from",
+        "i", "we", "you", "he", "she", "they", "it", "me", "my", "your", "our", "us",
+        "is", "are", "was", "were", "be", "been", "am",
+        "do", "does", "did", "have", "has", "had",
+        "there", "here", "this", "that", "these", "those",
+        "okay", "ok", "yeah", "yes", "well", "just", "like", "really",
+        // Self-correction markers: legitimately removed along with the words
+        // they retract, so they prove nothing about the opening.
+        "no", "not", "wait", "actually", "sorry",
+    ]
+
+    /// True when the start of the dictation vanished from the output. The
+    /// observed failure mode: the model treats a declarative opener ("we have
+    /// to do three things", "the way I see it") as disposable framing and
+    /// starts the output partway in — a content loss the retention ratio
+    /// misses because the rest survives intact.
+    ///
+    /// Probe: the distinctive (non-stopword, non-filler) words among the first
+    /// eight raw words. If fewer than half of them appear anywhere in the
+    /// output, the opening was dropped.
+    public static func droppedOpening(raw: String, cleaned: String) -> Bool {
+        guard contentWordCount(raw) >= minimumContentWords else { return false }
+        let probe = words(raw).prefix(8).filter { word in
+            !RuleBasedCleanup.fillers.contains(word)
+                && !spokenSymbols.contains(word)
+                && !openerStopwords.contains(word)
+        }
+        guard probe.count >= 2 else { return false }
+        let cleanedSet = Set(words(cleaned))
+        let surviving = probe.filter { cleanedSet.contains($0) }.count
+        return Double(surviving) < 0.5 * Double(probe.count)
     }
 
     /// True when `cleaned` is suspiciously long relative to `raw` — i.e. the
