@@ -73,6 +73,9 @@ final class DictationCoordinator {
     private(set) var availableCleanup: Set<CleanupEngineKind> = [.ruleBased, .none]
     private var isProcessing = false
     private var resetTask: Task<Void, Never>?
+    // The frontmost app when recording began — the dictation's intended
+    // destination. Feeds the cleanup context and usage stats; never persisted.
+    private var dictationTargetApp: AppUsageKey?
 
     init() {
         let loaded = SettingsStore.shared.load()
@@ -333,6 +336,11 @@ final class DictationCoordinator {
         // starting capture flips the output from A2DP to HFP, and a cue played
         // mid-flip is swallowed. play() is async, so this costs no latency.
         sounds.start(enabled: settings.soundFeedback)
+        // Read the target app now, while the user's intended destination is
+        // frontmost: it feeds the cleanup context (terminal vs. prose) and the
+        // usage stats, and stays correct even if focus shifts during the
+        // async transcription.
+        dictationTargetApp = currentForegroundApp()
         // Non-blocking: hardware spin-up happens on the capture's own queue, so
         // this returns instantly and the hotkey event tap is never stalled
         // (a blocked tap callback is how macOS decides to disable the tap).
@@ -413,6 +421,15 @@ final class DictationCoordinator {
     private func runPipeline(on audio: PCMBuffer) {
         isProcessing = true
         let settings = self.settings
+        // The app captured when recording began — cleanup biases toward its
+        // register (shell commands in a terminal, prose elsewhere) and the
+        // usage stats attribute the dictation to it.
+        let app = dictationTargetApp
+        dictationTargetApp = nil
+        let context = CleanupContext(
+            appBundleID: app?.bundleID,
+            appName: app?.name,
+            category: AppCategorizer.category(forBundleID: app?.bundleID))
 
         guard let pipeline = makePipeline() else {
             isProcessing = false
@@ -425,14 +442,12 @@ final class DictationCoordinator {
             do {
                 let result = try await pipeline.run(
                     audio, locale: settings.locale, options: settings.cleanupOptions,
+                    context: context,
                     onState: { st in Task { @MainActor in self.state = st } })
 
                 if result.finalText.isEmpty {
                     self.finish(state: .idle)
                 } else {
-                    // Read the target app while it's still frontmost (before we
-                    // touch state or inject) so the usage breakdown is accurate.
-                    let app = self.currentForegroundApp()
                     self.state = .injecting
                     // Trailing space so consecutive dictations don't run together.
                     // Appended only at inject time; recorded history stays clean.
@@ -451,10 +466,10 @@ final class DictationCoordinator {
         }
     }
 
-    /// The app the user is dictating into, read at inject time while it's still
-    /// frontmost. On-device only, to power the usage breakdown; nil when the
-    /// foreground app has no bundle id. VoiceType's own window is never frontmost
-    /// during hotkey dictation, so this reports the real target app.
+    /// The app the user is dictating into, read when recording begins. Powers
+    /// the cleanup context and the usage breakdown, on-device only; nil when
+    /// the foreground app has no bundle id. VoiceType's own window is never
+    /// frontmost during hotkey dictation, so this reports the real target app.
     private func currentForegroundApp() -> AppUsageKey? {
         guard let app = NSWorkspace.shared.frontmostApplication,
               let bundleID = app.bundleIdentifier else { return nil }
@@ -564,7 +579,8 @@ final class DictationCoordinator {
                 var cleaned = raw
                 var usedCleanup: CleanupEngineKind = .none
                 do {
-                    let c = try await engines.cleaner.cleanup(raw, options: self.settings.cleanupOptions, locale: self.settings.locale)
+                    // File imports have no target app; clean as general prose.
+                    let c = try await engines.cleaner.cleanup(raw, options: self.settings.cleanupOptions, context: .general, locale: self.settings.locale)
                     if !c.isEmpty { cleaned = c; usedCleanup = engines.cleaner.kind }
                 } catch { /* keep raw */ }
 
