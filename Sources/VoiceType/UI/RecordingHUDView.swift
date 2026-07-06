@@ -9,8 +9,15 @@ struct RecordingHUDView: View {
 
     private var kind: DictationStateKind { DictationStateKind(coordinator.state) }
 
+    /// The "Show a resting indicator when idle" setting only affects the at-rest
+    /// sliver — recording/working/error always show regardless of this setting.
+    private var isHiddenAtRest: Bool {
+        (kind == .idle || kind == .done) && !coordinator.settings.showRestingIndicator
+    }
+
     var body: some View {
         pill
+            .opacity(isHiddenAtRest ? 0 : 1)
             // Bottom-center the pill inside the fixed canvas so it grows *upward*
             // from the screen edge instead of the window resizing under it.
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
