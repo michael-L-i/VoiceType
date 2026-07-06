@@ -2,8 +2,9 @@ import Foundation
 
 /// Deterministic, dependency-free cleanup. This is the floor everything else
 /// degrades to: it always works, offline, with zero models. It removes filler
-/// words, collapses whitespace, applies light capitalization, and adds terminal
-/// punctuation — without ever rewriting the speaker's words.
+/// words, collapses whitespace, renders spoken symbols (`SpokenSymbols`),
+/// applies light capitalization, and adds terminal punctuation — without ever
+/// rewriting the speaker's words.
 public struct RuleBasedCleanup: CleanupEngine {
     public let kind: CleanupEngineKind = .ruleBased
 
@@ -34,6 +35,12 @@ public struct RuleBasedCleanup: CleanupEngine {
 
         text = collapseWhitespace(text)
 
+        // Render spoken symbol names ("main dot pie" → main.py) the same way
+        // the model prompt does. English-only: the trigger words are English.
+        if isEnglish {
+            text = SpokenSymbols.render(text, category: context.category)
+        }
+
         // Tidy spacing around punctuation regardless of cleanup options, since
         // raw transcribers occasionally emit " ," or doubled marks.
         text = fixPunctuationSpacing(text)
@@ -49,6 +56,10 @@ public struct RuleBasedCleanup: CleanupEngine {
         }
 
         if options.addPunctuation && !isTerminal {
+            // Same deterministic question-mark heuristic the model path gets
+            // from CleanupPolish — before the period rule, which would
+            // otherwise claim the unpunctuated ending first.
+            text = CleanupPolish.ensureQuestionMark(text)
             text = ensureTerminalPunctuation(text)
         }
 
@@ -88,8 +99,11 @@ public struct RuleBasedCleanup: CleanupEngine {
         var result = text
         // Remove space *before* sentence punctuation: "word ." -> "word."
         result = replace(result, pattern: "\\s+([,.!?;:])", template: "$1")
-        // Ensure a single space *after* sentence punctuation when followed by a word.
-        result = replace(result, pattern: "([,.!?;:])(?=\\S)", template: "$1 ")
+        // Ensure a single space *after* sentence punctuation when followed by a
+        // word. Deliberately excludes "." and ":" — they appear inside rendered
+        // identifiers, paths, and times (main.py, ~/x, 5:30), which a blind
+        // space-after rule would split apart.
+        result = replace(result, pattern: "([,!?;])(?=\\S)", template: "$1 ")
         // Collapse repeated terminal punctuation: "?." or ".." -> first mark.
         result = replace(result, pattern: "([.!?])[.!?]+", template: "$1")
         return collapseWhitespace(result)
@@ -97,21 +111,29 @@ public struct RuleBasedCleanup: CleanupEngine {
 
     // MARK: - Capitalization
 
+    /// Word-wise so identifiers survive: only a *plain* word (letters and
+    /// apostrophes) at a sentence start gains a capital, and only punctuation
+    /// that ends a word re-arms the rule — the dots inside "main.py" are
+    /// neither a sentence end nor a capitalizable start.
     private static func capitalizeSentences(_ text: String) -> String {
-        var chars = Array(text)
+        var out: [String] = []
         var capitalizeNext = true
-        for i in chars.indices {
-            let c = chars[i]
-            if capitalizeNext, c.isLetter {
-                chars[i] = Character(String(c).uppercased())
-                capitalizeNext = false
-            } else if c == "." || c == "!" || c == "?" {
-                capitalizeNext = true
-            } else if c == "\n" {
-                capitalizeNext = true
+        for word in text.split(separator: " ") {
+            var w = String(word)
+            if capitalizeNext, isPlainWord(w), let first = w.first, first.isLowercase {
+                w = first.uppercased() + w.dropFirst()
             }
+            capitalizeNext = w.hasSuffix(".") || w.hasSuffix("!") || w.hasSuffix("?")
+            out.append(w)
         }
-        return String(chars)
+        return out.joined(separator: " ")
+    }
+
+    /// True when the token is an ordinary word once trailing/leading punctuation
+    /// is trimmed — same notion `CleanupPolish.capitalizeFirstPlainWord` uses.
+    private static func isPlainWord(_ token: String) -> Bool {
+        let core = token.trimmingCharacters(in: .punctuationCharacters)
+        return !core.isEmpty && core.allSatisfy { $0.isLetter || $0 == "'" }
     }
 
     /// Capitalize the standalone pronoun "i" -> "I". Internal (not private) so
@@ -129,6 +151,14 @@ public struct RuleBasedCleanup: CleanupEngine {
     private static func ensureTerminalPunctuation(_ text: String) -> String {
         guard let last = text.last else { return text }
         if last == "." || last == "!" || last == "?" || last == ":" || last == "," {
+            return text
+        }
+        // A sentence ending in an identifier, path, email, or file name keeps
+        // its bare ending: a period glued onto "main.py" or an address is worse
+        // than a missing one on prose.
+        let lastToken = text.split(separator: " ").last.map(String.init) ?? ""
+        if lastToken.contains(where: { "_/~@()[]".contains($0) }) { return text }
+        if lastToken.range(of: "\\.[A-Za-z0-9]{1,6}$", options: .regularExpression) != nil {
             return text
         }
         return text + "."
