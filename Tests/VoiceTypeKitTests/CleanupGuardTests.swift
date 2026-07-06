@@ -102,6 +102,25 @@ struct CleanupGuardTests {
         #expect(!CleanupGuard.droppedOpening(raw: "I want two, no three", cleaned: "I want three"))
     }
 
+    @Test("code rendering near the opening is not a dropped opening")
+    func openingCodeJoinSafe() {
+        // "utils dot t s" joins into utils.ts — the probe must credit the
+        // fragment and skip the single spoken letters.
+        #expect(!CleanupGuard.droppedOpening(
+            raw: "open utils dot t s and rename the parse data function to something clearer",
+            cleaned: "open utils.ts and rename the parseData function to something clearer"))
+    }
+
+    @Test("a probe word colliding with a later unrelated word still counts as dropped")
+    func openingPositional() {
+        // Real eval pair: "way" from the dropped opener ("the way I see it")
+        // reappears later in "way too much space" — survival must be
+        // positional, not anywhere-in-text, to catch this.
+        #expect(CleanupGuard.droppedOpening(
+            raw: "okay so the way I see it there are three problems with the current design uh first the sidebar takes up way too much space on small screens",
+            cleaned: "There are three problems with the current design. First, the sidebar takes up way too much space on small screens."))
+    }
+
     @Test("fillers and symbols are excluded from the raw content count")
     func contentWordCount() {
         #expect(CleanupGuard.contentWordCount("um uh open paren hello world close paren") == 2)

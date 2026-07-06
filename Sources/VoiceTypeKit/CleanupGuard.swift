@@ -75,21 +75,40 @@ public enum CleanupGuard {
     /// starts the output partway in — a content loss the retention ratio
     /// misses because the rest survives intact.
     ///
-    /// Probe: the distinctive (non-stopword, non-filler) words among the first
-    /// eight raw words. If fewer than half of them appear anywhere in the
-    /// output, the opening was dropped.
+    /// Probe: the distinctive (non-stopword, non-filler, multi-letter) words
+    /// among the first eight raw words. If fewer than half survive near the
+    /// START of the output, the opening was dropped.
+    ///
+    /// Two subtleties, both learned from eval false results:
+    /// - Survival is positional (first 12 output words). Matching anywhere let
+    ///   a probe word collide with an unrelated later word ("the way I see
+    ///   it" … "way too much space") and mask a dropped opening.
+    /// - Joined code tokens are split for matching (utils.ts → utils, ts), and
+    ///   single spoken letters ("t", "s") are not probed, so legitimate code
+    ///   rendering near the opening never reads as a drop.
     public static func droppedOpening(raw: String, cleaned: String) -> Bool {
         guard contentWordCount(raw) >= minimumContentWords else { return false }
         let probe = words(raw).prefix(8).filter { word in
-            !RuleBasedCleanup.fillers.contains(word)
+            word.count >= 2
+                && !RuleBasedCleanup.fillers.contains(word)
                 && !spokenSymbols.contains(word)
                 && !openerStopwords.contains(word)
         }
         guard probe.count >= 2 else { return false }
-        let cleanedSet = Set(words(cleaned))
-        let surviving = probe.filter { cleanedSet.contains($0) }.count
+        var opening = Set<String>()
+        for token in words(cleaned).prefix(12) {
+            opening.insert(token)
+            for fragment in token.split(whereSeparator: { symbolSeparators.contains($0) })
+            where fragment.count >= 2 {
+                opening.insert(String(fragment))
+            }
+        }
+        let surviving = probe.filter { opening.contains($0) }.count
         return Double(surviving) < 0.5 * Double(probe.count)
     }
+
+    /// Characters that join spoken words into rendered identifiers/paths.
+    private static let symbolSeparators: Set<Character> = [".", "_", "-", "/", "@", "~", ":"]
 
     /// True when `cleaned` is suspiciously long relative to `raw` — i.e. the
     /// model invented content (e.g. echoed a prompt example) instead of
