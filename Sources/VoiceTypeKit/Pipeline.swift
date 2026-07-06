@@ -70,6 +70,7 @@ public struct DictationPipeline: Sendable {
                     locale: String = "en-US",
                     options: CleanupOptions,
                     context: CleanupContext = .general,
+                    replacements: [WordReplacement] = [],
                     onState: (@Sendable (DictationState) -> Void)? = nil) async throws -> PipelineResult {
         var metrics = LatencyMetrics()
         metrics.audioDuration = audio.duration
@@ -93,7 +94,7 @@ public struct DictationPipeline: Sendable {
 
         onState?(.cleaning)
         let cStart = clock()
-        let cleaned: String
+        var cleaned: String
         let usedCleanup: CleanupEngineKind
         do {
             cleaned = try await cleaner.cleanup(raw, options: options, context: context, locale: locale)
@@ -104,6 +105,9 @@ public struct DictationPipeline: Sendable {
             cleaned = RuleBasedCleanup.process(raw, options: options, context: context, locale: locale)
             usedCleanup = .ruleBased
         }
+        // The user's dictionary applies last, whatever engine ran — a mishear
+        // fix must survive even the raw/none path.
+        cleaned = WordReplacements.apply(replacements, to: cleaned)
         metrics.cleanup = clock() - cStart
         metrics.timeToText = clock() - started
 

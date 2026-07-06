@@ -11,6 +11,10 @@ public struct AppSettings: Sendable, Codable, Equatable {
     public var cleanupEngine: CleanupEngineKind
     public var cleanupOptions: CleanupOptions
 
+    /// User dictionary applied to the final text after any cleanup engine:
+    /// chronic mishears, names, jargon.
+    public var wordReplacements: [WordReplacement]
+
     /// BCP-47 locale used for transcription (e.g. "en-US").
     public var locale: String
 
@@ -30,6 +34,7 @@ public struct AppSettings: Sendable, Codable, Equatable {
     public init(transcriptionEngine: TranscriptionEngineKind = .appleOnDevice,
                 cleanupEngine: CleanupEngineKind = .foundationModels,
                 cleanupOptions: CleanupOptions = .default,
+                wordReplacements: [WordReplacement] = [],
                 locale: String = "en-US",
                 hotkey: Hotkey = .default,
                 soundFeedback: Bool = true,
@@ -38,6 +43,7 @@ public struct AppSettings: Sendable, Codable, Equatable {
         self.transcriptionEngine = transcriptionEngine
         self.cleanupEngine = cleanupEngine
         self.cleanupOptions = cleanupOptions
+        self.wordReplacements = wordReplacements
         self.locale = locale
         self.hotkey = hotkey
         self.soundFeedback = soundFeedback
@@ -53,6 +59,7 @@ public struct AppSettings: Sendable, Codable, Equatable {
         transcriptionEngine = try c.decode(TranscriptionEngineKind.self, forKey: .transcriptionEngine)
         cleanupEngine = try c.decode(CleanupEngineKind.self, forKey: .cleanupEngine)
         cleanupOptions = try c.decode(CleanupOptions.self, forKey: .cleanupOptions)
+        wordReplacements = try c.decodeIfPresent([WordReplacement].self, forKey: .wordReplacements) ?? []
         locale = try c.decode(String.self, forKey: .locale)
         hotkey = try c.decode(Hotkey.self, forKey: .hotkey)
         soundFeedback = try c.decode(Bool.self, forKey: .soundFeedback)

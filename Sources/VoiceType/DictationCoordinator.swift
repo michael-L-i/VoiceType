@@ -443,6 +443,7 @@ final class DictationCoordinator {
                 let result = try await pipeline.run(
                     audio, locale: settings.locale, options: settings.cleanupOptions,
                     context: context,
+                    replacements: settings.wordReplacements,
                     onState: { st in Task { @MainActor in self.state = st } })
 
                 if result.finalText.isEmpty {
@@ -583,6 +584,7 @@ final class DictationCoordinator {
                     let c = try await engines.cleaner.cleanup(raw, options: self.settings.cleanupOptions, context: .general, locale: self.settings.locale)
                     if !c.isEmpty { cleaned = c; usedCleanup = engines.cleaner.kind }
                 } catch { /* keep raw */ }
+                cleaned = WordReplacements.apply(self.settings.wordReplacements, to: cleaned)
 
                 if Task.isCancelled { return }
 
