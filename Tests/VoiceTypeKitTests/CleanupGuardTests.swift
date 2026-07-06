@@ -57,7 +57,7 @@ struct CleanupGuardTests {
 
     @Test("every few-shot example passes the guard")
     func fewShotExamplesPass() {
-        for pair in CleanupExamples.fewShot {
+        for pair in CleanupExamples.fewShot + CleanupExamples.terminalFewShot {
             #expect(!CleanupGuard.looksLikeSummary(raw: pair.spoken, cleaned: pair.cleaned),
                     "example flagged as summary: \(pair.spoken)")
         }

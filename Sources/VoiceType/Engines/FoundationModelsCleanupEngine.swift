@@ -74,7 +74,7 @@ extension FoundationModelsCleanupEngine {
         }
 
         let session = LanguageModelSession(
-            instructions: CleanupPrompt.instructions(for: options, locale: locale)
+            instructions: CleanupPrompt.instructions(for: options, context: context, locale: locale)
         )
 
         // Low temperature keeps the model faithful to the input (we want a tidy,
