@@ -3,17 +3,20 @@ import VoiceTypeKit
 
 /// Guided setup, shown as its own sidebar destination. One step at a time:
 /// granted permissions collapse to slim "ready" rows, the first ungranted one is
-/// the single focused card, and once all three are granted a short "you're ready"
-/// card shows before the view hands off to the Settings page (where the dictation
-/// key now lives). Privacy and window behavior are quiet footnotes. Status polls
-/// live so System Settings changes reflect without a prompt.
+/// the single focused card, then a language step, and finally a short "you're
+/// ready" card shows before the view hands off to the Settings page (where the
+/// dictation key now lives). Privacy and window behavior are quiet footnotes.
+/// Status polls live so System Settings changes reflect without a prompt.
 struct SetupView: View {
     @Bindable var coordinator: DictationCoordinator
-    /// Called once all permissions are granted — hands the user off to Settings.
+    /// Called once setup finishes — hands the user off to Settings.
     var onComplete: () -> Void
 
-    /// Guards the one-shot auto-handoff so it fires only when the final grant lands.
+    /// Guards the one-shot auto-handoff so it fires only when the last step lands.
     @State private var handedOff = false
+    /// The language step is confirmation, not permission: it completes when the
+    /// user explicitly continues, so the flow never skips past it.
+    @State private var languageChosen = false
 
     private var granted: [Permission] {
         Permission.allCases.filter { coordinator.status(for: $0) == .granted }
@@ -23,11 +26,18 @@ struct SetupView: View {
     }
     private var grantedCount: Int { granted.count }
     private var allGranted: Bool { pending.isEmpty }
+    private var setupComplete: Bool { allGranted && languageChosen }
 
-    /// The one thing in focus: the first ungranted permission, else the done card.
-    private enum Step: Hashable { case permission(Permission), done }
+    /// Steps counted by the header/progress: the permissions plus the language choice.
+    private var totalSteps: Int { Permission.allCases.count + 1 }
+    private var doneSteps: Int { grantedCount + (languageChosen ? 1 : 0) }
+
+    /// The one thing in focus: the first ungranted permission, else the language
+    /// choice, else the done card.
+    private enum Step: Hashable { case permission(Permission), language, done }
     private var currentStep: Step {
         if let next = pending.first { return .permission(next) }
+        if !languageChosen { return .language }
         return .done
     }
 
@@ -38,13 +48,15 @@ struct SetupView: View {
 
                 ForEach(granted, id: \.self) { completedRow($0) }
 
+                if languageChosen { completedLanguageRow }
+
                 focusedCard
                     .id(currentStep)
                     .transition(.asymmetric(
                         insertion: .move(edge: .bottom).combined(with: .opacity),
                         removal: .opacity))
 
-                if pending.count > 1 { upcomingHint }
+                if !pending.isEmpty { upcomingHint }
 
                 footnotes
             }
@@ -52,7 +64,7 @@ struct SetupView: View {
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(VT.Space.xl)
             .animation(.spring(response: 0.4, dampingFraction: 0.85), value: currentStep)
-            .animation(.spring(response: 0.4, dampingFraction: 0.85), value: grantedCount)
+            .animation(.spring(response: 0.4, dampingFraction: 0.85), value: doneSteps)
         }
         .background {
             LinearGradient(colors: [VT.tint.opacity(0.12), .clear],
@@ -68,10 +80,10 @@ struct SetupView: View {
                 try? await Task.sleep(for: .seconds(1))
             }
         }
-        // The moment the final grant lands, slide the user into Settings (once).
+        // The moment the last step lands, slide the user into Settings (once).
         // Bound to the always-mounted body so it fires on the false→true flip,
         // unlike the done card, which only appears after setup is already complete.
-        .onChange(of: allGranted) { _, done in
+        .onChange(of: setupComplete) { _, done in
             guard done, !handedOff else { return }
             handedOff = true
             Task {
@@ -93,9 +105,9 @@ struct SetupView: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Set up VoiceType")
                         .font(.system(.title, design: .rounded).weight(.bold))
-                    Text(allGranted
+                    Text(setupComplete
                          ? "You're all set!"
-                         : "\(grantedCount) of \(Permission.allCases.count) ready")
+                         : "\(doneSteps) of \(totalSteps) ready")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
@@ -111,7 +123,7 @@ struct SetupView: View {
             ZStack(alignment: .leading) {
                 Capsule().fill(.quaternary.opacity(0.5))
                 Capsule().fill(VT.tint)
-                    .frame(width: max(6, geo.size.width * CGFloat(grantedCount) / CGFloat(Permission.allCases.count)))
+                    .frame(width: max(6, geo.size.width * CGFloat(doneSteps) / CGFloat(totalSteps)))
             }
         }
         .frame(height: 6)
@@ -132,6 +144,25 @@ struct SetupView: View {
         .transition(.opacity.combined(with: .move(edge: .top)))
     }
 
+    /// The language choice, collapsed to a slim row once confirmed.
+    private var completedLanguageRow: some View {
+        HStack(spacing: VT.Space.s) {
+            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+            Text("Language").font(.callout.weight(.medium))
+            Spacer()
+            Text(selectedLanguageName).font(.caption).foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, VT.Space.m)
+        .padding(.vertical, VT.Space.s)
+        .background(.green.opacity(0.08), in: RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous))
+        .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+
+    private var selectedLanguageName: String {
+        SettingsLanguage.all.first { $0.code == coordinator.settings.locale }?.name
+            ?? coordinator.settings.locale
+    }
+
     // MARK: Focused card
 
     @ViewBuilder
@@ -140,6 +171,10 @@ struct SetupView: View {
         case .permission(let permission):
             PermissionStepCard(permission: permission, coordinator: coordinator) {
                 Task { await coordinator.request(permission) }
+            }
+        case .language:
+            LanguageStepCard(coordinator: coordinator) {
+                languageChosen = true
             }
         case .done:
             doneCard
@@ -178,11 +213,15 @@ struct SetupView: View {
     private var upcomingHint: some View {
         HStack(spacing: VT.Space.xs) {
             Image(systemName: "arrow.turn.down.right")
-            Text("Next: \(pending[1].title)")
+            Text("Next: \(upcomingTitle)")
         }
         .font(.caption)
         .foregroundStyle(.secondary)
         .padding(.leading, VT.Space.xs)
+    }
+
+    private var upcomingTitle: String {
+        pending.count > 1 ? pending[1].title : "Choose your language"
     }
 
     private var footnotes: some View {
@@ -272,6 +311,55 @@ private struct PermissionStepCard: View {
         case .speech: return "text.bubble.fill"
         case .accessibility: return "accessibility"
         }
+    }
+}
+
+// MARK: - Language step card
+
+/// The language choice, styled like a permission card so the flow reads as one
+/// sequence. The picker binds straight to settings (persists immediately);
+/// Continue just confirms and advances the flow.
+private struct LanguageStepCard: View {
+    @Bindable var coordinator: DictationCoordinator
+    var onContinue: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: VT.Space.m) {
+            HStack(spacing: VT.Space.m) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous)
+                        .fill(VT.tint.opacity(0.14))
+                    Image(systemName: "globe")
+                        .font(.system(size: 24))
+                        .foregroundStyle(VT.tint)
+                }
+                .frame(width: 56, height: 56)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Choose your language").font(.title3.weight(.semibold))
+                    Text("VoiceType transcribes in this language — it never guesses. You can change it anytime in Settings.")
+                        .font(.callout).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+            }
+            HStack(spacing: VT.Space.m) {
+                Picker("Language", selection: $coordinator.settings.locale) {
+                    ForEach(SettingsLanguage.all, id: \.code) { language in
+                        Text(language.name).tag(language.code)
+                    }
+                }
+                .labelsHidden()
+                .controlSize(.large)
+                .frame(maxWidth: 220)
+                Button("Continue", action: onContinue)
+                    .buttonStyle(.borderedProminent).controlSize(.large).tint(VT.tint)
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(VT.Space.l)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous)
+            .strokeBorder(VT.tint.opacity(0.25), lineWidth: 1))
     }
 }
 

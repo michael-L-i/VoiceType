@@ -276,7 +276,8 @@ struct HotkeySelector: View {
 
 /// The languages offered in the Settings picker, mapped to their BCP-47 codes
 /// (which is what the transcription engines expect). English (US) is the default.
-private struct SettingsLanguage {
+/// The languages the pickers offer (Settings and the setup flow share this).
+struct SettingsLanguage {
     let name: String
     let code: String
 
