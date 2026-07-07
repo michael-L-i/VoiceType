@@ -32,7 +32,7 @@ public struct AppSettings: Sendable, Codable, Equatable {
     public var showRestingIndicator: Bool
 
     public init(transcriptionEngine: TranscriptionEngineKind = .appleOnDevice,
-                cleanupEngine: CleanupEngineKind = .foundationModels,
+                cleanupEngine: CleanupEngineKind = .ruleBased,
                 cleanupOptions: CleanupOptions = .default,
                 wordReplacements: [WordReplacement] = [],
                 locale: String = "en-US",

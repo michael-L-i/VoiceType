@@ -102,12 +102,15 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
     }
 }
 
-/// Which cleanup backend tidies the raw transcript.
+/// Which cleanup backend tidies the raw transcript. Declaration order is the
+/// order the Settings picker lists them.
 public enum CleanupEngineKind: String, Sendable, Codable, CaseIterable {
-    /// Apple on-device LLM via FoundationModels. Default when available.
-    case foundationModels
-    /// Deterministic regex/heuristic cleanup. Always available; final fallback.
+    /// Deterministic, symbol-aware cleanup (`RuleBasedCleanup`). Instant and
+    /// always available — the default, and the floor everything degrades to.
     case ruleBased
+    /// Apple on-device LLM via FoundationModels. Optional; handles the
+    /// meaning-dependent edits rules can't (self-corrections).
+    case foundationModels
     /// No cleanup — inject the raw transcript verbatim.
     case none
 

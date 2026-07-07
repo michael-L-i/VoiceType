@@ -65,10 +65,10 @@ Everything runs on-device. Apple's model is built into macOS and selected by
 default; you can download other local engines from the **Models** page in the
 sidebar and switch between them (one is active at a time).
 
-| Stage | Default (built-in) | Optional on-device downloads |
+| Stage | Default (built-in) | Optional alternatives (on-device) |
 | --- | --- | --- |
-| **Transcription** | Apple `SpeechTranscriber` | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) |
-| **Cleanup** | Apple Intelligence (`FoundationModels`) | built-in rules |
+| **Transcription** | Apple `SpeechTranscriber` | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — downloaded on demand |
+| **Cleanup** | Built-in rules (instant, deterministic) | Apple Intelligence (`FoundationModels`) — built into macOS, no download |
 
 Downloadable models are fetched once on demand (no cloud at inference time — your
 audio still never leaves the Mac) and run as CoreML on the Apple Neural Engine.

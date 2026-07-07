@@ -97,9 +97,10 @@ Keep it simple; don't over-engineer.
 - **Audio capture:** `AudioCaptureService` (AVAudioEngine, mono 16 kHz).
 - **Transcription:** pluggable `TranscriptionEngine`. Default Apple on-device
   `SpeechTranscriber`; `whisper.cpp` local fallback; opt-in Groq cloud.
-- **Cleanup pass:** pluggable `CleanupEngine`. Default Apple `FoundationModels`
-  on-device; deterministic `RuleBasedCleanup` floor; opt-in Groq cloud. Always
-  degrades to raw text rather than failing.
+- **Cleanup pass:** pluggable `CleanupEngine`. Default deterministic
+  `RuleBasedCleanup` (instant, symbol-aware — see `SpokenSymbols`); optional
+  Apple `FoundationModels` on-device; opt-in Groq cloud. Always degrades to
+  raw text rather than failing.
 - **Selection policy:** `EngineResolver` (in Kit) enforces consent + availability
   fallback; `EngineFactory` (in app) maps kinds → concrete engines.
 
