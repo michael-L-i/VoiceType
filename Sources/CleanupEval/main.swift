@@ -5,15 +5,17 @@ import VoiceTypeKit
 import FoundationModels
 #endif
 
-/// Dev-only eval harness for the cleanup prompt.
+/// Dev-only eval harness for the cleanup path.
 ///
-/// Mirrors `FoundationModelsCleanupEngine` exactly — same instructions, same
-/// temperature, same sanitizer, same length guard — so what passes here is
-/// what ships. For each case it prints a JSON line with the model output and
-/// deterministic faithfulness metrics; a human (or agent) judges the fuzzy
-/// rest.
+/// `--engine model` (default) mirrors `FoundationModelsCleanupEngine` exactly —
+/// same instructions, same temperature, same sanitizer, same length guard — so
+/// what passes here is what ships. `--engine rules` runs the deterministic
+/// `RuleBasedCleanup` path instead (no Apple Intelligence needed), so the two
+/// engines are benchmarked against the same battery. For each case it prints a
+/// JSON line with the output and deterministic faithfulness metrics; a human
+/// (or agent) judges the fuzzy rest.
 ///
-/// Usage: swift run CleanupEval Scripts/cleanup-eval/cases.json [--id <caseID>] [--runs N]
+/// Usage: swift run CleanupEval Scripts/cleanup-eval/cases.json [--id <caseID>] [--runs N] [--engine model|rules]
 
 struct EvalCase: Codable {
     let id: String
@@ -83,12 +85,18 @@ func newWords(raw: [String], cleaned: [String]) -> [String] {
 
 // MARK: - Main
 
+enum EvalEngine: String {
+    case model
+    case rules
+}
+
 @main
 struct CleanupEval {
     static func main() async {
         var args = Array(CommandLine.arguments.dropFirst())
         var runs = 1
         var onlyID: String?
+        var engine = EvalEngine.model
         if let i = args.firstIndex(of: "--runs"), i + 1 < args.count {
             runs = Int(args[i + 1]) ?? 1
             args.removeSubrange(i...(i + 1))
@@ -97,15 +105,29 @@ struct CleanupEval {
             onlyID = args[i + 1]
             args.removeSubrange(i...(i + 1))
         }
+        if let i = args.firstIndex(of: "--engine"), i + 1 < args.count {
+            guard let parsed = EvalEngine(rawValue: args[i + 1]) else {
+                FileHandle.standardError.write(Data("FATAL: unknown engine \(args[i + 1]) (use model|rules)\n".utf8))
+                exit(2)
+            }
+            engine = parsed
+            args.removeSubrange(i...(i + 1))
+        }
         guard let path = args.first else {
-            FileHandle.standardError.write(Data("usage: CleanupEval <cases.json> [--id <caseID>] [--runs N]\n".utf8))
+            FileHandle.standardError.write(Data("usage: CleanupEval <cases.json> [--id <caseID>] [--runs N] [--engine model|rules]\n".utf8))
             exit(2)
         }
 
-        #if canImport(FoundationModels)
-        guard case .available = SystemLanguageModel.default.availability else {
-            FileHandle.standardError.write(Data("FATAL: on-device model unavailable: \(SystemLanguageModel.default.availability)\n".utf8))
+        if engine == .model {
+            #if canImport(FoundationModels)
+            guard case .available = SystemLanguageModel.default.availability else {
+                FileHandle.standardError.write(Data("FATAL: on-device model unavailable: \(SystemLanguageModel.default.availability)\n".utf8))
+                exit(1)
+            }
+            #else
+            FileHandle.standardError.write(Data("FATAL: FoundationModels not available in this toolchain; try --engine rules.\n".utf8))
             exit(1)
+            #endif
         }
 
         let cases: [EvalCase]
@@ -124,24 +146,33 @@ struct CleanupEval {
         for c in cases where onlyID == nil || c.id == onlyID {
             let category = AppCategory(rawValue: c.category ?? "general") ?? .general
             let context = CleanupContext(category: category)
-            let instructions = CleanupPrompt.instructions(for: .default, context: context)
 
             for run in 1...runs {
-                let session = LanguageModelSession(instructions: instructions)
                 let started = Date()
                 var cleaned: String
-                do {
-                    let response = try await session.respond(
-                        to: CleanupPrompt.prompt(for: c.transcript),
-                        options: GenerationOptions(temperature: 0.2))
-                    cleaned = CleanupSanitizer.strip(
-                        response.content.trimmingCharacters(in: .whitespacesAndNewlines))
-                    // Mirror the engine: polish only what the guard would ship.
-                    if !CleanupGuard.looksUnfaithful(raw: c.transcript, cleaned: cleaned) {
-                        cleaned = CleanupPolish.apply(cleaned, options: .default, context: context)
+                switch engine {
+                case .rules:
+                    cleaned = RuleBasedCleanup.process(c.transcript, options: .default, context: context)
+                case .model:
+                    #if canImport(FoundationModels)
+                    let session = LanguageModelSession(
+                        instructions: CleanupPrompt.instructions(for: .default, context: context))
+                    do {
+                        let response = try await session.respond(
+                            to: CleanupPrompt.prompt(for: c.transcript),
+                            options: GenerationOptions(temperature: 0.2))
+                        cleaned = CleanupSanitizer.strip(
+                            response.content.trimmingCharacters(in: .whitespacesAndNewlines))
+                        // Mirror the engine: polish only what the guard would ship.
+                        if !CleanupGuard.looksUnfaithful(raw: c.transcript, cleaned: cleaned) {
+                            cleaned = CleanupPolish.apply(cleaned, options: .default, context: context)
+                        }
+                    } catch {
+                        cleaned = "<<ERROR: \(error)>>"
                     }
-                } catch {
-                    cleaned = "<<ERROR: \(error)>>"
+                    #else
+                    cleaned = "<<ERROR: FoundationModels unavailable>>"
+                    #endif
                 }
                 let latency = Date().timeIntervalSince(started)
 
@@ -186,10 +217,6 @@ struct CleanupEval {
                 }
             }
         }
-        FileHandle.standardError.write(Data("done: \(passed) passed, \(failed) failed, \(manual) manual-judge\n".utf8))
-        #else
-        FileHandle.standardError.write(Data("FATAL: FoundationModels not available in this toolchain.\n".utf8))
-        exit(1)
-        #endif
+        FileHandle.standardError.write(Data("done (\(engine.rawValue)): \(passed) passed, \(failed) failed, \(manual) manual-judge\n".utf8))
     }
 }
