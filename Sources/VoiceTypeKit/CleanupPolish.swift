@@ -21,6 +21,14 @@ public enum CleanupPolish {
         out = out.replacingOccurrences(
             of: "_underscore_", with: "_", options: [.caseInsensitive])
 
+        // The model occasionally drifts into CJK punctuation ("。" for ".") even
+        // when the words stay English — below the script guard's radar, since
+        // punctuation isn't letters. Repair it unless the dictation language
+        // legitimately writes with these marks.
+        if !cjkPunctuationLanguages.contains(LanguageTag.code(for: locale)) {
+            out = normalizeForeignPunctuation(out)
+        }
+
         // The remaining repairs are prose rules: skip them in a terminal,
         // where "git status" must never gain a capital or a "?".
         let isTerminal = context.category == .terminal
@@ -33,6 +41,21 @@ public enum CleanupPolish {
             out = RuleBasedCleanup.capitalizeStandaloneI(out)
         }
         return capitalizeFirstPlainWord(out)
+    }
+
+    /// Languages whose orthography uses the full-width marks below — for them
+    /// the marks are correct output, never drift.
+    static let cjkPunctuationLanguages: Set<String> = ["zh", "ja", "ko", "yue"]
+
+    /// Full-width / CJK punctuation → the ASCII the speaker's language expects.
+    static let foreignPunctuation: [Character: String] = [
+        "。": ".", "，": ",", "、": ",", "？": "?", "！": "!",
+        "：": ":", "；": ";", "（": "(", "）": ")", "\u{3000}": " ",
+    ]
+
+    static func normalizeForeignPunctuation(_ text: String) -> String {
+        guard text.contains(where: { foreignPunctuation[$0] != nil }) else { return text }
+        return String(text.flatMap { foreignPunctuation[$0] ?? String($0) })
     }
 
     /// English words that open a direct question.

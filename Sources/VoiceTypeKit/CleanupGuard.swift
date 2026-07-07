@@ -46,12 +46,51 @@ public enum CleanupGuard {
     public static let maximumGrowthRatio = 1.5
 
     /// The combined production check: true when the output is a summary (too
-    /// short), a fabrication (too long), or lost its opening. Either way the
-    /// engine must discard it and fall back to the deterministic floor.
+    /// short), a fabrication (too long), lost its opening, or switched into a
+    /// script the speaker never used. Either way the engine must discard it
+    /// and fall back to the deterministic floor.
     public static func looksUnfaithful(raw: String, cleaned: String) -> Bool {
         looksLikeSummary(raw: raw, cleaned: cleaned)
             || looksFabricated(raw: raw, cleaned: cleaned)
             || droppedOpening(raw: raw, cleaned: cleaned)
+            || introducedForeignScript(raw: raw, cleaned: cleaned)
+    }
+
+    // MARK: - Script faithfulness
+
+    /// Letter ranges of the major non-Latin scripts the small on-device model
+    /// has been observed drifting into. Latin is deliberately absent: Latin
+    /// fragments inside CJK dictation (code, brand names) are normal.
+    private static let foreignScripts: [(script: String, ranges: [ClosedRange<UInt32>])] = [
+        ("han", [0x3400...0x4DBF, 0x4E00...0x9FFF]),
+        ("kana", [0x3040...0x30FF]),
+        ("hangul", [0x1100...0x11FF, 0xAC00...0xD7AF]),
+        ("cyrillic", [0x0400...0x04FF]),
+        ("arabic", [0x0600...0x06FF]),
+        ("hebrew", [0x0590...0x05FF]),
+        ("thai", [0x0E00...0x0E7F]),
+        ("devanagari", [0x0900...0x097F]),
+        ("greek", [0x0370...0x03FF]),
+    ]
+
+    /// True when the cleaned output contains letters of a script the raw
+    /// dictation has none of — the model changed language, which cleanup must
+    /// never do. Cleanup is told the language in its prompt, but for a small
+    /// model that is a request, not a guarantee; this is the guarantee.
+    public static func introducedForeignScript(raw: String, cleaned: String) -> Bool {
+        let introduced = scripts(in: cleaned).subtracting(scripts(in: raw))
+        return !introduced.isEmpty
+    }
+
+    private static func scripts(in text: String) -> Set<String> {
+        var found: Set<String> = []
+        for scalar in text.unicodeScalars {
+            for entry in foreignScripts
+            where entry.ranges.contains(where: { $0.contains(scalar.value) }) {
+                found.insert(entry.script)
+            }
+        }
+        return found
     }
 
     /// Function words too common to prove anything about whether the opening

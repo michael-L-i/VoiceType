@@ -95,22 +95,17 @@ final class NemotronEngine: TranscriptionEngine {
             // The manager is stateful and reused across dictations: clear any
             // prior audio/decoder state, set the language prompt for this
             // utterance, then feed the whole buffer and flush the tail.
+            //
+            // The language prompt is strict, by design (user decision,
+            // 2026-07-06): Nemotron's prompt is a hard script filter, so speech
+            // in a different language than Settings → Language yields empty
+            // output and reads as "didn't catch that". We deliberately do NOT
+            // retry with "auto" — dictation must come out in the language the
+            // user chose, never in one the model guessed.
             await manager.reset()
             await manager.setLanguage(locale)
             _ = try await manager.process(samples: samples)
-            var out = try await manager.finish()
-
-            // Nemotron's per-language prompt is a hard *script* filter: fed speech
-            // that doesn't match the selected language (e.g. English with a
-            // Chinese prompt), it emits nothing at all. Rather than report "didn't
-            // catch that", retry once letting the model auto-detect the language.
-            if out.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                await manager.reset()
-                await manager.setLanguage("auto")
-                _ = try await manager.process(samples: samples)
-                out = try await manager.finish()
-            }
-            text = out
+            text = try await manager.finish()
         } catch {
             throw TranscriptionError.failed("Nemotron transcription failed: \(error.localizedDescription)")
         }

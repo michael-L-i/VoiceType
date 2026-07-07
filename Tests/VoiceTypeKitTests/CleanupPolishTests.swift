@@ -91,3 +91,33 @@ struct CleanupPolishTests {
         #expect(CleanupPolish.apply(text, options: opts) == text)
     }
 }
+
+@Suite("Cleanup polish — foreign punctuation")
+struct CleanupPolishPunctuationTests {
+    let opts = CleanupOptions.default
+
+    @Test("CJK punctuation normalizes to ASCII for English dictation")
+    func normalizesForEnglish() {
+        let out = CleanupPolish.apply("ship it on friday。", options: opts, locale: "en-US")
+        #expect(out.hasSuffix("friday."))
+        #expect(!out.contains("。"))
+    }
+
+    @Test("full set of drift marks maps to ASCII equivalents")
+    func fullMap() {
+        #expect(CleanupPolish.normalizeForeignPunctuation("a，b、c？d！e：f；（g）")
+            == "a,b,c?d!e:f;(g)")
+    }
+
+    @Test("CJK languages keep their own punctuation")
+    func cjkLocaleUntouched() {
+        let text = "今天天气很好。"
+        #expect(CleanupPolish.apply(text, options: opts, locale: "zh-CN") == text)
+    }
+
+    @Test("text without drift marks is untouched")
+    func asciiUntouched() {
+        let text = "Plain English, with (normal) punctuation!"
+        #expect(CleanupPolish.normalizeForeignPunctuation(text) == text)
+    }
+}

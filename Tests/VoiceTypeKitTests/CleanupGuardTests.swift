@@ -134,3 +134,42 @@ struct CleanupGuardTests {
         }
     }
 }
+
+@Suite("Cleanup script guard")
+struct CleanupScriptGuardTests {
+
+    @Test("foreign-script words in the output of a Latin dictation are unfaithful")
+    func introducedHan() {
+        let raw = "let's meet tomorrow at nine to go over the launch plan"
+        let cleaned = "Let's meet tomorrow at nine 去讨论 the launch plan."
+        #expect(CleanupGuard.introducedForeignScript(raw: raw, cleaned: cleaned))
+        #expect(CleanupGuard.looksUnfaithful(raw: raw, cleaned: cleaned))
+    }
+
+    @Test("a script already present in the dictation is never flagged")
+    func sameScriptPasses() {
+        let raw = "今天天气很好我们去公园吧"
+        let cleaned = "今天天气很好，我们去公园吧。"
+        #expect(!CleanupGuard.introducedForeignScript(raw: raw, cleaned: cleaned))
+    }
+
+    @Test("latin insertions into CJK dictation are tolerated")
+    func latinIntoCJKTolerated() {
+        // Latin is deliberately not a guarded script: code and brand names
+        // bleed into CJK dictation legitimately.
+        #expect(!CleanupGuard.introducedForeignScript(
+            raw: "请打开那个文件", cleaned: "请打开 main.py 那个文件"))
+    }
+
+    @Test("accents, emoji, and CJK punctuation alone do not trip the guard")
+    func nonLetterNoise() {
+        #expect(!CleanupGuard.introducedForeignScript(
+            raw: "see you at the cafe", cleaned: "See you at the café 🎉。"))
+    }
+
+    @Test("cyrillic drift is caught too")
+    func cyrillicDrift() {
+        #expect(CleanupGuard.introducedForeignScript(
+            raw: "send the report before lunch", cleaned: "Отправьте отчёт before lunch."))
+    }
+}
