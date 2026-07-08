@@ -7,6 +7,7 @@ import VoiceTypeKit
 /// it). One scrolling page — General and Cleanup sections together, not separate
 /// tabs. Everything binds straight to `coordinator.settings` (mutations
 /// auto-persist via the coordinator's `didSet`). Everything runs on your Mac.
+/// Word replacements live on the dedicated Dictionary page, not here.
 struct SettingsView: View {
     @Bindable var coordinator: DictationCoordinator
 
@@ -122,39 +123,6 @@ private struct CleanupSections: View {
             }
             .disabled(coordinator.settings.cleanupEngine == .none)
 
-            Section {
-                ForEach($coordinator.settings.wordReplacements) { $replacement in
-                    HStack(spacing: VT.Space.s) {
-                        TextField("Heard", text: $replacement.from)
-                            .textFieldStyle(.roundedBorder)
-                        Image(systemName: "arrow.right")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        TextField("Type instead", text: $replacement.to)
-                            .textFieldStyle(.roundedBorder)
-                        Button {
-                            coordinator.settings.wordReplacements
-                                .removeAll { $0.id == replacement.id }
-                        } label: {
-                            Image(systemName: "minus.circle.fill")
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Remove replacement")
-                    }
-                }
-                Button {
-                    coordinator.settings.wordReplacements.append(WordReplacement())
-                } label: {
-                    Label("Add replacement", systemImage: "plus")
-                }
-            } header: {
-                Text("Word replacements")
-            } footer: {
-                Text("Fix words the transcriber keeps getting wrong — names, jargon, brands. Matched as whole words, ignoring case, after cleanup runs.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
         }
     }
 

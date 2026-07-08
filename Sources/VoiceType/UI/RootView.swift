@@ -11,7 +11,7 @@ struct RootView: View {
     @State private var selection: SidebarItem = .home
 
     /// The primary destinations, shown at the top of the sidebar.
-    private let topItems: [SidebarItem] = [.home, .transcripts, .transcribe, .models]
+    private let topItems: [SidebarItem] = [.home, .transcripts, .transcribe, .models, .dictionary]
 
     var body: some View {
         NavigationSplitView {
@@ -119,6 +119,8 @@ struct RootView: View {
             TranscribeView(coordinator: coordinator)
         case .models:
             ModelsView(coordinator: coordinator)
+        case .dictionary:
+            DictionaryView(coordinator: coordinator)
         case .setup:
             // Setup finishes by sliding the user into Settings (where the
             // dictation key now lives), rather than popping up an inline picker.
@@ -134,7 +136,7 @@ struct RootView: View {
 /// The selectable destinations in the sidebar. (Settings is intentionally not
 /// here — it opens the standalone preferences window.)
 enum SidebarItem: String, CaseIterable, Identifiable {
-    case home, transcripts, transcribe, models, setup, settings
+    case home, transcripts, transcribe, models, dictionary, setup, settings
 
     var id: String { rawValue }
 
@@ -144,6 +146,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .transcripts: return "Transcripts"
         case .transcribe: return "Transcribe"
         case .models: return "Models"
+        case .dictionary: return "Dictionary"
         case .setup: return "Setup"
         case .settings: return "Settings"
         }
@@ -155,6 +158,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .transcripts: return "text.book.closed"
         case .transcribe: return "waveform.badge.plus"
         case .models: return "cpu"
+        case .dictionary: return "character.book.closed"
         case .setup: return "person.badge.shield.checkmark"
         case .settings: return "gearshape"
         }
