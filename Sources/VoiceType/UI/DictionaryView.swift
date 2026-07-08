@@ -308,11 +308,15 @@ struct DictionaryView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                TextEditor(text: $sample)
+                // A vertically-growing field, not a TextEditor: it hugs a single
+                // line (no phantom empty row), wraps as you type, and Return
+                // ends editing instead of inserting newlines that balloon the box.
+                TextField("So I was telling the team about voice type…",
+                          text: $sample, axis: .vertical)
+                    .textFieldStyle(.plain)
                     .font(.callout)
-                    .scrollContentBackground(.hidden)
-                    .frame(minHeight: 44, maxHeight: 88)
-                    .padding(VT.Space.s)
+                    .lineLimit(1...3)
+                    .padding(VT.Space.m)
                     .background(
                         RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous)
                             .fill(Color(nsColor: .textBackgroundColor)))
