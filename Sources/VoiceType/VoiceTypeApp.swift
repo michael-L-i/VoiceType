@@ -71,6 +71,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let updater = UpdaterController()
         self.updater = updater
         coordinator.onCheckForUpdates = { updater.checkForUpdates() }
+        updater.onUpdateAvailabilityChange = { [coordinator] available in
+            coordinator.updateAvailable = available
+        }
 
         // Open Settings (⌘,) on request from the AppKit-hosted Home window.
         coordinator.onOpenSettings = { Self.openSettingsScene() }

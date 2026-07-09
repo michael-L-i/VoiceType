@@ -50,6 +50,11 @@ final class DictationCoordinator {
     var onCheckForUpdates: (@MainActor () -> Void)?
     func checkForUpdates() { onCheckForUpdates?() }
 
+    /// Whether Sparkle found an update the user hasn't installed yet. Drives
+    /// the sidebar's "Update available" row, which reopens the update dialog —
+    /// the way back in after dismissing it.
+    var updateAvailable = false
+
     /// Installed by the AppDelegate to open the Settings scene. The home window is
     /// hosted via AppKit, where SwiftUI's `\.openSettings` environment action
     /// isn't wired up, so we route the request through the app layer instead.

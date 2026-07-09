@@ -52,10 +52,16 @@ struct RootView: View {
 
             // Bottom group: Setup sits just above Settings, both real in-window
             // pages now. (⌘, still opens the standalone preferences window too.)
+            // When Sparkle has an update pending, a row appears on top of them —
+            // the way back to the update dialog after dismissing it.
             VStack(spacing: 2) {
+                if coordinator.updateAvailable {
+                    updateAvailableRow
+                }
                 sidebarRow(.setup, badge: setupBadge)
                 sidebarRow(.settings)
             }
+            .animation(.easeInOut(duration: 0.2), value: coordinator.updateAvailable)
             .padding(.horizontal, VT.Space.s)
             .padding(.bottom, VT.Space.xs)
         }
@@ -75,6 +81,29 @@ struct RootView: View {
             Text("VoiceType")
                 .font(.title3.weight(.semibold))
         }
+    }
+
+    /// An action row, not a destination: reopens Sparkle's update dialog. Only
+    /// shown while an update is actually pending, so the sidebar stays quiet
+    /// the rest of the time.
+    private var updateAvailableRow: some View {
+        Button {
+            coordinator.checkForUpdates()
+        } label: {
+            Label("Update available", systemImage: "arrow.down.circle.fill")
+                .font(.body)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, VT.Space.s)
+                .padding(.vertical, VT.Space.s)
+                .background(
+                    RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous)
+                        .fill(VT.tint.opacity(0.14)))
+                .foregroundStyle(VT.tint)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .transition(.opacity)
+        .help("Install the new version of VoiceType")
     }
 
     private func sidebarRow(_ item: SidebarItem, badge: Int? = nil) -> some View {
