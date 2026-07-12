@@ -151,10 +151,29 @@ struct ChineseRuleCleanupTests {
 
 @Suite("Cleanup polish — Chinese model output")
 struct ChinesePolishTests {
-    @Test("ASCII commas the model drifts into become full-width")
+    @Test("ASCII commas the model drifts into become full-width, and the terminal 。 is guaranteed")
     func asciiDrift() {
         let out = CleanupPolish.apply("今天很好,明天见", options: .default, locale: "zh-CN")
-        #expect(out == "今天很好，明天见")
+        #expect(out == "今天很好，明天见。")
+    }
+
+    @Test("spoken punctuation the model left as words renders in polish, absorbing wrapped marks")
+    func spokenNamesRendered() {
+        let out = CleanupPolish.apply("我们需要苹果，顿号，香蕉", options: .default, locale: "zh-CN")
+        #expect(out == "我们需要苹果、香蕉。")
+    }
+
+    @Test("echoed transcript markers are stripped by the sanitizer")
+    func markerEcho() {
+        let out = CleanupSanitizer.strip("我在用 VoiceType\n\n<<<TRANSCRIPT\nTRANSCRIPT>>>")
+        #expect(out == "我在用 VoiceType")
+    }
+
+    @Test("a model-added code fence is unwrapped; inline backticks survive")
+    func codeFence() {
+        #expect(CleanupSanitizer.strip("git status\n```") == "git status")
+        #expect(CleanupSanitizer.strip("```\ngit status\n```") == "git status")
+        #expect(CleanupSanitizer.strip("run `git status` now") == "run `git status` now")
     }
 
     @Test("English capitalization repairs are skipped for Chinese")
@@ -205,6 +224,18 @@ struct LostScriptGuardTests {
         #expect(CleanupGuard.looksUnfaithful(
             raw: "今天天气很好我们去公园散步吧",
             cleaned: "The weather is great today, let's take a walk in the park."))
+    }
+
+    @Test("a dropped Han opener trips the guard; faithful and filler-skipped outputs pass")
+    func hanOpening() {
+        #expect(CleanupGuard.droppedHanOpening(
+            raw: "请把 main.py 发给我", cleaned: "main.py 发给我。"))
+        #expect(!CleanupGuard.droppedHanOpening(
+            raw: "请把 main.py 发给我", cleaned: "请把 main.py 发给我。"))
+        #expect(!CleanupGuard.droppedHanOpening(
+            raw: "嗯嗯今天天气很好", cleaned: "今天天气很好。"))
+        #expect(!CleanupGuard.droppedHanOpening(
+            raw: "ok cool", cleaned: "Ok cool."))
     }
 }
 

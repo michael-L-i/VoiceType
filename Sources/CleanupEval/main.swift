@@ -30,6 +30,8 @@ struct EvalCase: Codable {
     var mustNotContain: [String]?
     /// Free-form note about what this case probes.
     var note: String?
+    /// BCP-47 dictation locale; defaults to en-US.
+    var locale: String?
 }
 
 struct EvalResult: Codable {
@@ -51,7 +53,10 @@ struct EvalResult: Codable {
 
 func words(_ text: String) -> [String] {
     text.lowercased()
-        .replacingOccurrences(of: "[^a-z0-9' ]", with: " ", options: .regularExpression)
+        .replacingOccurrences(of: "[^a-z0-9'\\p{Han} ]", with: " ", options: .regularExpression)
+        // A Han run carries no spaces, so each character becomes its own token —
+        // retention/order/added-word metrics stay meaningful for Chinese.
+        .replacingOccurrences(of: "(\\p{Han})", with: " $1 ", options: .regularExpression)
         .split(separator: " ")
         .map(String.init)
         .filter { !$0.isEmpty }
@@ -146,17 +151,18 @@ struct CleanupEval {
         for c in cases where onlyID == nil || c.id == onlyID {
             let category = AppCategory(rawValue: c.category ?? "general") ?? .general
             let context = CleanupContext(category: category)
+            let locale = c.locale ?? "en-US"
 
             for run in 1...runs {
                 let started = Date()
                 var cleaned: String
                 switch engine {
                 case .rules:
-                    cleaned = RuleBasedCleanup.process(c.transcript, options: .default, context: context)
+                    cleaned = RuleBasedCleanup.process(c.transcript, options: .default, context: context, locale: locale)
                 case .model:
                     #if canImport(FoundationModels)
                     let session = LanguageModelSession(
-                        instructions: CleanupPrompt.instructions(for: .default, context: context))
+                        instructions: CleanupPrompt.instructions(for: .default, context: context, locale: locale))
                     do {
                         let response = try await session.respond(
                             to: CleanupPrompt.prompt(for: c.transcript),
@@ -165,7 +171,7 @@ struct CleanupEval {
                             response.content.trimmingCharacters(in: .whitespacesAndNewlines))
                         // Mirror the engine: polish only what the guard would ship.
                         if !CleanupGuard.looksUnfaithful(raw: c.transcript, cleaned: cleaned) {
-                            cleaned = CleanupPolish.apply(cleaned, options: .default, context: context)
+                            cleaned = CleanupPolish.apply(cleaned, options: .default, context: context, locale: locale)
                         }
                     } catch {
                         cleaned = "<<ERROR: \(error)>>"

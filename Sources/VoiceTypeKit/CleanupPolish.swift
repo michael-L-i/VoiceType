@@ -28,6 +28,10 @@ public enum CleanupPolish {
         // legitimately writes with these marks. Full-width languages get the
         // opposite repair: the model drifts to ASCII "," inside Chinese text.
         if pack.usesFullWidthPunctuation {
+            // The small model rarely renders spoken punctuation names it wasn't
+            // trained on ("逗号" stays words) — run the deterministic renderer
+            // on its output too, then normalize widths and spacing.
+            out = RuleBasedCleanup.renderSpokenPunctuation(out, pack: pack)
             out = CJKPunctuation.normalize(out)
         } else if !cjkPunctuationLanguages.contains(LanguageTag.code(for: locale)) {
             out = normalizeForeignPunctuation(out)
@@ -39,6 +43,11 @@ public enum CleanupPolish {
 
         if options.addPunctuation && !isTerminal {
             out = ensureQuestionMark(out, pack: pack)
+            if pack.usesFullWidthPunctuation {
+                // The model also drops the terminal 。 in Chinese; guarantee it
+                // the same way the rules floor does.
+                out = RuleBasedCleanup.ensureTerminalPunctuation(out, pack: pack)
+            }
         }
         guard options.fixCapitalization, !isTerminal,
               pack.separatesWordsWithSpaces else { return out }

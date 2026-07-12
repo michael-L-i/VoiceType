@@ -114,13 +114,21 @@ public struct RuleBasedCleanup: CleanupEngine {
     // MARK: - Spoken punctuation
 
     /// Direct longest-name-first replacement of the pack's spoken punctuation
-    /// names. Unconditional by design (the iOS-dictation convention); doubled
-    /// marks from an engine that already rendered the name are collapsed by
-    /// the pack's punctuation normalization right after.
-    private static func renderSpokenPunctuation(_ text: String, pack: LanguagePack) -> String {
+    /// names. Unconditional by design (the iOS-dictation convention). Marks
+    /// already sitting next to the name are absorbed into the replacement —
+    /// engines render "今天很好。句号" and the model wraps names in commas
+    /// ("，顿号，") — so the dictated mark always wins without doubling.
+    /// Internal: `CleanupPolish` runs the same renderer on model output.
+    static func renderSpokenPunctuation(_ text: String, pack: LanguagePack) -> String {
         var out = text
+        let absorbed = "[，。、；：？！,]*"
         for (name, mark) in pack.spokenPunctuation.sorted(by: { $0.key.count > $1.key.count }) {
-            out = out.replacingOccurrences(of: name, with: mark)
+            let pattern = absorbed + NSRegularExpression.escapedPattern(for: name) + absorbed
+            guard let regex = try? NSRegularExpression(pattern: pattern) else { continue }
+            let range = NSRange(out.startIndex..., in: out)
+            out = regex.stringByReplacingMatches(
+                in: out, range: range,
+                withTemplate: NSRegularExpression.escapedTemplate(for: mark))
         }
         return out
     }
@@ -185,7 +193,9 @@ public struct RuleBasedCleanup: CleanupEngine {
 
     // MARK: - Terminal punctuation
 
-    private static func ensureTerminalPunctuation(_ text: String, pack: LanguagePack) -> String {
+    /// Internal: `CleanupPolish` reuses this for full-width packs — the small
+    /// model routinely drops the terminal 。 in Chinese output.
+    static func ensureTerminalPunctuation(_ text: String, pack: LanguagePack) -> String {
         guard let last = text.last else { return text }
         if ".!?:,。！？：，…；;\n".contains(last) {
             return text

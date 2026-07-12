@@ -13,7 +13,14 @@ swift run CleanupEval Scripts/cleanup-eval/cases.json                 # full bat
 swift run CleanupEval Scripts/cleanup-eval/cases.json --runs 2        # variance check
 swift run CleanupEval Scripts/cleanup-eval/cases.json --id dot-pie
 swift run CleanupEval Scripts/cleanup-eval/cases.json --engine rules  # deterministic floor
+swift run CleanupEval Scripts/cleanup-eval/cases.zh.json --engine rules  # Chinese battery
 ```
+
+Cases carry an optional `"locale"` (BCP-47, default `en-US`) that selects the
+language pack, prompt language, and polish conventions — per-language batteries
+live in `cases.<code>.json` (see `cases.zh.json`, and docs/LOCALIZATION.md for
+what a new language's battery must cover). For CJK locales the word metrics
+tokenize each Han character, so `retention`/`orderScore` stay meaningful.
 
 As of 2026-07 the rule engine scores **35/38** on the battery (~0 ms); its three
 failures — both self-correction cases and the camelCase directive — are the

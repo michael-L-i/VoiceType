@@ -52,6 +52,8 @@ extension LanguagePack {
         - Keep embedded English words, file names, and identifiers in ASCII, \
         with ASCII punctuation inside them.
         - Always drop the fillers 嗯 and 呃. Drop 那个 or 就是 only when it is \
-        clearly a hesitation carrying no meaning; when in doubt, keep it.
+        clearly a hesitation carrying no meaning; when it points at something \
+        (那个方案 = "that plan") or asserts (就是最好的), it is content — keep \
+        it. When in doubt, keep it.
         """)
 }
