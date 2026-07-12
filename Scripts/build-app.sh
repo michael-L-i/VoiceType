@@ -30,6 +30,11 @@ cp "$ROOT/Resources/Info.plist" "$CONTENTS/Info.plist"
 cp "$ROOT/Resources/AppIcon.icns" "$CONTENTS/Resources/AppIcon.icns"
 # Vendor logos (e.g. the NVIDIA mark shown on the Models page).
 cp "$ROOT"/Resources/*.svg "$CONTENTS/Resources/" 2>/dev/null || true
+# SwiftPM resource bundle (localized UI strings). Bundle.module looks for it
+# next to the executable's resource path; a missing bundle crashes the first
+# localized string lookup, so this copy must fail loudly.
+BINDIR="$(dirname "$BIN")"
+cp -R "$BINDIR/VoiceType_VoiceType.bundle" "$CONTENTS/Resources/"
 # Third-party license notices, bundled so they ship with the distributed app.
 cp "$ROOT/THIRD_PARTY_LICENSES.md" "$CONTENTS/Resources/" 2>/dev/null || true
 

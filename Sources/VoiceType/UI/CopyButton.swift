@@ -25,7 +25,7 @@ struct CopyButton: View {
     var body: some View {
         Button(action: trigger) { label }
             .buttonStyle(.borderless)
-            .help("Copy")
+            .help(L("Copy"))
             .animation(.spring(response: 0.34, dampingFraction: 0.6), value: copied)
     }
 
@@ -53,7 +53,7 @@ struct CopyButton: View {
             HStack(spacing: VT.Space.xs) {
                 Image(systemName: copied ? "checkmark" : "doc.on.doc")
                     .contentTransition(.symbolEffect(.replace))
-                Text(copied ? "Copied!" : "Copy")
+                Text(copied ? L("Copied!") : L("Copy"))
             }
             .font(.callout.weight(copied ? .semibold : .regular))
             .foregroundStyle(copied ? Color.white : tint)

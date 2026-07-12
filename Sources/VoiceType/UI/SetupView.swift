@@ -103,11 +103,11 @@ struct SetupView: View {
                     .frame(width: 44, height: 44)
                     .background(VT.brandGradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Set up VoiceType")
+                    Text(L("Set up VoiceType"))
                         .font(.system(.title, design: .rounded).weight(.bold))
                     Text(setupComplete
-                         ? "You're all set!"
-                         : "\(doneSteps) of \(totalSteps) ready")
+                         ? L("You're all set!")
+                         : L("\(doneSteps) of \(totalSteps) ready"))
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
@@ -134,9 +134,9 @@ struct SetupView: View {
     private func completedRow(_ permission: Permission) -> some View {
         HStack(spacing: VT.Space.s) {
             Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-            Text(permission.title).font(.callout.weight(.medium))
+            Text(L(dynamic: permission.title)).font(.callout.weight(.medium))
             Spacer()
-            Text("Ready").font(.caption).foregroundStyle(.secondary)
+            Text(L("Ready")).font(.caption).foregroundStyle(.secondary)
         }
         .padding(.horizontal, VT.Space.m)
         .padding(.vertical, VT.Space.s)
@@ -148,7 +148,7 @@ struct SetupView: View {
     private var completedLanguageRow: some View {
         HStack(spacing: VT.Space.s) {
             Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-            Text("Language").font(.callout.weight(.medium))
+            Text(L("Language")).font(.callout.weight(.medium))
             Spacer()
             Text(selectedLanguageName).font(.caption).foregroundStyle(.secondary)
         }
@@ -188,14 +188,14 @@ struct SetupView: View {
                     .font(.title2)
                     .foregroundStyle(VT.tint)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("VoiceType is ready")
+                    Text(L("VoiceType is ready"))
                         .font(.system(.headline, design: .rounded))
-                    Text("Opening Settings so you can pick your dictation key…")
+                    Text(L("Opening Settings so you can pick your dictation key…"))
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
             }
-            Button("Open Settings", action: onComplete)
+            Button(L("Open Settings"), action: onComplete)
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .tint(VT.tint)
@@ -212,7 +212,7 @@ struct SetupView: View {
     private var upcomingHint: some View {
         HStack(spacing: VT.Space.xs) {
             Image(systemName: "arrow.turn.down.right")
-            Text("Next: \(upcomingTitle)")
+            Text(L("Next: \(upcomingTitle)"))
         }
         .font(.caption)
         .foregroundStyle(.secondary)
@@ -220,15 +220,15 @@ struct SetupView: View {
     }
 
     private var upcomingTitle: String {
-        pending.count > 1 ? pending[1].title : "Choose your language"
+        pending.count > 1 ? L(dynamic: pending[1].title) : L("Choose your language")
     }
 
     private var footnotes: some View {
         VStack(alignment: .leading, spacing: VT.Space.xs) {
             footnote("lock.shield.fill", .green,
-                     "Your audio and transcripts stay on your Mac. Nothing ever leaves the device.")
+                     L("Your audio and transcripts stay on your Mac. Nothing ever leaves the device."))
             footnote("dock.rectangle", .secondary,
-                     "Closing the window keeps VoiceType running — the key still works. Click its Dock icon to bring it back.")
+                     L("Closing the window keeps VoiceType running — the key still works. Click its Dock icon to bring it back."))
         }
         .padding(.top, VT.Space.s)
     }
@@ -266,8 +266,8 @@ private struct PermissionStepCard: View {
                 }
                 .frame(width: 56, height: 56)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(permission.title).font(.title3.weight(.semibold))
-                    Text(permission.why).font(.callout).foregroundStyle(.secondary)
+                    Text(L(dynamic: permission.title)).font(.title3.weight(.semibold))
+                    Text(L(dynamic: permission.why)).font(.callout).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
@@ -285,17 +285,17 @@ private struct PermissionStepCard: View {
         switch status {
         case .notDetermined:
             HStack(spacing: VT.Space.m) {
-                Button("Grant access", action: onGrant)
+                Button(L("Grant access"), action: onGrant)
                     .buttonStyle(.borderedProminent).controlSize(.large).tint(VT.tint)
                 Spacer(minLength: 0)
             }
         case .denied:
             HStack(spacing: VT.Space.m) {
-                Button("Open System Settings") {
+                Button(L("Open System Settings")) {
                     coordinator.openSystemSettings(for: permission)
                 }
                 .buttonStyle(.borderedProminent).controlSize(.large).tint(VT.tint)
-                Text("Denied — enable it in System Settings.")
+                Text(L("Denied — enable it in System Settings."))
                     .font(.caption).foregroundStyle(.secondary)
                 Spacer(minLength: 0)
             }
@@ -334,15 +334,15 @@ private struct LanguageStepCard: View {
                 }
                 .frame(width: 56, height: 56)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Choose your language").font(.title3.weight(.semibold))
-                    Text("VoiceType transcribes in this language — it never guesses. You can change it anytime in Settings.")
+                    Text(L("Choose your language")).font(.title3.weight(.semibold))
+                    Text(L("VoiceType transcribes in this language — it never guesses. You can change it anytime in Settings."))
                         .font(.callout).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
             }
             HStack(spacing: VT.Space.m) {
-                Picker("Language", selection: $coordinator.settings.locale) {
+                Picker(L("Language"), selection: $coordinator.settings.locale) {
                     ForEach(DictationLanguage.sortedForDisplay) { language in
                         Text(language.localizedName).tag(language.code)
                     }
@@ -350,7 +350,7 @@ private struct LanguageStepCard: View {
                 .labelsHidden()
                 .controlSize(.large)
                 .frame(maxWidth: 220)
-                Button("Continue", action: onContinue)
+                Button(L("Continue"), action: onContinue)
                     .buttonStyle(.borderedProminent).controlSize(.large).tint(VT.tint)
                 Spacer(minLength: 0)
             }
