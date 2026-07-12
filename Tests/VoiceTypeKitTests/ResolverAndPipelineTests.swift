@@ -4,31 +4,39 @@ import Foundation
 
 @Suite("Engine resolver — on-device fallback policy")
 struct ResolverTests {
+    /// No language metadata: every engine is assumed compatible, which is the
+    /// pre-matrix behavior all the availability tests below exercise.
+    let anyLanguage = EngineLanguageSupport()
+
     @Test("uses the preferred transcription engine when available")
     func transcriptionPreferred() {
         let resolved = EngineResolver.resolveTranscription(
-            preferred: .appleOnDevice, available: [.appleOnDevice])
+            preferred: .appleOnDevice, available: [.appleOnDevice],
+            locale: "en-US", support: anyLanguage)
         #expect(resolved == .appleOnDevice)
     }
 
     @Test("returns the preferred kind even when nothing is available, so the caller can error")
     func transcriptionNoneAvailable() {
         let resolved = EngineResolver.resolveTranscription(
-            preferred: .appleOnDevice, available: [])
+            preferred: .appleOnDevice, available: [],
+            locale: "en-US", support: anyLanguage)
         #expect(resolved == .appleOnDevice)
     }
 
     @Test("uses a downloaded engine (Parakeet) when it's the preference and available")
     func transcriptionDownloadedPreferred() {
         let resolved = EngineResolver.resolveTranscription(
-            preferred: .parakeet, available: [.appleOnDevice, .parakeet])
+            preferred: .parakeet, available: [.appleOnDevice, .parakeet],
+            locale: "en-US", support: anyLanguage)
         #expect(resolved == .parakeet)
     }
 
     @Test("falls back to an available engine when the preferred model isn't downloaded")
     func transcriptionPreferredNotDownloaded() {
         let resolved = EngineResolver.resolveTranscription(
-            preferred: .parakeet, available: [.appleOnDevice])
+            preferred: .parakeet, available: [.appleOnDevice],
+            locale: "en-US", support: anyLanguage)
         #expect(resolved == .appleOnDevice)
     }
 
@@ -51,6 +59,79 @@ struct ResolverTests {
         let resolved = EngineResolver.resolveCleanup(
             preferred: .none, available: [.foundationModels])
         #expect(resolved == .none)
+    }
+}
+
+@Suite("Engine resolver — language compatibility")
+struct ResolverLanguageTests {
+    /// The real static model facts plus a typical Apple locale set.
+    let support = EngineLanguageSupport(codes: [
+        .appleOnDevice: ["en", "es", "fr", "de", "it", "pt", "ja", "zh", "ko"],
+        .parakeet: EngineLanguages.staticCodes(for: .parakeet)!,
+        .whisperKit: EngineLanguages.staticCodes(for: .whisperKit)!,
+        .nemotron: EngineLanguages.staticCodes(for: .nemotron)!,
+    ])
+
+    @Test("keeps the preferred engine when it supports the language")
+    func preferredCompatible() {
+        let resolved = EngineResolver.resolveTranscription(
+            preferred: .parakeet, available: [.appleOnDevice, .parakeet],
+            locale: "de-DE", support: support)
+        #expect(resolved == .parakeet)
+    }
+
+    @Test("falls back for Chinese when Parakeet is preferred — Parakeet is European-only")
+    func chineseFallsBackFromParakeet() {
+        let resolved = EngineResolver.resolveTranscription(
+            preferred: .parakeet, available: [.appleOnDevice, .parakeet],
+            locale: "zh-CN", support: support)
+        #expect(resolved == .appleOnDevice)
+    }
+
+    @Test("prefers a language-compatible downloaded engine over an incompatible preference")
+    func compatibleDownloadedBeatsIncompatiblePreference() {
+        let resolved = EngineResolver.resolveTranscription(
+            preferred: .parakeet, available: [.parakeet, .whisperKit],
+            locale: "ja-JP", support: support)
+        #expect(resolved == .whisperKit)
+    }
+
+    @Test("sticks with the preferred engine when nothing available supports the language")
+    func nothingCompatibleKeepsPreference() {
+        let resolved = EngineResolver.resolveTranscription(
+            preferred: .parakeet, available: [.parakeet],
+            locale: "ja-JP", support: support)
+        #expect(resolved == .parakeet)
+    }
+
+    @Test("missing metadata means assume-supported")
+    func missingMetadataAssumesYes() {
+        let empty = EngineLanguageSupport()
+        #expect(empty.supports(.parakeet, locale: "zh-CN"))
+    }
+
+    @Test("support lookup compares primary subtags, not raw locale identifiers")
+    func primarySubtagComparison() {
+        #expect(support.supports(.nemotron, locale: "zh-Hans-CN"))
+        #expect(support.supports(.nemotron, locale: "zh_CN"))
+        #expect(!support.supports(.parakeet, locale: "zh-CN"))
+    }
+
+    @Test("Nemotron matrix includes Chinese but excludes adaptation-only tier-3 languages")
+    func nemotronTiers() {
+        #expect(support.supports(.nemotron, locale: "zh-CN"))
+        #expect(!support.supports(.nemotron, locale: "th-TH"))
+        #expect(!support.supports(.nemotron, locale: "he-IL"))
+    }
+
+    @Test("every picker language is transcribable by at least one engine")
+    func pickerLanguagesCovered() {
+        for language in DictationLanguage.all {
+            let covered = TranscriptionEngineKind.allCases.contains {
+                support.supports($0, locale: language.code)
+            }
+            #expect(covered, "\(language.code) has no engine")
+        }
     }
 }
 

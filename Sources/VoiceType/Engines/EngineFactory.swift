@@ -1,4 +1,5 @@
 import Foundation
+import Speech
 import VoiceTypeKit
 
 /// Central place that maps an engine *kind* to a concrete instance and reports
@@ -47,6 +48,25 @@ enum EngineFactory {
             }
         }
         return set
+    }
+
+    /// Which languages each transcription engine can handle: static model-card
+    /// facts for the downloadable engines (`EngineLanguages`), plus Apple's
+    /// runtime-queried locale list reduced to primary language subtags.
+    static func languageSupport() async -> EngineLanguageSupport {
+        var codes: [TranscriptionEngineKind: Set<String>] = [:]
+        for kind in TranscriptionEngineKind.allCases {
+            if let staticSet = EngineLanguages.staticCodes(for: kind) {
+                codes[kind] = staticSet
+            }
+        }
+        let appleLocales = await SpeechTranscriber.supportedLocales
+        if !appleLocales.isEmpty {
+            codes[.appleOnDevice] = Set(appleLocales.map {
+                LanguageTag.code(for: $0.identifier(.bcp47))
+            })
+        }
+        return EngineLanguageSupport(codes: codes)
     }
 
     // MARK: - Cleanup

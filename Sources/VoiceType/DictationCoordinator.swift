@@ -76,6 +76,10 @@ final class DictationCoordinator {
     // need setup, without being able to mutate the resolver's view of the world.
     private(set) var availableTranscription: Set<TranscriptionEngineKind> = [.appleOnDevice]
     private(set) var availableCleanup: Set<CleanupEngineKind> = [.ruleBased, .none]
+    // Which languages each engine can transcribe. Starts empty ("assume yes")
+    // until the first refresh fills in the static model facts + Apple's
+    // runtime-queried locale list.
+    private(set) var languageSupport = EngineLanguageSupport()
     private var isProcessing = false
     private var resetTask: Task<Void, Never>?
     // The frontmost app when recording began — the dictation's intended
@@ -408,7 +412,9 @@ final class DictationCoordinator {
     private func resolveEngines() -> (transcriber: TranscriptionEngine, cleaner: CleanupEngine)? {
         let tKind = EngineResolver.resolveTranscription(
             preferred: settings.transcriptionEngine,
-            available: availableTranscription)
+            available: availableTranscription,
+            locale: settings.locale,
+            support: languageSupport)
         let cKind = EngineResolver.resolveCleanup(
             preferred: settings.cleanupEngine,
             available: availableCleanup)
@@ -779,7 +785,29 @@ final class DictationCoordinator {
     func refreshAvailability() async {
         availableTranscription = await EngineFactory.availableTranscription()
         availableCleanup = await EngineFactory.availableCleanup()
+        languageSupport = await EngineFactory.languageSupport()
         if availableTranscription.isEmpty { availableTranscription = [.appleOnDevice] }
         refreshModelStates()
+    }
+
+    // MARK: - Language compatibility
+
+    /// Non-nil when the selected engine can't transcribe the selected language
+    /// and dictation will silently run on a different engine. Shown under the
+    /// Language picker (Settings and setup) so the fallback is never a surprise.
+    var languageFallbackNotice: String? {
+        let preferred = settings.transcriptionEngine
+        guard !languageSupport.supports(preferred, locale: settings.locale) else { return nil }
+        let resolved = EngineResolver.resolveTranscription(
+            preferred: preferred,
+            available: availableTranscription,
+            locale: settings.locale,
+            support: languageSupport)
+        let language = Locale.current.localizedString(
+            forLanguageCode: LanguageTag.code(for: settings.locale)) ?? settings.locale
+        if resolved == preferred {
+            return "\(preferred.displayName) doesn't support \(language) — dictation may come out empty or wrong."
+        }
+        return "\(preferred.displayName) doesn't support \(language) — VoiceType will use \(resolved.displayName) instead."
     }
 }
