@@ -66,9 +66,18 @@ struct HomeView: View {
 
     private var greetingText: String {
         let hour = Calendar.current.component(.hour, from: Date())
-        let part = hour < 12 ? "morning" : (hour < 18 ? "afternoon" : "evening")
-        if let name = Self.firstName { return "Good \(part), \(name)" }
-        return "Good \(part)"
+        if let name = Self.firstName {
+            switch hour {
+            case ..<12: return L("Good morning, \(name)")
+            case ..<18: return L("Good afternoon, \(name)")
+            default: return L("Good evening, \(name)")
+            }
+        }
+        switch hour {
+        case ..<12: return L("Good morning")
+        case ..<18: return L("Good afternoon")
+        default: return L("Good evening")
+        }
     }
 
     private static let firstName: String? = {
@@ -84,7 +93,7 @@ struct HomeView: View {
             BrandMark(color: .white)
                 .frame(width: 64, height: 32)
             VStack(alignment: .leading, spacing: VT.Space.xs) {
-                Text("Speak anywhere, get clean text instantly")
+                Text(L("Speak anywhere, get clean text instantly"))
                     .font(.system(.title2, design: .rounded).weight(.semibold))
                     .foregroundStyle(.white)
                 Text(quickStartLine)
@@ -99,8 +108,10 @@ struct HomeView: View {
     }
 
     private var quickStartLine: String {
-        let verb = coordinator.settings.hotkey.holdToTalk ? "Hold" : "Tap"
-        return "\(verb) \(coordinator.settings.hotkey.trigger.displayName) anywhere and start speaking — your words land in the focused app."
+        let key = L(dynamic: coordinator.settings.hotkey.trigger.displayName)
+        return coordinator.settings.hotkey.holdToTalk
+            ? L("Hold \(key) anywhere and start speaking — your words land in the focused app.")
+            : L("Tap \(key) anywhere and start speaking — your words land in the focused app.")
     }
 
     // MARK: Overview — gauge + headline numbers
@@ -109,16 +120,16 @@ struct HomeView: View {
         FrostedCard {
             HStack(alignment: .center, spacing: VT.Space.xl) {
                 RadialGauge(value: Double(coordinator.stats.averageWordsPerMinute),
-                            label: "WPM",
+                            label: L("WPM"),
                             valueText: coordinator.stats.averageWordsPerMinute.formatted())
                     .frame(width: 132, height: 132)
                 VStack(alignment: .leading, spacing: VT.Space.m) {
                     StatRow(value: coordinator.stats.totalWords.formatted(),
-                            label: "total words", symbol: "text.word.spacing")
+                            label: L("total words"), symbol: "text.word.spacing")
                     StatRow(value: coordinator.stats.currentStreak.formatted(),
-                            label: "day streak", symbol: "flame")
+                            label: L("day streak"), symbol: "flame")
                     StatRow(value: coordinator.stats.sessionCount.formatted(),
-                            label: "dictations", symbol: "mic")
+                            label: L("dictations"), symbol: "mic")
                 }
                 Spacer(minLength: 0)
             }
@@ -130,7 +141,7 @@ struct HomeView: View {
     private var activityCard: some View {
         FrostedCard {
             VStack(alignment: .leading, spacing: VT.Space.m) {
-                SectionLabel("Activity")
+                SectionLabel(L("Activity"))
                 ScrollView(.horizontal, showsIndicators: false) {
                     ActivityHeatmap(days: coordinator.dailyStats.window(endingOn: Date(), days: 364))
                 }
@@ -160,7 +171,7 @@ struct HomeView: View {
         let maxWords = max(1, apps.map(\.words).max() ?? 1)
         return FrostedCard {
             VStack(alignment: .leading, spacing: VT.Space.m) {
-                SectionLabel("Where you dictate")
+                SectionLabel(L("Where you dictate"))
                 ForEach(apps) { app in
                     AppUsageRow(app: app, fraction: Double(app.words) / Double(maxWords))
                 }
@@ -173,10 +184,10 @@ struct HomeView: View {
         FrostedCard {
             VStack(alignment: .leading, spacing: VT.Space.m) {
                 HStack {
-                    SectionLabel("Insights")
+                    SectionLabel(L("Insights"))
                     Spacer()
                     if summaryPhase == .idle && !coordinator.insights.bullets.isEmpty {
-                        Button("Summarize my usage") { startSummary() }
+                        Button(L("Summarize my usage")) { startSummary() }
                             .buttonStyle(.borderless)
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(VT.tint)
@@ -217,7 +228,7 @@ struct HomeView: View {
     @ViewBuilder
     private var statsContent: some View {
         if coordinator.insights.bullets.isEmpty {
-            Text("Dictate a little and patterns will appear here.")
+            Text(L("Dictate a little and patterns will appear here."))
                 .font(.callout)
                 .foregroundStyle(.secondary)
         } else {
@@ -266,17 +277,17 @@ struct HomeView: View {
         FrostedCard {
             VStack(alignment: .leading, spacing: VT.Space.m) {
                 HStack {
-                    SectionLabel("Recent transcripts")
+                    SectionLabel(L("Recent transcripts"))
                     Spacer()
                     if !coordinator.history.records.isEmpty {
-                        Button("View all") { onNavigate(.transcripts) }
+                        Button(L("View all")) { onNavigate(.transcripts) }
                             .buttonStyle(.plain)
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(VT.tint)
                     }
                 }
                 if coordinator.history.records.isEmpty {
-                    Text("Your dictations will show up here.")
+                    Text(L("Your dictations will show up here."))
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -311,10 +322,10 @@ struct HomeView: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(.orange)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Finish setup to start dictating")
+                    Text(L("Finish setup to start dictating"))
                         .font(.callout.weight(.medium))
                         .foregroundStyle(.primary)
-                    Text("VoiceType needs microphone, speech, and accessibility access.")
+                    Text(L("VoiceType needs microphone, speech, and accessibility access."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

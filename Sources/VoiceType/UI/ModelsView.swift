@@ -13,8 +13,8 @@ struct ModelsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: VT.Space.l) {
-                PageHeader(title: "Models",
-                           subtitle: "Pick the on-device engine that turns your voice into text — it all stays on your Mac.")
+                PageHeader(title: L("Models"),
+                           subtitle: L("Pick the on-device engine that turns your voice into text — it all stays on your Mac."))
 
                 table
             }
@@ -32,7 +32,7 @@ struct ModelsView: View {
         VStack(spacing: 0) {
             Divider()
             Button(action: revealModels) {
-                Label("Show downloaded models in Finder", systemImage: "folder")
+                Label(L("Show downloaded models in Finder"), systemImage: "folder")
                     .font(.callout)
             }
             .buttonStyle(.plain)
@@ -40,7 +40,7 @@ struct ModelsView: View {
             .padding(.vertical, VT.Space.m)
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
-            .help("Open the folders on disk that hold your downloaded speech models")
+            .help(L("Open the folders on disk that hold your downloaded speech models"))
         }
         .background(.bar)
     }
@@ -119,15 +119,15 @@ private struct EngineRow: View {
                         Text(kind.displayName)
                             .font(.system(.body, design: .rounded).weight(.semibold))
                         if isSelected {
-                            Tag(text: "Active", tint: VT.tint)
+                            Tag(text: L("Active"), tint: VT.tint)
                         } else if !kind.requiresDownload {
-                            Tag(text: "Built-in")
+                            Tag(text: L("Built-in"))
                         }
                         if !coordinator.languageSupport.supports(kind, locale: coordinator.settings.locale) {
-                            Tag(text: "Not available for \(dictationLanguageName)", tint: .orange)
+                            Tag(text: L("Not available for \(dictationLanguageName)"), tint: .orange)
                         }
                     }
-                    Text(kind.summary)
+                    Text(L(dynamic: kind.summary))
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -139,7 +139,7 @@ private struct EngineRow: View {
                     ForEach(kind.features, id: \.self) { feature in
                         HStack(spacing: 6) {
                             Circle().fill(Color.secondary.opacity(0.6)).frame(width: 4, height: 4)
-                            Text(feature).font(.caption).foregroundStyle(.secondary)
+                            Text(L(dynamic: feature)).font(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -182,7 +182,7 @@ private struct EngineRow: View {
         case .builtIn, .ready:
             HStack(spacing: VT.Space.s) {
                 Button { toggleTest() } label: {
-                    Label("Test", systemImage: "waveform")
+                    Label(L("Test"), systemImage: "waveform")
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
@@ -194,7 +194,7 @@ private struct EngineRow: View {
                     }
                     .buttonStyle(.borderless)
                     .tint(.red)
-                    .help("Remove model")
+                    .help(L("Remove model"))
                 }
             }
         case .notDownloaded:
@@ -204,7 +204,7 @@ private struct EngineRow: View {
             }
             .buttonStyle(.borderless)
             .tint(VT.tint)
-            .help(kind.approxDownloadSize.map { "Download (\($0))" } ?? "Download")
+            .help(kind.approxDownloadSize.map { L("Download (\($0))") } ?? L("Download"))
         case .downloading(let fraction):
             VStack(spacing: 3) {
                 if let fraction {
@@ -214,11 +214,11 @@ private struct EngineRow: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ProgressView().controlSize(.small)
-                    Text("Downloading…").font(.caption2).foregroundStyle(.secondary)
+                    Text(L("Downloading…")).font(.caption2).foregroundStyle(.secondary)
                 }
             }
         case .failed(let message):
-            Button("Retry") { coordinator.downloadModel(kind) }
+            Button(L("Retry")) { coordinator.downloadModel(kind) }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .help(message)
@@ -257,7 +257,7 @@ private struct TestPanel: View {
             Image(systemName: "waveform")
                 .font(.caption2)
                 .foregroundStyle(VT.tint)
-            Text("Test \(kind.displayName)")
+            Text(L("Test \(kind.displayName)"))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
             Spacer()
@@ -267,7 +267,7 @@ private struct TestPanel: View {
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
-            .help("Close")
+            .help(L("Close"))
         }
     }
 
@@ -277,12 +277,12 @@ private struct TestPanel: View {
         case .idle:
             HStack(spacing: VT.Space.m) {
                 Button { coordinator.startTest(kind) } label: {
-                    Label("Record", systemImage: "mic.fill")
+                    Label(L("Record"), systemImage: "mic.fill")
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
                 .tint(VT.tint)
-                Text("Speak a short phrase to hear how it transcribes.")
+                Text(L("Speak a short phrase to hear how it transcribes."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -290,12 +290,12 @@ private struct TestPanel: View {
         case .recording:
             HStack(spacing: VT.Space.s) {
                 PulsingDot()
-                Text("Recording…")
+                Text(L("Recording…"))
                     .font(.callout)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button { coordinator.stopTest(kind) } label: {
-                    Label("Stop", systemImage: "stop.fill")
+                    Label(L("Stop"), systemImage: "stop.fill")
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
@@ -305,7 +305,7 @@ private struct TestPanel: View {
         case .transcribing:
             HStack(spacing: VT.Space.s) {
                 ProgressView().controlSize(.small)
-                Text("Transcribing…")
+                Text(L("Transcribing…"))
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
@@ -329,7 +329,7 @@ private struct TestPanel: View {
 
                 HStack(spacing: VT.Space.m) {
                     Button { coordinator.clearTest(kind); coordinator.startTest(kind) } label: {
-                        Label("Record again", systemImage: "arrow.counterclockwise")
+                        Label(L("Record again"), systemImage: "arrow.counterclockwise")
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
@@ -344,7 +344,7 @@ private struct TestPanel: View {
                     .font(.callout)
                     .foregroundStyle(.orange)
                 Spacer()
-                Button("Try again") {
+                Button(L("Try again")) {
                     coordinator.clearTest(kind)
                     coordinator.startTest(kind)
                 }

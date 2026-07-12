@@ -33,49 +33,49 @@ private struct GeneralSections: View {
             }
 
             Section {
-                Toggle("Play a sound when recording starts and stops",
+                Toggle(L("Play a sound when recording starts and stops"),
                        isOn: $coordinator.settings.soundFeedback)
-                Toggle("Keep an on-device history of recent dictations",
+                Toggle(L("Keep an on-device history of recent dictations"),
                        isOn: $coordinator.settings.keepHistory)
-                Text("Stored locally and never leaves your Mac; audio is never saved. Turning this off just pauses new recordings — your existing transcripts are kept. Delete them anytime from Transcripts.")
+                Text(L("Stored locally and never leaves your Mac; audio is never saved. Turning this off just pauses new recordings — your existing transcripts are kept. Delete them anytime from Transcripts."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } header: {
-                Text("Feedback")
+                Text(L("Feedback"))
             }
 
             Section {
-                Toggle("Show a resting indicator when idle",
+                Toggle(L("Show a resting indicator when idle"),
                        isOn: $coordinator.settings.showRestingIndicator)
-                Text("The oval still appears normally whenever you dictate — this only hides the small sliver shown at rest.")
+                Text(L("The oval still appears normally whenever you dictate — this only hides the small sliver shown at rest."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } header: {
-                Text("Indicator")
+                Text(L("Indicator"))
             }
 
             Section {
-                Toggle("Open VoiceType at login", isOn: Binding(
+                Toggle(L("Open VoiceType at login"), isOn: Binding(
                     get: { coordinator.launchAtLoginEnabled },
                     set: { coordinator.setLaunchAtLogin($0) }))
 
                 if coordinator.launchAtLoginRequiresApproval {
                     HStack {
-                        Label("Needs approval in Login Items", systemImage: "exclamationmark.triangle.fill")
+                        Label(L("Needs approval in Login Items"), systemImage: "exclamationmark.triangle.fill")
                             .font(.caption)
                             .foregroundStyle(.orange)
                         Spacer()
-                        Button("Open Settings") {
+                        Button(L("Open Settings")) {
                             coordinator.openLoginItemsSettings()
                         }
                     }
                 }
             } header: {
-                Text("Startup")
+                Text(L("Startup"))
             }
 
             Section {
-                Picker("Language", selection: $coordinator.settings.locale) {
+                Picker(L("Language"), selection: $coordinator.settings.locale) {
                     ForEach(DictationLanguage.sortedForDisplay) { language in
                         Text(language.localizedName).tag(language.code)
                     }
@@ -91,7 +91,7 @@ private struct GeneralSections: View {
                     .foregroundStyle(.secondary)
                 }
             } header: {
-                Text("Language")
+                Text(L("Language"))
             }
         }
     }
@@ -105,31 +105,31 @@ private struct CleanupSections: View {
     var body: some View {
         Group {
             Section {
-                Picker("Engine", selection: $coordinator.settings.cleanupEngine) {
+                Picker(L("Engine"), selection: $coordinator.settings.cleanupEngine) {
                     ForEach(CleanupEngineKind.allCases, id: \.self) { kind in
-                        Text(kind.displayName).tag(kind)
+                        Text(L(dynamic: kind.displayName)).tag(kind)
                     }
                 }
                 .pickerStyle(.radioGroup)
 
                 cleanupStatusNote(for: coordinator.settings.cleanupEngine)
             } header: {
-                Text("Cleanup")
+                Text(L("Cleanup"))
             } footer: {
-                Text("Cleanup only changes delivery — punctuation, casing, fillers — never your meaning. It falls back to raw text if it can't run.")
+                Text(L("Cleanup only changes delivery — punctuation, casing, fillers — never your meaning. It falls back to raw text if it can't run."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             Section {
-                Toggle("Remove filler words (um, uh, like)",
+                Toggle(L("Remove filler words (um, uh, like)"),
                        isOn: $coordinator.settings.cleanupOptions.removeFillers)
-                Toggle("Add punctuation",
+                Toggle(L("Add punctuation"),
                        isOn: $coordinator.settings.cleanupOptions.addPunctuation)
-                Toggle("Fix capitalization",
+                Toggle(L("Fix capitalization"),
                        isOn: $coordinator.settings.cleanupOptions.fixCapitalization)
             } header: {
-                Text("What to clean up")
+                Text(L("What to clean up"))
             }
             .disabled(coordinator.settings.cleanupEngine == .none)
 
@@ -142,17 +142,17 @@ private struct CleanupSections: View {
         case .foundationModels:
             EngineStatusRow(
                 ready: coordinator.availableCleanup.contains(.foundationModels),
-                readyText: "Ready. Runs on-device with Apple Intelligence.",
-                pendingText: "Needs Apple Intelligence; falls back to built-in rules if unavailable.")
+                readyText: L("Ready. Runs on-device with Apple Intelligence."),
+                pendingText: L("Needs Apple Intelligence; falls back to built-in rules if unavailable."))
         case .ruleBased:
             EngineStatusRow(
                 ready: true,
-                readyText: "Always available. Deterministic, on-device.",
+                readyText: L("Always available. Deterministic, on-device."),
                 pendingText: "")
         case .none:
             EngineStatusRow(
                 ready: true,
-                readyText: "Inserts the raw transcript verbatim.",
+                readyText: L("Inserts the raw transcript verbatim."),
                 pendingText: "")
         }
     }
@@ -190,7 +190,7 @@ struct HotkeySelector: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: VT.Space.m) {
-            SectionLabel("Dictation key")
+            SectionLabel(L("Dictation key"))
 
             HStack(spacing: VT.Space.s) {
                 ForEach(Hotkey.Trigger.allCases, id: \.self) { trigger in
@@ -199,8 +199,8 @@ struct HotkeySelector: View {
             }
 
             Picker("", selection: $coordinator.settings.hotkey.holdToTalk) {
-                Text("Hold to talk").tag(true)
-                Text("Tap to talk").tag(false)
+                Text(L("Hold to talk")).tag(true)
+                Text(L("Tap to talk")).tag(false)
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -223,7 +223,7 @@ struct HotkeySelector: View {
             VStack(spacing: 3) {
                 Text(trigger.keyCap)
                     .font(.system(size: 20, weight: .semibold, design: .rounded))
-                Text(trigger.shortName)
+                Text(L(dynamic: trigger.shortName))
                     .font(.caption2)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -242,10 +242,9 @@ struct HotkeySelector: View {
     }
 
     private var previewLine: String {
-        let verb = hotkey.holdToTalk ? "Hold" : "Tap"
-        let tail = hotkey.holdToTalk
-            ? "anywhere and start talking — release to insert."
-            : "anywhere to start, then tap again to insert."
-        return "\(verb) \(hotkey.trigger.displayName) \(tail)"
+        let key = L(dynamic: hotkey.trigger.displayName)
+        return hotkey.holdToTalk
+            ? L("Hold \(key) anywhere and start talking — release to insert.")
+            : L("Tap \(key) anywhere to start, then tap again to insert.")
     }
 }
