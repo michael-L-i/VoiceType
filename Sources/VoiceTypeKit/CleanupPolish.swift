@@ -15,6 +15,7 @@ public enum CleanupPolish {
                              context: CleanupContext = .general,
                              locale: String = "en-US") -> String {
         var out = text
+        let pack = LanguagePack.pack(for: locale)
         // The model sometimes keeps the spoken joiner inside an identifier:
         // "max_underscore_retries" → "max_retries". Underscores only ever come
         // from explicit dictation, so this replacement cannot touch prose.
@@ -24,8 +25,11 @@ public enum CleanupPolish {
         // The model occasionally drifts into CJK punctuation ("。" for ".") even
         // when the words stay English — below the script guard's radar, since
         // punctuation isn't letters. Repair it unless the dictation language
-        // legitimately writes with these marks.
-        if !cjkPunctuationLanguages.contains(LanguageTag.code(for: locale)) {
+        // legitimately writes with these marks. Full-width languages get the
+        // opposite repair: the model drifts to ASCII "," inside Chinese text.
+        if pack.usesFullWidthPunctuation {
+            out = CJKPunctuation.normalize(out)
+        } else if !cjkPunctuationLanguages.contains(LanguageTag.code(for: locale)) {
             out = normalizeForeignPunctuation(out)
         }
 
@@ -34,10 +38,11 @@ public enum CleanupPolish {
         let isTerminal = context.category == .terminal
 
         if options.addPunctuation && !isTerminal {
-            out = ensureQuestionMark(out)
+            out = ensureQuestionMark(out, pack: pack)
         }
-        guard options.fixCapitalization, !isTerminal else { return out }
-        if LanguageTag.code(for: locale) == "en" {
+        guard options.fixCapitalization, !isTerminal,
+              pack.separatesWordsWithSpaces else { return out }
+        if pack.code == "en" {
             out = RuleBasedCleanup.capitalizeStandaloneI(out)
         }
         return capitalizeFirstPlainWord(out)
@@ -58,20 +63,19 @@ public enum CleanupPolish {
         return String(text.flatMap { foreignPunctuation[$0] ?? String($0) })
     }
 
-    /// English words that open a direct question.
-    static let interrogatives: Set<String> = [
-        "what", "where", "when", "who", "whom", "whose", "why", "how",
-        "is", "are", "am", "was", "were", "do", "does", "did",
-        "can", "could", "will", "would", "should", "shall", "may", "might",
-    ]
-
-    /// Append "?" to an unpunctuated output that opens like a question. Fires
-    /// only when the model left NO terminal punctuation at all — if it chose
-    /// "." or anything else, we respect that choice.
-    static func ensureQuestionMark(_ text: String) -> String {
+    /// Append the question mark to an unpunctuated output that reads as a
+    /// question in the pack's language — opening interrogative words (English
+    /// "what/is/can…") or a sentence-final particle (Chinese …吗). Fires only
+    /// when the model left NO terminal punctuation at all — if it chose "." or
+    /// anything else, we respect that choice.
+    static func ensureQuestionMark(_ text: String, pack: LanguagePack = .english) -> String {
         guard let last = text.last, last.isLetter || last.isNumber else { return text }
+        if pack.questionSuffixParticles.contains(String(last)) {
+            return text + "？"
+        }
+        guard !pack.questionPrefixWords.isEmpty else { return text }
         let first = text.prefix(while: { !$0.isWhitespace }).lowercased()
-        guard interrogatives.contains(first) else { return text }
+        guard pack.questionPrefixWords.contains(first) else { return text }
         return text + "?"
     }
 

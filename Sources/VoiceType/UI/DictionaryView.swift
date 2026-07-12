@@ -366,7 +366,11 @@ struct DictionaryView: View {
         for replacement in replacements {
             let from = replacement.from.trimmingCharacters(in: .whitespaces)
             guard !from.isEmpty else { continue }
-            let pattern = "(?<!\\w)" + NSRegularExpression.escapedPattern(for: from) + "(?!\\w)"
+            // Mirrors WordReplacements.apply: CJK phrases match literally —
+            // ICU's \w matches Han, so word-edge lookarounds would never fire.
+            let containsCJK = from.unicodeScalars.contains { CJKPunctuation.isHan($0) }
+            let escaped = NSRegularExpression.escapedPattern(for: from)
+            let pattern = containsCJK ? escaped : "(?<!\\w)" + escaped + "(?!\\w)"
             guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
                 continue
             }

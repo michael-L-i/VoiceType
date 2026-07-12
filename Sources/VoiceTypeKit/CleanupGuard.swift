@@ -54,6 +54,7 @@ public enum CleanupGuard {
             || looksFabricated(raw: raw, cleaned: cleaned)
             || droppedOpening(raw: raw, cleaned: cleaned)
             || introducedForeignScript(raw: raw, cleaned: cleaned)
+            || lostDominantScript(raw: raw, cleaned: cleaned)
     }
 
     // MARK: - Script faithfulness
@@ -80,6 +81,23 @@ public enum CleanupGuard {
     public static func introducedForeignScript(raw: String, cleaned: String) -> Bool {
         let introduced = scripts(in: cleaned).subtracting(scripts(in: raw))
         return !introduced.isEmpty
+    }
+
+    /// True when the raw dictation is majority-Han but the cleaned output has
+    /// no Han at all — the model translated instead of cleaning. The
+    /// foreign-script check above can't see this direction: Latin is
+    /// deliberately untracked there (code and brand names inside CJK dictation
+    /// are normal), so zh→English translation slips past it.
+    public static func lostDominantScript(raw: String, cleaned: String) -> Bool {
+        guard !cleaned.isEmpty else { return false }
+        var rawHan = 0
+        var rawLetters = 0
+        for scalar in raw.unicodeScalars where scalar.properties.isAlphabetic {
+            rawLetters += 1
+            if CJKPunctuation.isHan(scalar) { rawHan += 1 }
+        }
+        guard rawLetters > 0, rawHan * 2 > rawLetters else { return false }
+        return !cleaned.unicodeScalars.contains { CJKPunctuation.isHan($0) }
     }
 
     private static func scripts(in text: String) -> Set<String> {
@@ -129,7 +147,7 @@ public enum CleanupGuard {
         guard contentWordCount(raw) >= minimumContentWords else { return false }
         let probe = words(raw).prefix(8).filter { word in
             word.count >= 2
-                && !RuleBasedCleanup.fillers.contains(word)
+                && !LanguagePack.english.fillers.contains(word)
                 && !spokenSymbols.contains(word)
                 && !openerStopwords.contains(word)
         }
@@ -174,7 +192,7 @@ public enum CleanupGuard {
     /// Whitespace-split words minus fillers and spoken-symbol tokens.
     static func contentWordCount(_ text: String) -> Int {
         words(text).count { word in
-            !RuleBasedCleanup.fillers.contains(word) && !spokenSymbols.contains(word)
+            !LanguagePack.english.fillers.contains(word) && !spokenSymbols.contains(word)
         }
     }
 
