@@ -49,7 +49,7 @@ public struct LanguagePack: Sendable {
     /// Every language with bespoke cleanup behavior. Order is irrelevant;
     /// lookup is by primary subtag.
     public static let all: [LanguagePack] = [
-        .english, .chinese, .german, .spanish, .french, .italian, .japanese, .korean,
+        .english, .chinese, .german, .spanish, .french, .italian, .japanese, .korean, .dutch,
     ]
 
     /// Languages without a pack get neutral behavior: no fillers, no spoken
