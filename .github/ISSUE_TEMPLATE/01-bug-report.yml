@@ -1,0 +1,115 @@
+name: Bug report
+description: Report a reproducible problem with VoiceType
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve VoiceType.
+
+        Please do not include private transcripts, audio, API keys, or other sensitive data. If the issue may be a security vulnerability, use the private reporting link in the issue chooser instead.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      description: Which part of VoiceType is having a problem?
+      options:
+        - Global hotkey
+        - Recording or audio capture
+        - Transcription
+        - Text cleanup
+        - Text insertion
+        - Models or downloads
+        - Settings or interface
+        - Installation or updates
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: What happened?
+      description: Describe the problem and what VoiceType did.
+      placeholder: Tell us what you observed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Give us the smallest reliable sequence that triggers the problem.
+      placeholder: |
+        1. Open ...
+        2. Hold ...
+        3. Say ...
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: What did you expect VoiceType to do?
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: VoiceType version
+      description: Find this in VoiceType > About VoiceType.
+      placeholder: v2.4.0
+    validations:
+      required: true
+
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      placeholder: macOS 26.0
+    validations:
+      required: true
+
+  - type: input
+    id: hardware
+    attributes:
+      label: Mac model and chip
+      placeholder: MacBook Air, Apple M2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: engine
+    attributes:
+      label: Transcription engine
+      options:
+        - Apple Speech
+        - NVIDIA Parakeet
+        - Whisper
+        - Not applicable or unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add sanitized logs, screenshots, or other details that may help. Drag files here to attach them.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I reviewed this report and removed private transcripts, audio, credentials, and other sensitive data.
+          required: true
+        - label: I agree to follow the project's Code of Conduct.
+          required: true
