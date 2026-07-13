@@ -24,6 +24,7 @@
 		<string>ko</string>
 		<string>nl</string>
 		<string>pl</string>
+		<string>pt-BR</string>
 	</array>
 	<key>CFBundleName</key>
 	<string>VoiceType</string>
