@@ -23,6 +23,7 @@
 		<string>ja</string>
 		<string>ko</string>
 		<string>nl</string>
+		<string>pl</string>
 	</array>
 	<key>CFBundleName</key>
 	<string>VoiceType</string>
