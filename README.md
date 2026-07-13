@@ -4,11 +4,12 @@
 
 # VoiceType
 
-### Speak anywhere, get clean text instantly — on-device.
+### Speak anywhere, in your language — clean text instantly, all on-device.
 
-A fast, private, open-source voice-dictation app for macOS. Hold a key, talk, and
-your words land as clean, punctuated text in whatever app you're using. Your audio
-never leaves your Mac — everything runs on-device with Apple Intelligence.
+A fast, private, open-source voice-dictation app for macOS. Hold a key, talk —
+in English, 中文, Español, 日本語, or 30+ other languages — and your words land
+as clean, punctuated text in whatever app you're using. Your audio never leaves
+your Mac — everything runs on-device.
 
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
@@ -16,7 +17,25 @@ never leaves your Mac — everything runs on-device with Apple Intelligence.
 &nbsp;[![Platform](https://img.shields.io/badge/macOS-26%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
+&nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
 &nbsp;[![License](https://img.shields.io/badge/license-MIT-111111)](./LICENSE)
+
+**English** ·
+[简体中文](./docs/readme/README.zh-Hans.md) ·
+[Deutsch](./docs/readme/README.de.md) ·
+[Español](./docs/readme/README.es.md) ·
+[Français](./docs/readme/README.fr.md) ·
+[Italiano](./docs/readme/README.it.md) ·
+[日本語](./docs/readme/README.ja.md) ·
+[한국어](./docs/readme/README.ko.md) ·
+[Nederlands](./docs/readme/README.nl.md) ·
+[Polski](./docs/readme/README.pl.md) ·
+[Português](./docs/readme/README.pt-BR.md) ·
+[Русский](./docs/readme/README.ru.md) ·
+[Svenska](./docs/readme/README.sv.md) ·
+[Türkçe](./docs/readme/README.tr.md) ·
+[Українська](./docs/readme/README.uk.md) ·
+[Tiếng Việt](./docs/readme/README.vi.md)
 
 </div>
 
@@ -29,6 +48,7 @@ never leaves your Mac — everything runs on-device with Apple Intelligence.
 
 - 🔒 **Private by design.** Audio and transcripts stay on your Mac. No account, no telemetry, no cloud — there's nothing to opt out of.
 - ⚡ **Latency is the feature.** Native Swift with Apple's on-device speech model — time-to-text is what we optimize.
+- 🌍 **Speaks your language.** Dictate in 30+ languages — not just English. Cleanup understands each language's conventions (full-width 中文 punctuation, spoken 句号, language-aware fillers), the app picks an engine that actually supports your language, and the UI itself ships in 16 languages.
 - 🎙️ **Press-to-talk anywhere.** A global hotkey works in any app; the cleaned text is inserted right where your cursor is.
 - ✨ **Smart cleanup.** Punctuation, capitalization, and filler removal — without ever changing your words.
 - 📊 **Your voice, visualized.** A calm Home dashboard tracks your words, pace, and day streaks, with a full activity heatmap and a friendly, on-device usage summary — all computed on your Mac.
@@ -78,6 +98,30 @@ run, and always degrades to plain text rather than failing.
 > The Parakeet speech model is © NVIDIA, licensed under
 > [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/). FluidAudio is
 > Apache-2.0. Whisper is OpenAI (MIT); WhisperKit is MIT.
+
+<a name="languages"></a>
+## Languages
+
+VoiceType is multilingual end-to-end, not English-with-subtitles:
+
+- **Dictate in 30+ languages** — English, 中文, Español, Français, Deutsch,
+  日本語, 한국어, Português, Русский, Tiếng Việt, and more. You pick the
+  language; VoiceType never guesses.
+- **Engines are matched to your language.** Each speech model declares what it
+  supports (Parakeet is European-only; Nemotron covers 40 locales including
+  Chinese; Whisper is broadly multilingual; Apple's list comes from macOS).
+  Models that can't handle your language gray out, and VoiceType switches to
+  one that can.
+- **Cleanup knows the language.** Each language ships a small, reviewable
+  "language pack": its filler words (嗯/呃, ähm, euh — never words that carry
+  meaning), its punctuation conventions (full-width 。，？ for Chinese and
+  Japanese, spoken 句号/読点 rendered as marks), and its question heuristics.
+- **The app itself is localized** into 16 languages, following your macOS
+  system language (per-app override in System Settings works too).
+
+Your language missing, or a translation off? Adding a language is deliberately
+small — a UI translation needs no Swift at all — see
+[docs/LOCALIZATION.md](./docs/LOCALIZATION.md).
 
 <a name="privacy"></a>
 ## Privacy
