@@ -202,9 +202,9 @@ public struct RuleBasedCleanup: CleanupEngine {
         }
         if pack.usesFullWidthPunctuation {
             // Append 。 only when the sentence actually ends in the language's
-            // own script — a trailing English brand or identifier stays bare,
-            // same as the Latin rule below.
-            guard let scalar = last.unicodeScalars.first, CJKPunctuation.isHan(scalar) else {
+            // own script (Han or kana) — a trailing English brand or identifier
+            // stays bare, same as the Latin rule below.
+            guard let scalar = last.unicodeScalars.first, CJKPunctuation.isCJKLetter(scalar) else {
                 return text
             }
             return text + pack.terminalPeriod

@@ -18,6 +18,19 @@ public enum CJKPunctuation {
         }
     }
 
+    /// True for any CJK letter — Han plus the kana Japanese text is mostly
+    /// written in. The spacing/terminal rules anchor on this so they work for
+    /// Japanese sentences that end in ます/です, not just kanji.
+    public static func isCJKLetter(_ scalar: Unicode.Scalar) -> Bool {
+        if isHan(scalar) { return true }
+        switch scalar.value {
+        case 0x3040...0x309F, 0x30A0...0x30FF, 0x31F0...0x31FF:
+            return true
+        default:
+            return false
+        }
+    }
+
     /// Normalize a full-width-language text:
     /// 1. ASCII `, ? ! : ;` after a Han character become full-width (the mark
     ///    engines/models most often get wrong), swallowing any following space.
@@ -31,14 +44,15 @@ public enum CJKPunctuation {
     ///    punctuation stays idempotent when the engine already rendered it.
     public static func normalize(_ text: String) -> String {
         var out = text
-        let han = "\\p{Han}"
-        // 1. ASCII → full-width after Han.
+        // Han plus kana, so the same rules serve Chinese and Japanese.
+        let han = "[\\p{Han}\\p{Hiragana}\\p{Katakana}]"
+        // 1. ASCII → full-width after a CJK letter.
         for (ascii, full) in [(",", "，"), ("?", "？"), ("!", "！"), (":", "："), (";", "；")] {
             out = replace(out, "(?<=\(han))\\\(ascii)[ \\t]*", full)
         }
         // 2. Sentence period, guarded against identifier/decimal tails.
         out = replace(out, "(?<=\(han))\\.(?![A-Za-z0-9._~/\\\\-])[ \\t]*", "。")
-        // 3. Inter-Han and around-mark spaces.
+        // 3. Inter-letter and around-mark spaces.
         out = replace(out, "(?<=\(han))[ \\t]+(?=\(han))", "")
         out = replace(out, "[ \\t]+(?=[\(fullWidthMarks)])", "")
         out = replace(out, "(?<=[\(fullWidthMarks)])[ \\t]+(?=\(han))", "")
