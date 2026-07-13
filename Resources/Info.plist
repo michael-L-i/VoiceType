@@ -18,6 +18,7 @@
 		<string>zh-Hans</string>
 		<string>de</string>
 		<string>es</string>
+		<string>fr</string>
 	</array>
 	<key>CFBundleName</key>
 	<string>VoiceType</string>
