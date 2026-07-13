@@ -14,7 +14,7 @@ struct LanguagePackRegistryTests {
 
     @Test("languages without a pack fall back to neutral (no fillers, no spoken punctuation)")
     func neutralFallback() {
-        let pack = LanguagePack.pack(for: "fr-FR")
+        let pack = LanguagePack.pack(for: "fi-FI")
         #expect(pack.code.isEmpty)
         #expect(pack.fillers.isEmpty)
         #expect(pack.spokenPunctuation.isEmpty)

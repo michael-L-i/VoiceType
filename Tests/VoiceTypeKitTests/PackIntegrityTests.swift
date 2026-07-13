@@ -61,10 +61,10 @@ struct PackIntegrityTests {
     func terminalConsistency() {
         for pack in LanguagePack.all {
             if pack.usesFullWidthPunctuation {
-                #expect(pack.terminalPeriod == "。", pack.code)
-                #expect(!pack.separatesWordsWithSpaces, pack.code)
+                #expect(pack.terminalPeriod == "。", "\(pack.code)")
+                #expect(!pack.separatesWordsWithSpaces, "\(pack.code)")
             } else {
-                #expect(pack.terminalPeriod == ".", pack.code)
+                #expect(pack.terminalPeriod == ".", "\(pack.code)")
             }
         }
     }
@@ -78,8 +78,8 @@ struct PackIntegrityTests {
             let carrier = "alpha beta gamma"
             let out = RuleBasedCleanup.process(carrier, options: .default,
                                                locale: "\(pack.code)-XX")
-            #expect(out.lowercased().contains("alpha"), pack.code)
-            #expect(out.lowercased().contains("gamma"), pack.code)
+            #expect(out.lowercased().contains("alpha"), "\(pack.code)")
+            #expect(out.lowercased().contains("gamma"), "\(pack.code)")
         }
     }
 }
