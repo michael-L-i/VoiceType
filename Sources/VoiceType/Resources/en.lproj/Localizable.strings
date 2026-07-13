@@ -1,7 +1,6 @@
 /* Generated for VoiceType. English text is the key; keep key sets in
    sync across every .lproj — Scripts/check-l10n.sh enforces parity. */
 
-"%@ doesn't support %@ — VoiceType will use %@ instead." = "%@ doesn't support %@ — VoiceType will use %@ instead.";
 "%@ doesn't support %@ — dictation may come out empty or wrong." = "%@ doesn't support %@ — dictation may come out empty or wrong.";
 "%lld of %lld ready" = "%lld of %lld ready";
 "%lld saved · on-device only, audio never stored." = "%lld saved · on-device only, audio never stored.";
@@ -144,6 +143,7 @@
 "Stored locally and never leaves your Mac; audio is never saved. Turning this off just pauses new recordings — your existing transcripts are kept. Delete them anytime from Transcripts." = "Stored locally and never leaves your Mac; audio is never saved. Turning this off just pauses new recordings — your existing transcripts are kept. Delete them anytime from Transcripts.";
 "Streaming" = "Streaming";
 "Summarize my usage" = "Summarize my usage";
+"Switched to %@ — %@ doesn't support %@." = "Switched to %@ — %@ doesn't support %@.";
 "Tap %@ anywhere and start speaking — your words land in the focused app." = "Tap %@ anywhere and start speaking — your words land in the focused app.";
 "Tap %@ anywhere to start, then tap again to insert." = "Tap %@ anywhere to start, then tap again to insert.";
 "Tap to talk" = "Tap to talk";
