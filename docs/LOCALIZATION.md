@@ -87,6 +87,18 @@ by what the rules engine produces.
   output, it doesn't ship.
 - `swift build && swift test` green before you push.
 
+## Status of the shipped languages
+
+Chinese (zh) is the reference implementation, tested against its own eval
+battery. The other non-English languages (de, es, fr, it, ja, ko, nl, pl,
+pt-BR, ru, sv, tr, uk, vi) were machine-authored following the house rules —
+conservative fillers, no ambiguous spoken punctuation — and reviewed
+structurally (`PackIntegrityTests`), but they have **not** been reviewed by
+native speakers and ship without per-language eval batteries. If that's your
+language: corrections to the UI translation, richer (still never-content)
+fillers, and a `cases.<code>.json` battery are the most valuable
+contributions you can make, and each is a small PR.
+
 ## Known gaps (help welcome)
 
 - Insights headlines/bullets and the usage summary are generated English prose
