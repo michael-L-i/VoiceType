@@ -48,7 +48,9 @@ public struct LanguagePack: Sendable {
 
     /// Every language with bespoke cleanup behavior. Order is irrelevant;
     /// lookup is by primary subtag.
-    public static let all: [LanguagePack] = [.english, .chinese]
+    public static let all: [LanguagePack] = [
+        .english, .chinese, .german, .spanish, .french, .italian, .japanese, .korean, .dutch, .polish, .portuguese, .russian, .swedish, .turkish, .ukrainian, .vietnamese,
+    ]
 
     /// Languages without a pack get neutral behavior: no fillers, no spoken
     /// punctuation, whitespace words, ASCII period — exactly what non-English
