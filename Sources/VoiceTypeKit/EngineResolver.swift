@@ -10,19 +10,34 @@ public enum EngineResolver {
     /// - Parameters:
     ///   - preferred: the user's choice.
     ///   - available: set of engine kinds reporting themselves available.
-    /// - Returns: the kind to run. Always returns a value: the preferred engine
-    ///   when available, otherwise the first available one, otherwise the
+    ///   - locale: the BCP-47 dictation language.
+    ///   - support: which languages each engine can transcribe.
+    /// - Returns: the kind to run. Always returns a value, preferring engines
+    ///   that can actually transcribe the language: the preferred engine when
+    ///   available and language-compatible, else the first compatible available
+    ///   one (`allCases` order puts Apple first), else the preferred/first
+    ///   available regardless of language (the UI has already warned), else the
     ///   preferred kind so the caller can surface a clear error.
     public static func resolveTranscription(preferred: TranscriptionEngineKind,
-                                            available: Set<TranscriptionEngineKind>) -> TranscriptionEngineKind {
+                                            available: Set<TranscriptionEngineKind>,
+                                            locale: String,
+                                            support: EngineLanguageSupport) -> TranscriptionEngineKind {
+        if available.contains(preferred), support.supports(preferred, locale: locale) {
+            return preferred
+        }
+        if let compatible = firstAvailableTranscription(available: available,
+                                                        where: { support.supports($0, locale: locale) }) {
+            return compatible
+        }
         if available.contains(preferred) {
             return preferred
         }
-        return firstAvailableTranscription(available: available) ?? preferred
+        return firstAvailableTranscription(available: available, where: { _ in true }) ?? preferred
     }
 
-    private static func firstAvailableTranscription(available: Set<TranscriptionEngineKind>) -> TranscriptionEngineKind? {
-        for kind in TranscriptionEngineKind.allCases where available.contains(kind) {
+    private static func firstAvailableTranscription(available: Set<TranscriptionEngineKind>,
+                                                    where matches: (TranscriptionEngineKind) -> Bool) -> TranscriptionEngineKind? {
+        for kind in TranscriptionEngineKind.allCases where available.contains(kind) && matches(kind) {
             return kind
         }
         return nil

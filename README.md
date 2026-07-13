@@ -97,6 +97,14 @@ swift test              # run the VoiceTypeKit unit tests
 open VoiceType.app
 ```
 
+## Contributing
+
+Contributions are welcome. Please read the [contribution guide](./CONTRIBUTING.md)
+for development requirements, privacy expectations, and pull-request guidance.
+All participants are expected to follow the [Code of Conduct](./CODE_OF_CONDUCT.md).
+For vulnerabilities, follow the private reporting process in our
+[Security Policy](./SECURITY.md).
+
 ## Architecture
 
 Native **Swift 6 / SwiftUI** Dock app (macOS 26) with a Home dashboard. Global

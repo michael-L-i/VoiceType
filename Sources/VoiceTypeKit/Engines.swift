@@ -71,7 +71,7 @@ public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
         case .appleOnDevice: return ["Built-in", "Streaming", "Multilingual"]
         case .parakeet: return ["~500 MB", "Multilingual", "Punctuation built-in"]
         case .whisperKit: return ["~150 MB", "Multilingual", "Light & fast"]
-        case .nemotron: return ["~665 MB", "100+ languages", "Punctuation built-in"]
+        case .nemotron: return ["~665 MB", "40 languages", "Punctuation built-in"]
         }
     }
 

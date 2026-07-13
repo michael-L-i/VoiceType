@@ -159,8 +159,7 @@ struct SetupView: View {
     }
 
     private var selectedLanguageName: String {
-        SettingsLanguage.all.first { $0.code == coordinator.settings.locale }?.name
-            ?? coordinator.settings.locale
+        DictationLanguage(code: coordinator.settings.locale).localizedName
     }
 
     // MARK: Focused card
@@ -344,8 +343,8 @@ private struct LanguageStepCard: View {
             }
             HStack(spacing: VT.Space.m) {
                 Picker("Language", selection: $coordinator.settings.locale) {
-                    ForEach(SettingsLanguage.all, id: \.code) { language in
-                        Text(language.name).tag(language.code)
+                    ForEach(DictationLanguage.sortedForDisplay) { language in
+                        Text(language.localizedName).tag(language.code)
                     }
                 }
                 .labelsHidden()
@@ -354,6 +353,16 @@ private struct LanguageStepCard: View {
                 Button("Continue", action: onContinue)
                     .buttonStyle(.borderedProminent).controlSize(.large).tint(VT.tint)
                 Spacer(minLength: 0)
+            }
+            if let notice = coordinator.languageFallbackNotice {
+                Label {
+                    Text(notice)
+                } icon: {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundStyle(.orange)
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
         }
         .padding(VT.Space.l)

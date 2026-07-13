@@ -91,6 +91,13 @@ private struct EngineRow: View {
     private var state: ModelAvailability { coordinator.modelState(for: kind) }
     private var isSelected: Bool { coordinator.settings.transcriptionEngine == kind }
 
+    /// The dictation language's name in the UI language, for the compatibility tag.
+    private var dictationLanguageName: String {
+        Locale.current.localizedString(
+            forLanguageCode: LanguageTag.code(for: coordinator.settings.locale))
+            ?? coordinator.settings.locale
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(alignment: .center, spacing: VT.Space.m) {
@@ -115,6 +122,9 @@ private struct EngineRow: View {
                             Tag(text: "Active", tint: VT.tint)
                         } else if !kind.requiresDownload {
                             Tag(text: "Built-in")
+                        }
+                        if !coordinator.languageSupport.supports(kind, locale: coordinator.settings.locale) {
+                            Tag(text: "Not available for \(dictationLanguageName)", tint: .orange)
                         }
                     }
                     Text(kind.summary)
