@@ -101,6 +101,9 @@ open VoiceType.app
 
 Contributions are welcome. Please read the [contribution guide](./CONTRIBUTING.md)
 for development requirements, privacy expectations, and pull-request guidance.
+Want VoiceType in your language? [docs/LOCALIZATION.md](./docs/LOCALIZATION.md)
+has the checklist — a UI translation needs no Swift at all, and dictation
+quality for a new language is one well-documented file.
 All participants are expected to follow the [Code of Conduct](./CODE_OF_CONDUCT.md).
 For vulnerabilities, follow the private reporting process in our
 [Security Policy](./SECURITY.md).

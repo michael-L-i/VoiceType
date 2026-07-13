@@ -1,0 +1,144 @@
+[
+  {
+    "id": "zh-spoken-period",
+    "transcript": "今天天气很好句号",
+    "locale": "zh-CN",
+    "exact": "今天天气很好。",
+    "note": "Spoken punctuation: 句号 renders as a full-width period."
+  },
+  {
+    "id": "zh-spoken-commas",
+    "transcript": "第一逗号第二逗号第三",
+    "locale": "zh-CN",
+    "exact": "第一，第二，第三。",
+    "note": "Spoken 逗号 renders full-width commas; terminal 。 appended on a Han ending."
+  },
+  {
+    "id": "zh-spoken-question",
+    "transcript": "你明天来吗问号",
+    "locale": "zh-CN",
+    "exact": "你明天来吗？",
+    "note": "Spoken 问号 renders ？ and doesn't double up with the 吗 heuristic."
+  },
+  {
+    "id": "zh-spoken-enum-comma",
+    "transcript": "我们需要苹果顿号香蕉顿号橙子",
+    "locale": "zh-CN",
+    "exact": "我们需要苹果、香蕉、橙子。",
+    "note": "Spoken 顿号 renders the enumeration comma."
+  },
+  {
+    "id": "zh-spoken-newline",
+    "transcript": "第一点换行第二点",
+    "locale": "zh-CN",
+    "exact": "第一点\n第二点。",
+    "note": "换行 inserts a real newline; the surrounding 点 (o'clock/list sense) is untouched."
+  },
+  {
+    "id": "zh-spoken-idempotent",
+    "transcript": "今天天气很好。句号",
+    "locale": "zh-CN",
+    "exact": "今天天气很好。",
+    "note": "Engine already rendered the mark AND the speaker said it — no doubling."
+  },
+  {
+    "id": "zh-filler-start",
+    "transcript": "嗯，今天天气很好",
+    "locale": "zh-CN",
+    "exact": "今天天气很好。",
+    "note": "Leading 嗯 is a pure disfluency — removed with its trailing comma."
+  },
+  {
+    "id": "zh-filler-mid",
+    "transcript": "我觉得，呃，这个方案更好",
+    "locale": "zh-CN",
+    "exact": "我觉得，这个方案更好。",
+    "note": "Mid-sentence 呃 after punctuation is removed without leaving doubled marks."
+  },
+  {
+    "id": "zh-ambiguous-fillers-kept",
+    "transcript": "那个方案就是最好的",
+    "locale": "zh-CN",
+    "mustContain": ["那个", "就是"],
+    "note": "Ambiguity policy: 那个/就是 are content words here — the deterministic pass must never touch them."
+  },
+  {
+    "id": "zh-fullwidth-comma",
+    "transcript": "今天很好,明天见",
+    "locale": "zh-CN",
+    "exact": "今天很好，明天见。",
+    "note": "ASCII comma inside Chinese text becomes full-width."
+  },
+  {
+    "id": "zh-question-particle",
+    "transcript": "你明天有空吗",
+    "locale": "zh-CN",
+    "exact": "你明天有空吗？",
+    "note": "Sentence-final 吗 with no terminal mark gains ？."
+  },
+  {
+    "id": "zh-terminal-period",
+    "transcript": "今天天气很好",
+    "locale": "zh-CN",
+    "exact": "今天天气很好。",
+    "note": "Plain statement ending in Han gains 。."
+  },
+  {
+    "id": "zh-english-tail-bare",
+    "transcript": "我在用 VoiceType",
+    "locale": "zh-CN",
+    "exact": "我在用 VoiceType",
+    "note": "A trailing English brand stays bare — no 。 glued onto ASCII."
+  },
+  {
+    "id": "zh-embedded-file",
+    "transcript": "请把 main.py 发给我",
+    "locale": "zh-CN",
+    "exact": "请把 main.py 发给我。",
+    "note": "Embedded file names keep ASCII dots and their boundary spacing."
+  },
+  {
+    "id": "zh-decimal-preserved",
+    "transcript": "圆周率大约是3.14",
+    "locale": "zh-CN",
+    "exact": "圆周率大约是3.14",
+    "note": "Decimal point never becomes 。 and a digit ending stays bare."
+  },
+  {
+    "id": "zh-whisper-spaces",
+    "transcript": "今天 天气 很好",
+    "locale": "zh-CN",
+    "exact": "今天天气很好。",
+    "note": "Whisper-style spaces between Han tokens are joined."
+  },
+  {
+    "id": "zh-mixed-tech",
+    "transcript": "帮我把 config.json 里的 timeout 改成三十逗号然后重启服务",
+    "locale": "zh-CN",
+    "exact": "帮我把 config.json 里的 timeout 改成三十，然后重启服务。",
+    "note": "Mixed zh+English tech dictation: identifiers ASCII, punctuation full-width."
+  },
+  {
+    "id": "zh-terminal-command",
+    "transcript": "git status",
+    "locale": "zh-CN",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "Terminal category stays command-safe regardless of dictation language."
+  },
+  {
+    "id": "zh-ramble-no-translation",
+    "transcript": "嗯今天的会议主要讨论了三件事第一是新版本的发布时间要往后推一周因为测试还没有做完第二是文档需要在发布之前更新好第三是嗯我们下个季度要招两个新工程师",
+    "locale": "zh-CN",
+    "mustContain": ["会议", "发布", "文档", "工程师"],
+    "mustNotContain": ["meeting", "release", "engineer"],
+    "note": "Anti-translation and anti-summarization: a long Chinese ramble stays Chinese and keeps every clause. Model path: lostDominantScript should trip on any translation."
+  },
+  {
+    "id": "zh-self-correction",
+    "transcript": "把会议改到周三不对周四下午",
+    "locale": "zh-CN",
+    "mustContain": ["周四"],
+    "note": "Self-correction is model territory (rules keep both); the model should keep only 周四. Judge the model run manually."
+  }
+]

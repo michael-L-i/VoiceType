@@ -16,9 +16,41 @@ public enum CleanupSanitizer {
     /// Strip any conversational wrapper the model added around the cleaned text.
     public static func strip(_ text: String) -> String {
         var s = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        s = removingMarkerEcho(s)
+        s = removingCodeFence(s)
         if let withoutLeadIn = removingLeadIn(s) { s = withoutLeadIn }
         if let unquoted = removingWrappingQuotes(s) { s = unquoted }
         return s.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// The model occasionally wraps the output in a Markdown code fence
+    /// (terminal dictation invites it: "git status\n```"). Nobody dictates
+    /// backtick fences — `SpokenSymbols` renders "backtick" as the character —
+    /// so a fence line at either edge is always the model's wrapper.
+    static func removingCodeFence(_ s: String) -> String {
+        var out = s
+        for pattern in [#"^\s*```[^\n]*\n"#, #"\n?\s*```\s*$"#] {
+            guard let re = try? NSRegularExpression(pattern: pattern) else { continue }
+            let range = NSRange(out.startIndex..., in: out)
+            out = re.stringByReplacingMatches(in: out, range: range, withTemplate: "")
+        }
+        return out
+    }
+
+    /// The model occasionally echoes the prompt's transcript fence back — a
+    /// trailing "<<<TRANSCRIPT … TRANSCRIPT>>>" block (usually empty), or a
+    /// stray marker on its own line. The markers are ours, never dictation, so
+    /// stripping them is always safe.
+    static func removingMarkerEcho(_ s: String) -> String {
+        var out = s
+        for pattern in [#"\s*<<<TRANSCRIPT\b[\s\S]*?TRANSCRIPT>>>\s*$"#,
+                        #"\s*<<<TRANSCRIPT\s*$"#,
+                        #"^\s*TRANSCRIPT>>>\s*"#] {
+            guard let re = try? NSRegularExpression(pattern: pattern) else { continue }
+            let range = NSRange(out.startIndex..., in: out)
+            out = re.stringByReplacingMatches(in: out, range: range, withTemplate: "")
+        }
+        return out
     }
 
     // A preamble worth stripping looks like an assistant talking ABOUT the output:

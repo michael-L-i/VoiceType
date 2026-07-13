@@ -55,6 +55,25 @@ public enum CleanupGuard {
             || droppedOpening(raw: raw, cleaned: cleaned)
             || introducedForeignScript(raw: raw, cleaned: cleaned)
             || lostDominantScript(raw: raw, cleaned: cleaned)
+            || droppedHanOpening(raw: raw, cleaned: cleaned)
+    }
+
+    /// CJK counterpart of `droppedOpening`, which is blind there (whitespace
+    /// tokenization yields no words to probe). The observed zh failure mode is
+    /// the model discarding a short imperative opener — "请把 main.py 发给我"
+    /// → "main.py 发给我". Probe: the first Han bigram (after skipping the
+    /// pack's unambiguous fillers) must survive somewhere in the output.
+    /// Tripping on a legitimately-removed hesitation opener is fine — the
+    /// fallback is the rules floor, which fails conservative by keeping it.
+    public static func droppedHanOpening(raw: String, cleaned: String) -> Bool {
+        let hanOnly = raw.filter { ch in
+            ch.unicodeScalars.first.map(CJKPunctuation.isHan) == true
+        }
+        guard hanOnly.count >= 4 else { return false }
+        let fillers: Set<Character> = ["嗯", "呃"]
+        let bigram = String(hanOnly.drop(while: { fillers.contains($0) }).prefix(2))
+        guard bigram.count == 2 else { return false }
+        return !cleaned.contains(bigram)
     }
 
     // MARK: - Script faithfulness
