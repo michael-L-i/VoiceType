@@ -24,43 +24,59 @@ public struct RuleBasedCleanup: CleanupEngine {
         var text = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return "" }
 
-        // Our deterministic filler list and the standalone-"I" rule are English.
-        // Applying them to other languages does nothing useful and can be wrong
-        // (e.g. Italian "i" is a real word), so gate them on the language.
-        let isEnglish = LanguageTag.code(for: locale) == "en"
+        // Everything language-specific — fillers, spoken punctuation, writing
+        // conventions — comes from the language pack. Languages nobody has
+        // contributed yet get `.neutral`, i.e. the safe passes only.
+        let pack = LanguagePack.pack(for: locale)
 
-        if options.removeFillers && isEnglish {
-            text = removeFillers(text)
+        if options.removeFillers && !pack.fillers.isEmpty {
+            text = removeFillers(text, pack: pack)
         }
 
         text = collapseWhitespace(text)
 
+        // Spoken punctuation names ("句号" → "。") render before any spacing
+        // or terminal-punctuation pass sees the text.
+        if !pack.spokenPunctuation.isEmpty {
+            text = renderSpokenPunctuation(text, pack: pack)
+        }
+
         // Render spoken symbol names ("main dot pie" → main.py) the same way
-        // the model prompt does. English-only: the trigger words are English.
-        if isEnglish {
+        // the model prompt does. English-only by SpokenSymbols' contract: the
+        // trigger words are English.
+        if pack.code == "en" {
             text = SpokenSymbols.render(text, category: context.category)
         }
 
-        // Tidy spacing around punctuation regardless of cleanup options, since
-        // raw transcribers occasionally emit " ," or doubled marks.
-        text = fixPunctuationSpacing(text)
+        // Tidy spacing/width around punctuation regardless of cleanup options,
+        // since raw transcribers occasionally emit " ," or doubled marks.
+        // Full-width languages get the CJK conventions instead of the
+        // Latin-spacing rules.
+        if pack.usesFullWidthPunctuation {
+            text = CJKPunctuation.normalize(text)
+        } else {
+            text = fixPunctuationSpacing(text)
+        }
 
         // In a terminal the text is likely a shell command: capitalizing the
         // first word ("Git status") or appending a period breaks it, while a
         // missing period on prose is merely cosmetic. Fail conservative.
         let isTerminal = context.category == .terminal
 
-        if options.fixCapitalization {
+        // Capitalization is meaningless without space-separated Latin words —
+        // and a leading English fragment inside Chinese dictation must stay
+        // exactly as spoken.
+        if options.fixCapitalization && pack.separatesWordsWithSpaces {
             if !isTerminal { text = capitalizeSentences(text) }
-            if isEnglish { text = capitalizeStandaloneI(text) }
+            if pack.code == "en" { text = capitalizeStandaloneI(text) }
         }
 
         if options.addPunctuation && !isTerminal {
             // Same deterministic question-mark heuristic the model path gets
             // from CleanupPolish — before the period rule, which would
             // otherwise claim the unpunctuated ending first.
-            text = CleanupPolish.ensureQuestionMark(text)
-            text = ensureTerminalPunctuation(text)
+            text = CleanupPolish.ensureQuestionMark(text, pack: pack)
+            text = ensureTerminalPunctuation(text, pack: pack)
         }
 
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -68,24 +84,45 @@ public struct RuleBasedCleanup: CleanupEngine {
 
     // MARK: - Filler removal
 
-    /// Standalone disfluencies to drop. Kept conservative: only tokens that are
-    /// almost never meaningful content. We deliberately do NOT strip "like",
-    /// "so", "well" — they're too often real words. Internal (not private) so
-    /// `CleanupGuard` counts content words with the same lexicon.
-    static let fillers: Set<String> = [
-        "um", "umm", "uh", "uhh", "uhm", "er", "erm", "ah", "hmm", "mhm",
-    ]
-
-    private static func removeFillers(_ text: String) -> String {
-        // Match a filler as a whole word (optionally trailed by a comma), case
-        // insensitive, including any surrounding spaces so we don't leave gaps.
-        let pattern = "\\b(" + fillers.map { NSRegularExpression.escapedPattern(for: $0) }.joined(separator: "|") + ")\\b,?"
+    private static func removeFillers(_ text: String, pack: LanguagePack) -> String {
+        let names = pack.fillers
+            .sorted { $0.count > $1.count }
+            .map { NSRegularExpression.escapedPattern(for: $0) }
+            .joined(separator: "|")
+        let pattern: String
+        if pack.separatesWordsWithSpaces {
+            // Match a filler as a whole word (optionally trailed by a comma),
+            // case insensitive, including any surrounding spaces so we don't
+            // leave gaps.
+            pattern = "\\b(" + names + ")\\b,?"
+        } else {
+            // No word boundaries in CJK text. A filler run is removed only when
+            // anchored at the start or after whitespace/punctuation — engines
+            // punctuate disfluencies ("嗯，今天…"), and the anchor keeps rare
+            // legitimate uses mid-word (呃逆) intact.
+            pattern = "(?:^|(?<=[\\s\\p{P}]))(?:" + names + ")+[，、,]?"
+        }
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
             return text
         }
         let range = NSRange(text.startIndex..., in: text)
-        let stripped = regex.stringByReplacingMatches(in: text, options: [], range: range, withTemplate: " ")
+        let template = pack.separatesWordsWithSpaces ? " " : ""
+        let stripped = regex.stringByReplacingMatches(in: text, options: [], range: range, withTemplate: template)
         return collapseWhitespace(stripped)
+    }
+
+    // MARK: - Spoken punctuation
+
+    /// Direct longest-name-first replacement of the pack's spoken punctuation
+    /// names. Unconditional by design (the iOS-dictation convention); doubled
+    /// marks from an engine that already rendered the name are collapsed by
+    /// the pack's punctuation normalization right after.
+    private static func renderSpokenPunctuation(_ text: String, pack: LanguagePack) -> String {
+        var out = text
+        for (name, mark) in pack.spokenPunctuation.sorted(by: { $0.key.count > $1.key.count }) {
+            out = out.replacingOccurrences(of: name, with: mark)
+        }
+        return out
     }
 
     // MARK: - Whitespace
@@ -148,10 +185,19 @@ public struct RuleBasedCleanup: CleanupEngine {
 
     // MARK: - Terminal punctuation
 
-    private static func ensureTerminalPunctuation(_ text: String) -> String {
+    private static func ensureTerminalPunctuation(_ text: String, pack: LanguagePack) -> String {
         guard let last = text.last else { return text }
-        if last == "." || last == "!" || last == "?" || last == ":" || last == "," {
+        if ".!?:,。！？：，…；;\n".contains(last) {
             return text
+        }
+        if pack.usesFullWidthPunctuation {
+            // Append 。 only when the sentence actually ends in the language's
+            // own script — a trailing English brand or identifier stays bare,
+            // same as the Latin rule below.
+            guard let scalar = last.unicodeScalars.first, CJKPunctuation.isHan(scalar) else {
+                return text
+            }
+            return text + pack.terminalPeriod
         }
         // A sentence ending in an identifier, path, email, or file name keeps
         // its bare ending: a period glued onto "main.py" or an address is worse
@@ -161,7 +207,7 @@ public struct RuleBasedCleanup: CleanupEngine {
         if lastToken.range(of: "\\.[A-Za-z0-9]{1,6}$", options: .regularExpression) != nil {
             return text
         }
-        return text + "."
+        return text + pack.terminalPeriod
     }
 
     // MARK: - Helpers

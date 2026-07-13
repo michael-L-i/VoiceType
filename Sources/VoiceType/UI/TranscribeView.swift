@@ -14,12 +14,12 @@ struct TranscribeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: VT.Space.l) {
-                PageHeader(title: "Transcribe a file",
-                           subtitle: "Turn an audio or video recording into clean text.")
+                PageHeader(title: L("Transcribe a file"),
+                           subtitle: L("Turn an audio or video recording into clean text."))
                 switch coordinator.importState {
                 case .idle:                  dropWell
-                case .decoding(let p):       progressCard("Decoding audio…", p)
-                case .transcribing(let p):   progressCard("Transcribing…", p)
+                case .decoding(let p):       progressCard(L("Decoding audio…"), p)
+                case .transcribing(let p):   progressCard(L("Transcribing…"), p)
                 case .done(let text):        resultCard(text)
                 case .failed(let message):   errorCard(message)
                 }
@@ -45,12 +45,12 @@ struct TranscribeView: View {
             Image(systemName: "waveform.badge.plus")
                 .font(.system(size: 40, weight: .light))
                 .foregroundStyle(VT.tint)
-            Text("Drop an audio or video file")
+            Text(L("Drop an audio or video file"))
                 .font(.system(.title3, design: .rounded).weight(.semibold))
-            Text("MP3, M4A, WAV, MP4, MOV — anything with audio.")
+            Text(L("MP3, M4A, WAV, MP4, MOV — anything with audio."))
                 .font(.callout)
                 .foregroundStyle(.secondary)
-            Button("Choose file…") { showImporter = true }
+            Button(L("Choose file…")) { showImporter = true }
                 .buttonStyle(.borderedProminent)
                 .tint(VT.tint)
                 .padding(.top, VT.Space.xs)
@@ -84,7 +84,7 @@ struct TranscribeView: View {
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Button("Cancel", role: .cancel) { coordinator.cancelImport() }
+                    Button(L("Cancel"), role: .cancel) { coordinator.cancelImport() }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -97,7 +97,7 @@ struct TranscribeView: View {
         FrostedCard {
             VStack(alignment: .leading, spacing: VT.Space.m) {
                 HStack {
-                    Label("Saved to Transcripts", systemImage: "checkmark.circle.fill")
+                    Label(L("Saved to Transcripts"), systemImage: "checkmark.circle.fill")
                         .font(.callout.weight(.medium))
                         .foregroundStyle(.green)
                     Spacer()
@@ -109,7 +109,7 @@ struct TranscribeView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(maxHeight: 280)
-                Button("Transcribe another") { coordinator.clearImport() }
+                Button(L("Transcribe another")) { coordinator.clearImport() }
                     .buttonStyle(.bordered)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -123,7 +123,7 @@ struct TranscribeView: View {
             VStack(alignment: .leading, spacing: VT.Space.m) {
                 Label(message, systemImage: "exclamationmark.triangle.fill")
                     .foregroundStyle(.orange)
-                Button("Try another file") { coordinator.clearImport() }
+                Button(L("Try another file")) { coordinator.clearImport() }
                     .buttonStyle(.bordered)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

@@ -90,7 +90,7 @@ struct RootView: View {
         Button {
             coordinator.checkForUpdates()
         } label: {
-            Label("Update available", systemImage: "arrow.down.circle.fill")
+            Label(L("Update available"), systemImage: "arrow.down.circle.fill")
                 .font(.body)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, VT.Space.s)
@@ -103,7 +103,7 @@ struct RootView: View {
         }
         .buttonStyle(.plain)
         .transition(.opacity)
-        .help("Install the new version of VoiceType")
+        .help(L("Install the new version of VoiceType"))
     }
 
     private func sidebarRow(_ item: SidebarItem, badge: Int? = nil) -> some View {
@@ -111,7 +111,7 @@ struct RootView: View {
             selection = item
         } label: {
             HStack(spacing: VT.Space.s) {
-                Label(item.title, systemImage: item.symbol)
+                Label(L(dynamic: item.title), systemImage: item.symbol)
                 Spacer(minLength: 0)
                 if let badge {
                     Text("\(badge)")

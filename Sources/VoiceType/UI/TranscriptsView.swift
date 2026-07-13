@@ -23,7 +23,7 @@ struct TranscriptsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: VT.Space.l) {
-            PageHeader(title: "Transcripts", subtitle: "Saved on this Mac.")
+            PageHeader(title: L("Transcripts"), subtitle: L("Saved on this Mac."))
             searchField
             content
         }
@@ -36,7 +36,7 @@ struct TranscriptsView: View {
     private var searchField: some View {
         HStack(spacing: VT.Space.s) {
             Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-            TextField("Search transcripts", text: $query)
+            TextField(L("Search transcripts"), text: $query)
                 .textFieldStyle(.plain)
             if !query.isEmpty {
                 Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }
@@ -53,10 +53,10 @@ struct TranscriptsView: View {
     @ViewBuilder
     private var content: some View {
         if coordinator.history.records.isEmpty {
-            emptyState("No transcripts yet",
-                       "Dictations and file transcriptions will be saved here.")
+            emptyState(L("No transcripts yet"),
+                       L("Dictations and file transcriptions will be saved here."))
         } else if records.isEmpty {
-            emptyState("No matches", "Try a different search.")
+            emptyState(L("No matches"), L("Try a different search."))
         } else {
             List {
                 ForEach(records) { record in
@@ -64,13 +64,13 @@ struct TranscriptsView: View {
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
                                 coordinator.deleteRecord(id: record.id)
-                            } label: { Label("Delete", systemImage: "trash") }
+                            } label: { Label(L("Delete"), systemImage: "trash") }
                         }
                         .contextMenu {
-                            Button { copy(record.text) } label: { Label("Copy", systemImage: "doc.on.doc") }
+                            Button { copy(record.text) } label: { Label(L("Copy"), systemImage: "doc.on.doc") }
                             Button(role: .destructive) {
                                 coordinator.deleteRecord(id: record.id)
-                            } label: { Label("Delete", systemImage: "trash") }
+                            } label: { Label(L("Delete"), systemImage: "trash") }
                         }
                 }
             }
@@ -107,7 +107,7 @@ struct TranscriptsView: View {
     private func sourceBadge(_ record: DictationRecord) -> some View {
         switch record.source {
         case .importedFile:
-            badge(icon: "waveform", text: record.sourceFilename ?? "Imported file")
+            badge(icon: "waveform", text: record.sourceFilename ?? L("Imported file"))
         case .microphone:
             if let app = record.appName {
                 badge(icon: "app.dashed", text: app)
@@ -129,16 +129,16 @@ struct TranscriptsView: View {
 
     private var footer: some View {
         HStack {
-            Text("\(coordinator.history.records.count) saved · on-device only, audio never stored.")
+            Text(L("\(coordinator.history.records.count) saved · on-device only, audio never stored."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Spacer()
-            Button("Clear all", role: .destructive) { confirmingClear = true }
+            Button(L("Clear all"), role: .destructive) { confirmingClear = true }
         }
-        .confirmationDialog("Delete all transcripts?", isPresented: $confirmingClear, titleVisibility: .visible) {
-            Button("Delete all", role: .destructive) { coordinator.clearHistory() }
+        .confirmationDialog(L("Delete all transcripts?"), isPresented: $confirmingClear, titleVisibility: .visible) {
+            Button(L("Delete all"), role: .destructive) { coordinator.clearHistory() }
         } message: {
-            Text("This permanently removes every saved transcript from this Mac.")
+            Text(L("This permanently removes every saved transcript from this Mac."))
         }
     }
 

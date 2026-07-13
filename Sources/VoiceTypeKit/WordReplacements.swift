@@ -27,7 +27,12 @@ public enum WordReplacements {
         for replacement in replacements {
             let from = replacement.from.trimmingCharacters(in: .whitespaces)
             guard !from.isEmpty else { continue }
-            let pattern = "(?<!\\w)" + NSRegularExpression.escapedPattern(for: from) + "(?!\\w)"
+            // ICU's \w matches Han, so the word-edge lookarounds would forbid
+            // any match inside continuous CJK text (which has no word edges to
+            // find). CJK phrases match literally instead.
+            let containsCJK = from.unicodeScalars.contains { CJKPunctuation.isHan($0) }
+            let escaped = NSRegularExpression.escapedPattern(for: from)
+            let pattern = containsCJK ? escaped : "(?<!\\w)" + escaped + "(?!\\w)"
             guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
                 continue
             }

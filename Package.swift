@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "VoiceType",
+    defaultLocalization: "en",
     platforms: [
         // macOS 26 ("Tahoe") is required for on-device SpeechTranscriber and
         // FoundationModels. Older systems are out of scope (Mac-only, latest-OS first).
@@ -43,6 +44,10 @@ let package = Package(
                 .product(name: "WhisperKit", package: "WhisperKit"),
                 .product(name: "Sparkle", package: "Sparkle"),
             ],
+            // Localized UI strings (<lang>.lproj/Localizable.strings). SwiftPM
+            // compiles these into the VoiceType_VoiceType resource bundle,
+            // which Scripts/build-app.sh copies into the .app.
+            resources: [.process("Resources")],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(

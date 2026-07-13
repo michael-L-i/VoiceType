@@ -124,12 +124,12 @@ struct ActivityHeatmap: View {
 
     private var legend: some View {
         HStack(spacing: gap) {
-            Text("Less").font(.system(size: 8)).foregroundStyle(.secondary)
+            Text(L("Less")).font(.system(size: 8)).foregroundStyle(.secondary)
             ForEach([Color.primary.opacity(0.06), tint.opacity(0.28), tint.opacity(0.50), tint.opacity(0.74), tint], id: \.self) { c in
                 RoundedRectangle(cornerRadius: corner, style: .continuous)
                     .fill(c).frame(width: cell, height: cell)
             }
-            Text("More").font(.system(size: 8)).foregroundStyle(.secondary)
+            Text(L("More")).font(.system(size: 8)).foregroundStyle(.secondary)
         }
         .padding(.leading, 18 + gap)
     }
@@ -150,7 +150,10 @@ struct ActivityHeatmap: View {
     // MARK: Formatting
 
     private static func weekdayShort(_ row: Int) -> String {
-        ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][row]
+        // Localized like monthShort — DateFormatter symbols start on Sunday,
+        // matching row 0.
+        let symbols = DateFormatter().shortWeekdaySymbols ?? []
+        return symbols.indices.contains(row) ? symbols[row] : " "
     }
     private static func monthShort(_ month: Int) -> String {
         let symbols = DateFormatter().shortMonthSymbols ?? []
@@ -171,14 +174,14 @@ private struct DayStatCard: View {
 
             if day.words > 0 || day.sessions > 0 {
                 HStack(alignment: .top, spacing: 16) {
-                    stat(day.words.formatted(), day.words == 1 ? "word" : "words")
-                    stat(day.sessions.formatted(), day.sessions == 1 ? "session" : "sessions")
+                    stat(day.words.formatted(), day.words == 1 ? L("word") : L("words"))
+                    stat(day.sessions.formatted(), day.sessions == 1 ? L("session") : L("sessions"))
                     if day.speakingTime > 0 {
-                        stat(Self.duration(day.speakingTime), "spoken")
+                        stat(Self.duration(day.speakingTime), L("spoken"))
                     }
                 }
             } else {
-                Text("No dictation")
+                Text(L("No dictation"))
                     .font(.callout)
                     .foregroundStyle(.tertiary)
             }
@@ -199,7 +202,7 @@ private struct DayStatCard: View {
     }
 
     private static let date: DateFormatter = {
-        let f = DateFormatter(); f.dateFormat = "EEE, MMM d, yyyy"; return f
+        let f = DateFormatter(); f.setLocalizedDateFormatFromTemplate("EEE MMM d yyyy"); return f
     }()
     /// Speaking time as a terse "Xm Ys" (or "Ys" under a minute).
     private static func duration(_ seconds: TimeInterval) -> String {

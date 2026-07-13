@@ -24,8 +24,8 @@ struct DictionaryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: VT.Space.l) {
-                PageHeader(title: "Dictionary",
-                           subtitle: "Teach VoiceType the words it hears wrong — names, jargon, brands. They're fixed on every dictation, whichever engine runs.")
+                PageHeader(title: L("Dictionary"),
+                           subtitle: L("Teach VoiceType the words it hears wrong — names, jargon, brands. They're fixed on every dictation, whichever engine runs."))
 
                 composer
 
@@ -61,17 +61,17 @@ struct DictionaryView: View {
     private var composer: some View {
         VStack(alignment: .leading, spacing: VT.Space.s) {
             HStack(alignment: .bottom, spacing: VT.Space.m) {
-                composerField("When you say", placeholder: "voice type",
+                composerField(L("When you say"), placeholder: "voice type",
                               text: $draftFrom, field: .from)
                 Image(systemName: "arrow.right")
                     .font(.body.weight(.semibold))
                     .foregroundStyle(VT.tint)
                     .padding(.bottom, VT.Space.m)
-                composerField("VoiceType types", placeholder: "VoiceType",
+                composerField(L("VoiceType types"), placeholder: "VoiceType",
                               text: $draftTo, field: .to)
 
                 Button(action: addDraft) {
-                    Label("Add", systemImage: "plus")
+                    Label(L("Add"), systemImage: "plus")
                         .font(.body.weight(.semibold))
                         .padding(.horizontal, VT.Space.xs)
                         .padding(.vertical, 2)
@@ -82,7 +82,7 @@ struct DictionaryView: View {
             }
 
             if draftIsDuplicate {
-                Label("“\(normalized(draftFrom))” is already in your dictionary — edit it below instead.",
+                Label(L("“\(normalized(draftFrom))” is already in your dictionary — edit it below instead."),
                       systemImage: "exclamationmark.circle.fill")
                     .font(.caption)
                     .foregroundStyle(.orange)
@@ -145,9 +145,9 @@ struct DictionaryView: View {
             Image(systemName: "character.book.closed")
                 .font(.system(size: 34, weight: .light))
                 .foregroundStyle(.tertiary)
-            Text("Your dictionary is empty")
+            Text(L("Your dictionary is empty"))
                 .font(.system(.title3, design: .rounded).weight(.semibold))
-            Text("Add your name, product names, or team shorthand above — or start with an example:")
+            Text(L("Add your name, product names, or team shorthand above — or start with an example:"))
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -214,12 +214,12 @@ struct DictionaryView: View {
     private var rulesSection: some View {
         VStack(alignment: .leading, spacing: VT.Space.s) {
             HStack(alignment: .firstTextBaseline) {
-                SectionLabel("Your words")
+                SectionLabel(L("Your words"))
                 Spacer()
                 if showsSearch {
                     searchField
                 }
-                Text(replacements.count == 1 ? "1 word" : "\(replacements.count) words")
+                Text(replacements.count == 1 ? L("1 word") : L("\(replacements.count) words"))
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.tertiary)
             }
@@ -227,7 +227,7 @@ struct DictionaryView: View {
             VStack(spacing: 0) {
                 let visible = replacements.filter(matchesQuery)
                 if visible.isEmpty {
-                    Text("No matches for “\(query)”.")
+                    Text(L("No matches for “\(query)”."))
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity)
@@ -259,7 +259,7 @@ struct DictionaryView: View {
                 RoundedRectangle(cornerRadius: VT.Radius.card, style: .continuous)
                     .strokeBorder(VT.hairline))
 
-            Text("Matched as whole words, ignoring case, after cleanup runs — top to bottom.")
+            Text(L("Matched as whole words, ignoring case, after cleanup runs — top to bottom."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -270,7 +270,7 @@ struct DictionaryView: View {
             Image(systemName: "magnifyingglass")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            TextField("Search", text: $query)
+            TextField(L("Search"), text: $query)
                 .textFieldStyle(.plain)
                 .font(.callout)
                 .frame(width: 130)
@@ -281,7 +281,7 @@ struct DictionaryView: View {
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Clear search")
+                .accessibilityLabel(L("Clear search"))
             }
         }
         .padding(.horizontal, VT.Space.s)
@@ -299,19 +299,19 @@ struct DictionaryView: View {
                 Image(systemName: "waveform")
                     .font(.caption)
                     .foregroundStyle(VT.tint)
-                SectionLabel("Try it")
+                SectionLabel(L("Try it"))
                 Spacer()
             }
 
             VStack(alignment: .leading, spacing: VT.Space.m) {
-                Text("Type a sentence the way the transcriber might hear it:")
+                Text(L("Type a sentence the way the transcriber might hear it:"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
                 // A vertically-growing field, not a TextEditor: it hugs a single
                 // line (no phantom empty row), wraps as you type, and Return
                 // ends editing instead of inserting newlines that balloon the box.
-                TextField("So I was telling the team about voice type…",
+                TextField(L("So I was telling the team about voice type…"),
                           text: $sample, axis: .vertical)
                     .textFieldStyle(.plain)
                     .font(.callout)
@@ -325,7 +325,7 @@ struct DictionaryView: View {
                             .strokeBorder(VT.hairline))
 
                 VStack(alignment: .leading, spacing: VT.Space.xs) {
-                    SectionLabel("What gets typed")
+                    SectionLabel(L("What gets typed"))
                     Text(highlightedResult)
                         .font(.callout)
                         .textSelection(.enabled)
@@ -355,7 +355,7 @@ struct DictionaryView: View {
         guard sample.isEmpty, let first = replacements.first(where: {
             !normalized($0.from).isEmpty
         }) else { return }
-        sample = "So I was telling the team about \(first.from.trimmingCharacters(in: .whitespaces)) yesterday."
+        sample = L("So I was telling the team about \(first.from.trimmingCharacters(in: .whitespaces)) yesterday.")
     }
 
     /// The playground text with every replacement applied, mirroring
@@ -366,7 +366,11 @@ struct DictionaryView: View {
         for replacement in replacements {
             let from = replacement.from.trimmingCharacters(in: .whitespaces)
             guard !from.isEmpty else { continue }
-            let pattern = "(?<!\\w)" + NSRegularExpression.escapedPattern(for: from) + "(?!\\w)"
+            // Mirrors WordReplacements.apply: CJK phrases match literally —
+            // ICU's \w matches Han, so word-edge lookarounds would never fire.
+            let containsCJK = from.unicodeScalars.contains { CJKPunctuation.isHan($0) }
+            let escaped = NSRegularExpression.escapedPattern(for: from)
+            let pattern = containsCJK ? escaped : "(?<!\\w)" + escaped + "(?!\\w)"
             guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
                 continue
             }
@@ -408,7 +412,7 @@ private struct ReplacementRow: View {
                 .foregroundStyle(.tertiary)
                 .frame(width: 16)
 
-            TextField("Heard", text: $replacement.from)
+            TextField(L("Heard"), text: $replacement.from)
                 .textFieldStyle(.plain)
                 .font(.system(.callout, design: .rounded))
                 .frame(maxWidth: .infinity)
@@ -417,19 +421,19 @@ private struct ReplacementRow: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(VT.tint)
 
-            TextField("Typed instead", text: $replacement.to)
+            TextField(L("Typed instead"), text: $replacement.to)
                 .textFieldStyle(.plain)
                 .font(.system(.callout, design: .rounded).weight(.medium))
                 .frame(maxWidth: .infinity)
 
             if isDuplicate {
-                Text("Duplicate")
+                Text(L("Duplicate"))
                     .font(.caption2.weight(.medium))
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2)
                     .background(Color.orange.opacity(0.15), in: Capsule())
                     .foregroundStyle(.orange)
-                    .help("Another entry already matches this phrase; the first one wins.")
+                    .help(L("Another entry already matches this phrase; the first one wins."))
             }
 
             Button(action: onDelete) {
@@ -439,7 +443,7 @@ private struct ReplacementRow: View {
             }
             .buttonStyle(.plain)
             .opacity(hovering ? 1 : 0)
-            .accessibilityLabel("Remove “\(replacement.from)”")
+            .accessibilityLabel(L("Remove “\(replacement.from)”"))
         }
         .padding(.horizontal, VT.Space.l)
         .padding(.vertical, VT.Space.m)

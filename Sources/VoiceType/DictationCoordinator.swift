@@ -153,7 +153,7 @@ final class DictationCoordinator {
             try LaunchAtLogin.setEnabled(enabled)
         } catch {
             Log.app.error("launch-at-login change failed: \(error.localizedDescription, privacy: .public)")
-            setError("Couldn't update Open at Login.")
+            setError(L("Couldn't update Open at Login."))
         }
         refreshSystemIntegrationStatus()
         if launchAtLoginRequiresApproval {
@@ -298,7 +298,7 @@ final class DictationCoordinator {
                 await self.refreshAvailability()
             } catch {
                 Log.engine.error("model download failed for \(kind.rawValue, privacy: .public): \(error.localizedDescription, privacy: .public)")
-                self.modelStates[kind] = .failed("Download failed. Check your connection and try again.")
+                self.modelStates[kind] = .failed(L("Download failed. Check your connection and try again."))
             }
         }
     }
@@ -338,7 +338,7 @@ final class DictationCoordinator {
     private func beginRecording() {
         resetTask?.cancel()
         guard microphonePermission != .denied else {
-            setError("Allow microphone access in System Settings.")
+            setError(L("Allow microphone access in System Settings."))
             return
         }
         // Cue before the mic grabs the audio route: on Bluetooth headphones,
@@ -380,7 +380,7 @@ final class DictationCoordinator {
         if let kind = activeTestKind {
             activeTestKind = nil
             inputLevel = 0
-            testStates[kind] = .failed("Audio device changed. Try again.")
+            testStates[kind] = .failed(L("Audio device changed. Try again."))
             return
         }
         guard state == .recording else { return }
@@ -395,13 +395,13 @@ final class DictationCoordinator {
         if let kind = activeTestKind {
             activeTestKind = nil
             inputLevel = 0
-            testStates[kind] = .failed("Couldn't access the microphone.")
+            testStates[kind] = .failed(L("Couldn't access the microphone."))
             return
         }
         guard state == .recording else { return }
         sounds.stop(enabled: settings.soundFeedback)
         inputLevel = 0
-        setError("Couldn't access the microphone.")
+        setError(L("Couldn't access the microphone."))
     }
 
     // MARK: - Pipeline
@@ -444,7 +444,7 @@ final class DictationCoordinator {
 
         guard let pipeline = makePipeline() else {
             isProcessing = false
-            setError("No transcription engine available.")
+            setError(L("No transcription engine available."))
             return
         }
 
@@ -564,7 +564,7 @@ final class DictationCoordinator {
                 if Task.isCancelled { return }
 
                 guard let engines = self.resolveEngines() else {
-                    self.importState = .failed("No transcription engine available.")
+                    self.importState = .failed(L("No transcription engine available."))
                     return
                 }
 
@@ -582,7 +582,7 @@ final class DictationCoordinator {
 
                 let raw = parts.joined(separator: " ")
                 guard !raw.isEmpty else {
-                    self.importState = .failed("Couldn't find any speech in this file.")
+                    self.importState = .failed(L("Couldn't find any speech in this file."))
                     return
                 }
 
@@ -667,7 +667,7 @@ final class DictationCoordinator {
         guard modelState(for: kind).isReady else { return }
 
         guard microphonePermission == .granted else {
-            testStates[kind] = .failed("Allow microphone access to test an engine.")
+            testStates[kind] = .failed(L("Allow microphone access to test an engine."))
             Task { await request(.microphone) }
             return
         }
@@ -685,11 +685,11 @@ final class DictationCoordinator {
         activeTestKind = nil
 
         guard audio.duration >= 0.25, audio.rms > 0.002 else {
-            testStates[kind] = .failed("Didn't catch any speech. Try again.")
+            testStates[kind] = .failed(L("Didn't catch any speech. Try again."))
             return
         }
         guard let transcriber = EngineFactory.makeTranscriber(kind) else {
-            testStates[kind] = .failed("This engine isn't available.")
+            testStates[kind] = .failed(L("This engine isn't available."))
             return
         }
         testStates[kind] = .transcribing
@@ -700,7 +700,7 @@ final class DictationCoordinator {
                 let result = try await transcriber.transcribe(audio, locale: locale)
                 let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
                 self.testStates[kind] = text.isEmpty
-                    ? .failed("Didn't catch any speech. Try again.")
+                    ? .failed(L("Didn't catch any speech. Try again."))
                     : .done(text: text)
             } catch let error as TranscriptionError {
                 self.testStates[kind] = .failed(Self.describe(error))
@@ -755,7 +755,7 @@ final class DictationCoordinator {
     private func handleInjectionError(_ error: InjectionError) {
         switch error {
         case .notTrusted:
-            setError("Grant Accessibility access to insert text.")
+            setError(L("Grant Accessibility access to insert text."))
         case .failed(let m):
             setError(m)
         }
@@ -764,7 +764,7 @@ final class DictationCoordinator {
     private static func describe(_ error: TranscriptionError) -> String {
         switch error {
         case .unavailable(let reason): return reason
-        case .noSpeechDetected: return "Didn't catch that."
+        case .noSpeechDetected: return L("Didn't catch that.")
         case .failed(let m): return m
         }
     }
@@ -806,8 +806,8 @@ final class DictationCoordinator {
         let language = Locale.current.localizedString(
             forLanguageCode: LanguageTag.code(for: settings.locale)) ?? settings.locale
         if resolved == preferred {
-            return "\(preferred.displayName) doesn't support \(language) — dictation may come out empty or wrong."
+            return L("\(preferred.displayName) doesn't support \(language) — dictation may come out empty or wrong.")
         }
-        return "\(preferred.displayName) doesn't support \(language) — VoiceType will use \(resolved.displayName) instead."
+        return L("\(preferred.displayName) doesn't support \(language) — VoiceType will use \(resolved.displayName) instead.")
     }
 }
