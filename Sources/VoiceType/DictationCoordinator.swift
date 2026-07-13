@@ -776,6 +776,15 @@ final class DictationCoordinator {
         if old.hotkey.trigger != settings.hotkey.trigger {
             hotkey.updateTrigger(settings.hotkey.trigger)
         }
+        if old.transcriptionEngine != settings.transcriptionEngine {
+            // A manual engine change retires the "switched for you" note. The
+            // auto-switch below re-sets it AFTER assigning, so its own
+            // assignment (which re-enters here) can't clear it.
+            languageSwitchNotice = nil
+        }
+        if old.locale != settings.locale {
+            switchEngineForLanguageIfNeeded()
+        }
         if old.transcriptionEngine != settings.transcriptionEngine
             || old.cleanupEngine != settings.cleanupEngine {
             Task { await refreshAvailability() }
@@ -788,26 +797,57 @@ final class DictationCoordinator {
         languageSupport = await EngineFactory.languageSupport()
         if availableTranscription.isEmpty { availableTranscription = [.appleOnDevice] }
         refreshModelStates()
+        // A persisted engine/language pair can be incompatible (set before this
+        // rule existed, or support facts changed) — repair it once facts arrive.
+        switchEngineForLanguageIfNeeded()
     }
 
     // MARK: - Language compatibility
 
-    /// Non-nil when the selected engine can't transcribe the selected language
-    /// and dictation will silently run on a different engine. Shown under the
-    /// Language picker (Settings and setup) so the fallback is never a surprise.
-    var languageFallbackNotice: String? {
-        let preferred = settings.transcriptionEngine
-        guard !languageSupport.supports(preferred, locale: settings.locale) else { return nil }
+    /// One-shot explanation after the app switched engines for the language
+    /// ("Switched to Apple Speech — Parakeet doesn't support Chinese."). Shown
+    /// under the Language picker; cleared on the next manual engine change or
+    /// when the language becomes compatible again.
+    private(set) var languageSwitchNotice: String?
+
+    /// Incompatible engines are not selectable (Models page grays them out),
+    /// so the active engine always supports the language: when the user picks
+    /// a language the current engine can't transcribe, switch to the best
+    /// engine that can and say so, instead of warning and dictating garbage.
+    private func switchEngineForLanguageIfNeeded() {
+        let current = settings.transcriptionEngine
+        guard !languageSupport.supports(current, locale: settings.locale) else {
+            languageSwitchNotice = nil
+            return
+        }
         let resolved = EngineResolver.resolveTranscription(
-            preferred: preferred,
+            preferred: current,
             available: availableTranscription,
             locale: settings.locale,
             support: languageSupport)
-        let language = Locale.current.localizedString(
-            forLanguageCode: LanguageTag.code(for: settings.locale)) ?? settings.locale
-        if resolved == preferred {
-            return L("\(preferred.displayName) doesn't support \(language) — dictation may come out empty or wrong.")
+        guard resolved != current,
+              languageSupport.supports(resolved, locale: settings.locale) else {
+            // Nothing installed can transcribe this language;
+            // languageFallbackNotice warns instead.
+            return
         }
-        return L("\(preferred.displayName) doesn't support \(language) — VoiceType will use \(resolved.displayName) instead.")
+        settings.transcriptionEngine = resolved
+        languageSwitchNotice = L("Switched to \(resolved.displayName) — \(current.displayName) doesn't support \(languageName).")
+    }
+
+    /// Non-nil only when NOTHING installed can transcribe the selected
+    /// language (the auto-switch above handles every other case). Shown as a
+    /// warning under the Language picker.
+    var languageFallbackNotice: String? {
+        guard !languageSupport.supports(settings.transcriptionEngine, locale: settings.locale) else {
+            return nil
+        }
+        return L("\(settings.transcriptionEngine.displayName) doesn't support \(languageName) — dictation may come out empty or wrong.")
+    }
+
+    /// The dictation language's name in the UI language.
+    var languageName: String {
+        Locale.current.localizedString(
+            forLanguageCode: LanguageTag.code(for: settings.locale)) ?? settings.locale
     }
 }

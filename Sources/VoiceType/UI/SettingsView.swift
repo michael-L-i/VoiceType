@@ -80,7 +80,17 @@ private struct GeneralSections: View {
                         Text(language.localizedName).tag(language.code)
                     }
                 }
-                if let notice = coordinator.languageFallbackNotice {
+                if let notice = coordinator.languageSwitchNotice {
+                    // Informational: the app already fixed the mismatch.
+                    Label {
+                        Text(notice)
+                    } icon: {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .foregroundStyle(.secondary)
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                } else if let notice = coordinator.languageFallbackNotice {
                     Label {
                         Text(notice)
                     } icon: {

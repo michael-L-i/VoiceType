@@ -354,7 +354,16 @@ private struct LanguageStepCard: View {
                     .buttonStyle(.borderedProminent).controlSize(.large).tint(VT.tint)
                 Spacer(minLength: 0)
             }
-            if let notice = coordinator.languageFallbackNotice {
+            if let notice = coordinator.languageSwitchNotice {
+                Label {
+                    Text(notice)
+                } icon: {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .foregroundStyle(.secondary)
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            } else if let notice = coordinator.languageFallbackNotice {
                 Label {
                     Text(notice)
                 } icon: {

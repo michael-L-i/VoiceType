@@ -91,26 +91,27 @@ private struct EngineRow: View {
     private var state: ModelAvailability { coordinator.modelState(for: kind) }
     private var isSelected: Bool { coordinator.settings.transcriptionEngine == kind }
 
-    /// The dictation language's name in the UI language, for the compatibility tag.
-    private var dictationLanguageName: String {
-        Locale.current.localizedString(
-            forLanguageCode: LanguageTag.code(for: coordinator.settings.locale))
-            ?? coordinator.settings.locale
+    /// Engines that can't transcribe the dictation language gray out and stop
+    /// being selectable — picking one would only produce empty or wrong text.
+    /// Changing the language re-enables them instantly.
+    private var supportsLanguage: Bool {
+        coordinator.languageSupport.supports(kind, locale: coordinator.settings.locale)
     }
+    private var selectable: Bool { state.isReady && supportsLanguage }
 
     var body: some View {
         VStack(spacing: 0) {
             HStack(alignment: .center, spacing: VT.Space.m) {
                 Button {
-                    if state.isReady { coordinator.settings.transcriptionEngine = kind }
+                    if selectable { coordinator.settings.transcriptionEngine = kind }
                 } label: {
                     Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
                         .font(.title3)
                         .foregroundStyle(isSelected ? VT.tint : Color.secondary)
-                        .opacity(state.isReady ? 1 : 0.3)
+                        .opacity(selectable ? 1 : 0.3)
                 }
                 .buttonStyle(.plain)
-                .disabled(!state.isReady)
+                .disabled(!selectable)
 
                 VendorMark(vendor: kind.vendor)
 
@@ -123,8 +124,8 @@ private struct EngineRow: View {
                         } else if !kind.requiresDownload {
                             Tag(text: L("Built-in"))
                         }
-                        if !coordinator.languageSupport.supports(kind, locale: coordinator.settings.locale) {
-                            Tag(text: L("Not available for \(dictationLanguageName)"), tint: .orange)
+                        if !supportsLanguage {
+                            Tag(text: L("Not available for \(coordinator.languageName)"))
                         }
                     }
                     Text(L(dynamic: kind.summary))
@@ -150,8 +151,12 @@ private struct EngineRow: View {
             }
             .padding(VT.Space.l)
             .contentShape(Rectangle())
+            // The whole row reads as disabled when the engine can't do the
+            // dictation language; the trash affordance stays live below so an
+            // unusable model can still be removed.
+            .opacity(supportsLanguage ? 1 : 0.45)
             .onTapGesture {
-                if state.isReady { coordinator.settings.transcriptionEngine = kind }
+                if selectable { coordinator.settings.transcriptionEngine = kind }
             }
 
             if showTest {
@@ -187,6 +192,7 @@ private struct EngineRow: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .tint(showTest ? VT.tint : .accentColor)
+                .disabled(!supportsLanguage)
 
                 if kind.requiresDownload {
                     Button { coordinator.deleteModel(kind) } label: {
@@ -204,6 +210,7 @@ private struct EngineRow: View {
             }
             .buttonStyle(.borderless)
             .tint(VT.tint)
+            .disabled(!supportsLanguage)
             .help(kind.approxDownloadSize.map { L("Download (\($0))") } ?? L("Download"))
         case .downloading(let fraction):
             VStack(spacing: 3) {
