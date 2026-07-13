@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/michael-L-i/VoiceType/security/advisories/new
+    about: Privately report vulnerabilities or possible exposure of audio, transcripts, or credentials.

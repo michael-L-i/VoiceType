@@ -1,0 +1,80 @@
+name: Feature request
+description: Suggest an improvement that fits VoiceType's private, on-device approach
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea. VoiceType prioritizes fast, private, on-device dictation and intentionally keeps configuration focused.
+
+        For substantial engine changes, product-direction proposals, or interface redesigns, describe the intended scope and tradeoffs so the idea can be evaluated before implementation.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Dictation workflow
+        - Transcription
+        - Text cleanup
+        - Language or localization
+        - Models
+        - Settings or interface
+        - Installation or updates
+        - Developer experience
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What user need or limitation would this address? Focus on the problem before the implementation.
+      placeholder: When I ..., I cannot ..., which means ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the smallest change that would solve the problem well.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Note any workarounds or different approaches you considered.
+
+  - type: dropdown
+    id: privacy-impact
+    attributes:
+      label: Privacy or network impact
+      description: Would this change send audio, transcripts, or usage data off-device?
+      options:
+        - No; everything remains on-device
+        - Unsure; the design needs a privacy review
+        - Yes; it would require an explicit opt-in cloud path
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add mockups, examples, links, or other details that make the request easier to evaluate.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I agree to follow the project's Code of Conduct.
+          required: true
