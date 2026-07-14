@@ -54,30 +54,18 @@ your Mac — everything runs on-device.
 - 📊 **Your voice, visualized.** A calm Home dashboard tracks your words, pace, and day streaks, with a full activity heatmap and a friendly, on-device usage summary — all computed on your Mac.
 - 🧩 **Pluggable engines.** Apple's built-in model by default, with an optional on-device upgrade — NVIDIA Parakeet — you can download and switch to, one at a time.
 
-## Download & install
+## Download
 
-1. **[⬇ Download VoiceType.dmg](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)** from the latest release.
-2. Open the DMG and drag **VoiceType** into your **Applications** folder. The app
-   is **signed and notarized by Apple**, so it launches with a normal
-   double-click — no Gatekeeper workaround needed.
-3. Grant the three permissions VoiceType asks for — **Microphone**,
-   **Speech Recognition**, and **Accessibility** — and you're set.
+**[Download VoiceType for macOS](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg).**
+Requires macOS 26 or later on Apple silicon.
 
-> Requires **macOS 26** or later (Apple Silicon).
+Open the DMG, move VoiceType to Applications, and follow the prompts on first
+launch.
 
-**Updates are automatic.** VoiceType checks for new versions in the background
-(and on demand via **Check for Updates…**) and installs them in place with
-[Sparkle](https://sparkle-project.org) — every update is cryptographically signed
-and verified. No need to re-download. _(Auto-update works from v0.1.1 onward; the
-very first build, v0.1.0, has to be replaced once by hand.)_
+## How it works
 
-## Using it
-
-Hold **Right Option (⌥)** anywhere and start talking. A frosted pill appears
-showing a live waveform while it listens; release the key and your cleaned-up text
-is inserted into the focused app. Open the window any time to see your **Home
-dashboard** — your pace, totals, activity heatmap, and where you dictate. Change
-the key, language, engines, and cleanup in **Settings**.
+Press and hold your chosen shortcut, speak, then release to insert the text into
+the current app. Configure your shortcut, language, and models in Settings.
 
 ## Engines
 
