@@ -11,7 +11,7 @@ set -euo pipefail
 
 CONFIG="${1:-release}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP="$ROOT/VoiceType.app"
+APP="${APP_OUTPUT:-$ROOT/VoiceType.app}"
 CONTENTS="$APP/Contents"
 # Marketing/build version. A release sets VERSION (e.g. from the git tag); local
 # dev builds fall back to whatever the template Info.plist already declares.
@@ -30,11 +30,21 @@ cp "$ROOT/Resources/Info.plist" "$CONTENTS/Info.plist"
 cp "$ROOT/Resources/AppIcon.icns" "$CONTENTS/Resources/AppIcon.icns"
 # Vendor logos (e.g. the NVIDIA mark shown on the Models page).
 cp "$ROOT"/Resources/*.svg "$CONTENTS/Resources/" 2>/dev/null || true
-# SwiftPM resource bundle (localized UI strings). Bundle.module looks for it
-# next to the executable's resource path; a missing bundle crashes the first
-# localized string lookup, so this copy must fail loudly.
+# SwiftPM resource bundles belong in the standard macOS Resources directory.
+# Copy the complete runtime resource closure, including bundles supplied by
+# statically linked packages, rather than maintaining a fragile hand-written
+# list that goes stale when dependencies change.
 BINDIR="$(dirname "$BIN")"
-cp -R "$BINDIR/VoiceType_VoiceType.bundle" "$CONTENTS/Resources/"
+RESOURCE_BUNDLE_COUNT=0
+for RESOURCE_BUNDLE in "$BINDIR"/*.bundle; do
+    [[ -d "$RESOURCE_BUNDLE" ]] || continue
+    cp -R "$RESOURCE_BUNDLE" "$CONTENTS/Resources/"
+    RESOURCE_BUNDLE_COUNT=$((RESOURCE_BUNDLE_COUNT + 1))
+done
+if [[ "$RESOURCE_BUNDLE_COUNT" -eq 0 ]]; then
+    echo "✗ SwiftPM produced no resource bundles." >&2
+    exit 1
+fi
 # Third-party license notices, bundled so they ship with the distributed app.
 cp "$ROOT/THIRD_PARTY_LICENSES.md" "$CONTENTS/Resources/" 2>/dev/null || true
 
@@ -42,7 +52,6 @@ cp "$ROOT/THIRD_PARTY_LICENSES.md" "$CONTENTS/Resources/" 2>/dev/null || true
 # next to the binary's runtime search path. SwiftPM builds the framework beside
 # the executable but doesn't bundle it, so we copy it and add the standard app
 # rpath so dyld finds it at @executable_path/../Frameworks.
-BINDIR="$(dirname "$BIN")"
 if [[ -d "$BINDIR/Sparkle.framework" ]]; then
     echo "▸ Embedding Sparkle.framework…"
     mkdir -p "$CONTENTS/Frameworks"
@@ -76,6 +85,8 @@ fi
 codesign "${SIGN_ARGS[@]}" \
     --entitlements "$ROOT/Resources/VoiceType.entitlements" \
     "$APP"
+
+"$ROOT/Scripts/verify-app.sh" "$APP" "$BINDIR"
 
 echo "✓ Built $APP"
 echo "  Launch:  open \"$APP\"   (or: \"$CONTENTS/MacOS/VoiceType\" for logs)"

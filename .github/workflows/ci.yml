@@ -32,3 +32,8 @@ jobs:
 
       - name: Test
         run: swift test
+
+      - name: Assemble and verify app bundle
+        env:
+          APP_OUTPUT: ${{ runner.temp }}/VoiceType.app
+        run: ./Scripts/build-app.sh release

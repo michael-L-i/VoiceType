@@ -41,6 +41,7 @@ echo "▸ Building + packaging DMG (version $VERSION)…"
 echo "▸ Zipping app for Sparkle…"
 rm -f "$ZIP"
 ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
+"$ROOT/Scripts/verify-release-archive.sh" "$ZIP"
 
 GEN_APPCAST="$(find "$ROOT/.build/artifacts" -path "*sparkle*/bin/generate_appcast" | head -1)"
 if [[ -z "$GEN_APPCAST" ]]; then
