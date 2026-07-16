@@ -9,7 +9,7 @@ struct WaveformView: View {
     var tint: Color
     var barCount: Int = 5
 
-    private let maxHeight: CGFloat = 20
+    private let maxHeight: CGFloat = 24
     private let minHeight: CGFloat = 4
     private let barWidth: CGFloat = 3
 
