@@ -69,6 +69,7 @@ fi
 
 echo "▸ Verifying DMG…"
 hdiutil verify "$DMG"
+"$ROOT/Scripts/verify-dmg.sh" "$DMG"
 
 if [[ -n "$NOTARY_PROFILE" ]]; then
     echo "▸ Notarizing DMG…"

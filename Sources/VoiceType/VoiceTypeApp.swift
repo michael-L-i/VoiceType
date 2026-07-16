@@ -40,11 +40,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// duplicate never sets anything up. `LSMultipleInstancesProhibited` covers the
     /// same-bundle case; this covers two bundles at different paths.
     func applicationWillFinishLaunching(_ notification: Notification) {
+        if CommandLine.arguments.contains("--verify-package") {
+            Self.verifyPackageAndExit()
+        }
         if let other = Self.otherRunningInstance() {
             other.activate()
             Log.app.info("another VoiceType instance is running; deferring to it and exiting")
             exit(0)
         }
+    }
+
+    /// Production-binary smoke probe used after assembling the app and after
+    /// extracting the Sparkle archive. It runs before the single-instance guard
+    /// so release verification cannot be masked by a developer copy already
+    /// running on the build machine.
+    private static func verifyPackageAndExit() -> Never {
+        let failures = AppLocalization.packageVerificationFailures()
+        if failures.isEmpty {
+            print("VoiceType package resources verified")
+            exit(0)
+        }
+
+        let message = failures.map { "error: \($0)" }.joined(separator: "\n") + "\n"
+        FileHandle.standardError.write(Data(message.utf8))
+        exit(1)
     }
 
     private static func otherRunningInstance() -> NSRunningApplication? {
