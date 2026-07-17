@@ -1,5 +1,4 @@
 import Foundation
-import Speech
 import VoiceTypeKit
 
 /// Central place that maps an engine *kind* to a concrete instance and reports
@@ -60,7 +59,7 @@ enum EngineFactory {
                 codes[kind] = staticSet
             }
         }
-        let appleLocales = await SpeechTranscriber.supportedLocales
+        let appleLocales = await AppleSpeechEngine.supportedLocales()
         if !appleLocales.isEmpty {
             codes[.appleOnDevice] = Set(appleLocales.map {
                 LanguageTag.code(for: $0.identifier(.bcp47))

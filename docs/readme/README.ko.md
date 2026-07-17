@@ -14,7 +14,7 @@
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
 [![Latest release](https://img.shields.io/github/v/release/michael-L-i/VoiceType?label=release&color=F2743E)](https://github.com/michael-L-i/VoiceType/releases/latest)
-&nbsp;[![Platform](https://img.shields.io/badge/macOS-26%2B-111111?logo=apple)](https://www.apple.com/macos/)
+&nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
 &nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
@@ -65,7 +65,7 @@ _이 문서는 최선을 다해 번역한 것으로, 영어 README가 공식 문
 3. VoiceType이 요청하는 세 가지 권한 — **마이크**, **음성 인식**,
    **손쉬운 사용** — 을 허용하면 준비 완료입니다.
 
-> **macOS 26** 이상(Apple Silicon)이 필요합니다.
+> **macOS 14** 이상(Apple Silicon)이 필요합니다.
 
 **업데이트는 자동입니다.** VoiceType은 백그라운드에서(또는 **업데이트 확인…**
 메뉴로 수동으로) 새 버전을 확인하고 [Sparkle](https://sparkle-project.org)로
@@ -89,8 +89,8 @@ _이 문서는 최선을 다해 번역한 것으로, 영어 README가 공식 문
 
 | 단계 | 기본(내장) | 선택적 대안(온디바이스) |
 | --- | --- | --- |
-| **음성 인식** | Apple `SpeechTranscriber` | **Parakeet TDT 0.6B V3** (NVIDIA, [FluidAudio](https://github.com/FluidInference/FluidAudio) 사용) · **Whisper Base** (OpenAI, [WhisperKit](https://github.com/argmaxinc/WhisperKit) 사용) — 필요 시 다운로드 |
-| **정리** | 내장 규칙(즉시, 결정론적) | Apple Intelligence(`FoundationModels`) — macOS 내장, 다운로드 불필요 |
+| **음성 인식** | Apple `Speech` | **Parakeet TDT 0.6B V3** (NVIDIA, [FluidAudio](https://github.com/FluidInference/FluidAudio) 사용) · **Whisper Base** (OpenAI, [WhisperKit](https://github.com/argmaxinc/WhisperKit) 사용) — 필요 시 다운로드 |
+| **정리** | 내장 규칙(즉시, 결정론적) | Apple Intelligence(`FoundationModels`, macOS 26+) — macOS 내장, 다운로드 불필요 |
 
 다운로드형 모델은 필요할 때 한 번만 받아 오며(추론 시점에는 클라우드가 전혀
 없습니다 — 오디오는 여전히 Mac을 떠나지 않습니다) Apple Neural Engine에서
@@ -157,7 +157,7 @@ VoiceType을 당신의 언어로 만들고 싶다면
 
 ## 아키텍처
 
-홈 대시보드를 갖춘 네이티브 **Swift 6 / SwiftUI** Dock 앱(macOS 26)입니다.
+홈 대시보드를 갖춘 네이티브 **Swift 6 / SwiftUI** Dock 앱(macOS 14)입니다.
 전역 눌러서 말하기 단축키 · AVAudioEngine 마이크 캡처 · 교체 가능한
 온디바이스 음성 인식 · 교체 가능한 정리 엔진 · 붙여넣기/손쉬운 사용 기반
 텍스트 삽입 · 떠 있는 녹음 HUD. 코어(`VoiceTypeKit`)는 순수하며 유닛

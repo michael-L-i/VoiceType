@@ -15,7 +15,7 @@ sur l'appareil.
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
 [![Latest release](https://img.shields.io/github/v/release/michael-L-i/VoiceType?label=release&color=F2743E)](https://github.com/michael-L-i/VoiceType/releases/latest)
-&nbsp;[![Platform](https://img.shields.io/badge/macOS-26%2B-111111?logo=apple)](https://www.apple.com/macos/)
+&nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
 &nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
@@ -62,7 +62,7 @@ _Cette traduction est maintenue au mieux ; le README anglais est la version de r
 2. Ouvrez le DMG et faites glisser **VoiceType** dans votre dossier **Applications**. L'app est **signée et notariée par Apple** ; elle s'ouvre normalement par double-clic, sans contournement de Gatekeeper.
 3. Accordez les trois autorisations demandées par VoiceType : **Microphone**, **Reconnaissance vocale** et **Accessibilité**. C'est prêt.
 
-> Nécessite macOS 26 ou version ultérieure (Apple Silicon).
+> Nécessite macOS 14 ou version ultérieure (Apple Silicon).
 
 **Les mises à jour sont automatiques.** VoiceType vérifie les nouvelles versions en arrière-plan (et à la demande via **Rechercher les mises à jour…**) et les installe sur place avec [Sparkle](https://sparkle-project.org) ; chaque mise à jour est signée et vérifiée cryptographiquement. Aucun nouveau téléchargement n'est nécessaire. _(La mise à jour automatique fonctionne à partir de v0.1.1 ; la toute première version, v0.1.0, doit être remplacée une fois à la main.)_
 
@@ -76,8 +76,8 @@ Tout s'exécute sur l'appareil. Le modèle Apple est intégré à macOS et séle
 
 | Étape | Par défaut (intégré) | Alternatives facultatives (sur l'appareil) |
 | --- | --- | --- |
-| **Transcription** | `SpeechTranscriber` d'Apple | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — téléchargement à la demande |
-| **Nettoyage** | Règles intégrées (instantanées, déterministes) | Apple Intelligence (`FoundationModels`) — intégré à macOS, sans téléchargement |
+| **Transcription** | `Speech` d'Apple | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — téléchargement à la demande |
+| **Nettoyage** | Règles intégrées (instantanées, déterministes) | Apple Intelligence (`FoundationModels`, macOS 26+) — intégré à macOS, sans téléchargement |
 
 Les modèles téléchargeables ne sont récupérés qu'une fois, à la demande (pas de cloud lors de l'inférence : votre audio reste sur le Mac) et s'exécutent avec CoreML sur le Neural Engine d'Apple. VoiceType bascule automatiquement vers un moteur disponible si votre choix ne peut pas s'exécuter et revient toujours au texte brut plutôt que d'échouer.
 
@@ -115,7 +115,7 @@ Les contributions sont les bienvenues. Lisez le [guide de contribution](../../CO
 
 ## Architecture
 
-Application Dock native **Swift 6 / SwiftUI** (macOS 26) avec tableau de bord Home. Raccourci global appuyer-pour-parler · capture micro AVAudioEngine · transcription interchangeable sur l'appareil · nettoyage interchangeable · insertion de texte par le presse-papiers/Accessibilité · HUD d'enregistrement flottant. Le cœur (`VoiceTypeKit`) est pur et testé ; la cible app contient les moteurs système et l'interface. Les détails sont dans [`CLAUDE.md`](../../CLAUDE.md) et évoluent via `specs/`.
+Application Dock native **Swift 6 / SwiftUI** (macOS 14) avec tableau de bord Home. Raccourci global appuyer-pour-parler · capture micro AVAudioEngine · transcription interchangeable sur l'appareil · nettoyage interchangeable · insertion de texte par le presse-papiers/Accessibilité · HUD d'enregistrement flottant. Le cœur (`VoiceTypeKit`) est pur et testé ; la cible app contient les moteurs système et l'interface. Les détails sont dans [`CLAUDE.md`](../../CLAUDE.md) et évoluent via `specs/`.
 
 ## Licence
 

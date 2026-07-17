@@ -14,7 +14,7 @@
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
 [![Latest release](https://img.shields.io/github/v/release/michael-L-i/VoiceType?label=release&color=F2743E)](https://github.com/michael-L-i/VoiceType/releases/latest)
-&nbsp;[![Platform](https://img.shields.io/badge/macOS-26%2B-111111?logo=apple)](https://www.apple.com/macos/)
+&nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
 &nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
@@ -65,7 +65,7 @@ _本翻译尽力保持更新，以英文版 README 为准；欢迎通过 [PR](..
 3. 授予 VoiceType 请求的三项权限——**麦克风**、
    **语音识别** 和 **辅助功能**——即可开始使用。
 
-> 需要 **macOS 26** 或更高版本（Apple Silicon）。
+> 需要 **macOS 14** 或更高版本（Apple Silicon）。
 
 **更新是自动的。** VoiceType 会在后台检查新版本
 （也可通过 **「检查更新…」** 手动检查），并使用
@@ -87,8 +87,8 @@ v0.1.0 版本需要手动替换一次。）_
 
 | 阶段 | 默认（内置） | 可选替代方案（本地运行） |
 | --- | --- | --- |
-| **转写** | Apple `SpeechTranscriber` | **Parakeet TDT 0.6B V3**（NVIDIA，经由 [FluidAudio](https://github.com/FluidInference/FluidAudio)）· **Whisper Base**（OpenAI，经由 [WhisperKit](https://github.com/argmaxinc/WhisperKit)）——按需下载 |
-| **清理** | 内置规则（即时、确定性） | Apple Intelligence（`FoundationModels`）——内置于 macOS，无需下载 |
+| **转写** | Apple `Speech` | **Parakeet TDT 0.6B V3**（NVIDIA，经由 [FluidAudio](https://github.com/FluidInference/FluidAudio)）· **Whisper Base**（OpenAI，经由 [WhisperKit](https://github.com/argmaxinc/WhisperKit)）——按需下载 |
+| **清理** | 内置规则（即时、确定性） | Apple Intelligence（`FoundationModels`, macOS 26+）——内置于 macOS，无需下载 |
 
 可下载的模型只需按需获取一次（推理时不连接云端——你的音频依然
 不会离开 Mac），并以 CoreML 形式运行在 Apple 神经网络引擎上。
@@ -153,7 +153,7 @@ open VoiceType.app
 
 ## 架构
 
-原生 **Swift 6 / SwiftUI** Dock 应用（macOS 26），带主页仪表盘。全局
+原生 **Swift 6 / SwiftUI** Dock 应用（macOS 14），带主页仪表盘。全局
 按住即说快捷键 · AVAudioEngine 麦克风采集 · 可插拔的本地
 转写引擎 · 可插拔的清理引擎 · 粘贴/辅助功能文本注入 · 一个
 悬浮录音 HUD。核心库（`VoiceTypeKit`）纯净且有单元测试覆盖；应用

@@ -15,7 +15,7 @@ apparaat.
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
 [![Latest release](https://img.shields.io/github/v/release/michael-L-i/VoiceType?label=release&color=F2743E)](https://github.com/michael-L-i/VoiceType/releases/latest)
-&nbsp;[![Platform](https://img.shields.io/badge/macOS-26%2B-111111?logo=apple)](https://www.apple.com/macos/)
+&nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
 &nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
@@ -66,7 +66,7 @@ _Deze vertaling is met zorg gemaakt, maar de [Engelse README](../../README.md) i
 3. Verleen de drie toestemmingen waar VoiceType om vraagt — **Microfoon**,
    **Spraakherkenning** en **Toegankelijkheid** — en je bent klaar.
 
-> Vereist **macOS 26** of nieuwer (Apple Silicon).
+> Vereist **macOS 14** of nieuwer (Apple Silicon).
 
 **Updates gaan automatisch.** VoiceType controleert op de achtergrond op nieuwe
 versies (en op verzoek via **Zoek naar updates…**) en installeert ze ter plekke
@@ -92,8 +92,8 @@ in de navigatiekolom en ertussen wisselen (er is er één tegelijk actief).
 
 | Fase | Standaard (ingebouwd) | Optionele alternatieven (op het apparaat) |
 | --- | --- | --- |
-| **Transcriptie** | Apple `SpeechTranscriber` | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — worden op verzoek gedownload |
-| **Opschoning** | Ingebouwde regels (direct, deterministisch) | Apple Intelligence (`FoundationModels`) — ingebouwd in macOS, geen download |
+| **Transcriptie** | Apple `Speech` | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — worden op verzoek gedownload |
+| **Opschoning** | Ingebouwde regels (direct, deterministisch) | Apple Intelligence (`FoundationModels`, macOS 26+) — ingebouwd in macOS, geen download |
 
 Downloadbare modellen worden eenmalig op verzoek opgehaald (geen cloud tijdens
 inferentie — je audio verlaat de Mac nog steeds nooit) en draaien als CoreML op
@@ -161,7 +161,7 @@ vertrouwelijke meldproces in ons [beveiligingsbeleid](../../SECURITY.md).
 
 ## Architectuur
 
-Native **Swift 6 / SwiftUI** Dock-app (macOS 26) met een Home-dashboard. Globale
+Native **Swift 6 / SwiftUI** Dock-app (macOS 14) met een Home-dashboard. Globale
 druk-en-spreek-sneltoets · microfoonopname via AVAudioEngine · verwisselbare
 transcriptie op het apparaat · verwisselbare opschoning · tekstinvoeging via
 plakken/Toegankelijkheid · een zwevende opname-HUD. De kern (`VoiceTypeKit`) is

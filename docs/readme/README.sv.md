@@ -14,7 +14,7 @@ Ditt ljud lämnar aldrig din Mac — allt körs på enheten.
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
 [![Latest release](https://img.shields.io/github/v/release/michael-L-i/VoiceType?label=release&color=F2743E)](https://github.com/michael-L-i/VoiceType/releases/latest)
-&nbsp;[![Platform](https://img.shields.io/badge/macOS-26%2B-111111?logo=apple)](https://www.apple.com/macos/)
+&nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
 &nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
@@ -67,7 +67,7 @@ _Den här översättningen underhålls efter bästa förmåga — den engelska R
 3. Ge de tre behörigheter som VoiceType ber om — **Mikrofon**,
    **Taligenkänning** och **Hjälpmedel** — så är du klar.
 
-> Kräver **macOS 26** eller senare (Apple Silicon).
+> Kräver **macOS 14** eller senare (Apple Silicon).
 
 **Uppdateringar sker automatiskt.** VoiceType letar efter nya versioner i
 bakgrunden (och på begäran via **Sök efter uppdateringar…**) och installerar dem
@@ -92,8 +92,8 @@ mellan dem (en är aktiv åt gången).
 
 | Steg | Standard (inbyggd) | Valfria alternativ (på enheten) |
 | --- | --- | --- |
-| **Transkribering** | Apple `SpeechTranscriber` | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — hämtas vid behov |
-| **Uppstädning** | Inbyggda regler (omedelbara, deterministiska) | Apple Intelligence (`FoundationModels`) — inbyggd i macOS, ingen hämtning |
+| **Transkribering** | Apple `Speech` | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — hämtas vid behov |
+| **Uppstädning** | Inbyggda regler (omedelbara, deterministiska) | Apple Intelligence (`FoundationModels`, macOS 26+) — inbyggd i macOS, ingen hämtning |
 
 Hämtningsbara modeller laddas ned en gång vid behov (inget moln vid inferens —
 ditt ljud lämnar fortfarande aldrig din Mac) och körs som CoreML på Apple Neural
@@ -161,7 +161,7 @@ För sårbarheter, följ den privata rapporteringsprocessen i vår
 
 ## Arkitektur
 
-Native **Swift 6 / SwiftUI**-app i Dock (macOS 26) med en hempanel. Globalt
+Native **Swift 6 / SwiftUI**-app i Dock (macOS 14) med en hempanel. Globalt
 tryck-och-tala-kortkommando · mikrofonupptagning med AVAudioEngine · utbytbar
 transkribering på enheten · utbytbar uppstädning · textinfogning via
 inklistring/Hjälpmedel · en svävande inspelnings-HUD. Kärnan (`VoiceTypeKit`) är

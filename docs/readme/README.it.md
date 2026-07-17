@@ -14,7 +14,7 @@ usando. Il tuo audio non lascia mai il Mac — tutto viene eseguito sul disposit
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
 [![Latest release](https://img.shields.io/github/v/release/michael-L-i/VoiceType?label=release&color=F2743E)](https://github.com/michael-L-i/VoiceType/releases/latest)
-&nbsp;[![Platform](https://img.shields.io/badge/macOS-26%2B-111111?logo=apple)](https://www.apple.com/macos/)
+&nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
 &nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
@@ -65,7 +65,7 @@ _Questa è una traduzione fatta al meglio; il README in inglese è la versione d
 3. Concedi le tre autorizzazioni richieste da VoiceType — **Microfono**,
    **Riconoscimento vocale** e **Accessibilità** — e sei a posto.
 
-> Richiede **macOS 26** o versioni successive (Apple Silicon).
+> Richiede **macOS 14** o versioni successive (Apple Silicon).
 
 **Gli aggiornamenti sono automatici.** VoiceType controlla la presenza di nuove
 versioni in background (e su richiesta tramite **Verifica aggiornamenti…**) e le
@@ -92,8 +92,8 @@ alla volta).
 
 | Fase | Predefinito (integrato) | Alternative opzionali (on-device) |
 | --- | --- | --- |
-| **Trascrizione** | Apple `SpeechTranscriber` | **Parakeet TDT 0.6B V3** (NVIDIA, tramite [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, tramite [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — scaricati su richiesta |
-| **Pulizia** | Regole integrate (istantanee, deterministiche) | Apple Intelligence (`FoundationModels`) — integrato in macOS, nessun download |
+| **Trascrizione** | Apple `Speech` | **Parakeet TDT 0.6B V3** (NVIDIA, tramite [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, tramite [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — scaricati su richiesta |
+| **Pulizia** | Regole integrate (istantanee, deterministiche) | Apple Intelligence (`FoundationModels`, macOS 26+) — integrato in macOS, nessun download |
 
 I modelli scaricabili vengono recuperati una sola volta su richiesta (nessun cloud
 al momento dell'inferenza — il tuo audio continua a non lasciare mai il Mac) e
@@ -163,7 +163,7 @@ Per le vulnerabilità, segui la procedura di segnalazione privata nella nostra
 
 ## Architettura
 
-App nativa **Swift 6 / SwiftUI** nel Dock (macOS 26) con una dashboard Home.
+App nativa **Swift 6 / SwiftUI** nel Dock (macOS 14) con una dashboard Home.
 Scorciatoia globale premi-e-parla · acquisizione del microfono con AVAudioEngine ·
 trascrizione on-device intercambiabile · pulizia intercambiabile · inserimento del
 testo tramite incolla/Accessibilità · un HUD di registrazione fluttuante. Il core

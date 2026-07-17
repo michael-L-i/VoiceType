@@ -3,29 +3,55 @@ import AVFoundation
 import Speech
 import VoiceTypeKit
 
-/// On-device transcription via macOS 26's `SpeechAnalyzer` + `SpeechTranscriber`.
-/// Fully local — audio never leaves the device. This is the default engine when
-/// the hardware/locale supports it.
-///
-/// The contract is batch (one utterance in, text out): the pipeline calls this
-/// after the push-to-talk key is released. Internally we still drive the
-/// streaming analyzer, feeding the whole buffer and finalizing.
+/// Apple's on-device speech engine. macOS 26 uses the newer
+/// `SpeechAnalyzer`/`SpeechTranscriber` stack; macOS 14 and 15 use
+/// `SFSpeechRecognizer` with `requiresOnDeviceRecognition` enforced so audio
+/// never falls back to Apple's servers.
 final class AppleSpeechEngine: TranscriptionEngine {
     let kind: TranscriptionEngineKind = .appleOnDevice
 
     func isAvailable() async -> Bool {
-        // Available if the framework can offer an audio format for a transcriber
-        // in the user's language (model may still need a one-time download).
-        let supported = await SpeechTranscriber.supportedLocales
-        return !supported.isEmpty
+        !(await Self.supportedLocales()).isEmpty
     }
 
     func transcribe(_ audio: PCMBuffer, locale localeID: String) async throws -> TranscriptionResult {
         let start = Date()
+        let text: String
+
+        if #available(macOS 26.0, *) {
+            text = try await transcribeWithSpeechAnalyzer(audio, localeID: localeID)
+        } else {
+            text = try await transcribeWithLegacyRecognizer(audio, localeID: localeID)
+        }
+
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { throw TranscriptionError.noSpeechDetected }
+        return TranscriptionResult(text: trimmed, locale: localeID,
+                                   processingTime: Date().timeIntervalSince(start))
+    }
+
+    /// Locales the Apple engine can keep entirely on-device on this version of
+    /// macOS. Shared with `EngineFactory` so the language picker and resolver do
+    /// not advertise a legacy locale that would require a network request.
+    static func supportedLocales() async -> [Locale] {
+        if #available(macOS 26.0, *) {
+            return await SpeechTranscriber.supportedLocales
+        }
+        return SFSpeechRecognizer.supportedLocales().filter { locale in
+            SFSpeechRecognizer(locale: locale)?.supportsOnDeviceRecognition == true
+        }
+    }
+
+    // MARK: - macOS 26+
+
+    @available(macOS 26.0, *)
+    private func transcribeWithSpeechAnalyzer(_ audio: PCMBuffer,
+                                              localeID: String) async throws -> String {
         let locale = Locale(identifier: localeID)
 
         guard await isLocaleSupported(locale) else {
-            throw TranscriptionError.unavailable(reason: "Apple speech model doesn't support \(localeID).")
+            throw TranscriptionError.unavailable(
+                reason: "Apple speech model doesn't support \(localeID).")
         }
 
         let transcriber = SpeechTranscriber(
@@ -38,15 +64,16 @@ final class AppleSpeechEngine: TranscriptionEngine {
         try await ensureModel(for: transcriber, locale: locale)
 
         let analyzer = SpeechAnalyzer(modules: [transcriber])
-        guard let analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber]) else {
-            throw TranscriptionError.unavailable(reason: "No compatible audio format for the speech model.")
+        guard let analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(
+            compatibleWith: [transcriber]) else {
+            throw TranscriptionError.unavailable(
+                reason: "No compatible audio format for the speech model.")
         }
 
         guard let inputBuffer = Self.makeBuffer(from: audio, targetFormat: analyzerFormat) else {
             throw TranscriptionError.failed("Could not prepare audio for the speech model.")
         }
 
-        // Collect final-result text as it arrives.
         let collector = Task { () -> String in
             var text = AttributedString()
             for try await result in transcriber.results where result.isFinal {
@@ -61,21 +88,17 @@ final class AppleSpeechEngine: TranscriptionEngine {
         inputBuilder.finish()
         try await analyzer.finalizeAndFinishThroughEndOfInput()
 
-        let text = (try await collector.value).trimmingCharacters(in: .whitespacesAndNewlines)
-        if text.isEmpty { throw TranscriptionError.noSpeechDetected }
-
-        return TranscriptionResult(text: text, locale: localeID,
-                                   processingTime: Date().timeIntervalSince(start))
+        return try await collector.value
     }
 
-    // MARK: - Model availability
-
+    @available(macOS 26.0, *)
     private func isLocaleSupported(_ locale: Locale) async -> Bool {
         let supported = await SpeechTranscriber.supportedLocales
         let target = locale.identifier(.bcp47)
         return supported.contains { $0.identifier(.bcp47) == target }
     }
 
+    @available(macOS 26.0, *)
     private func isLocaleInstalled(_ locale: Locale) async -> Bool {
         let installed = await SpeechTranscriber.installedLocales
         let target = locale.identifier(.bcp47)
@@ -83,50 +106,164 @@ final class AppleSpeechEngine: TranscriptionEngine {
     }
 
     /// Download the locale model on first use; no-op once installed.
-    private func ensureModel(for transcriber: SpeechTranscriber, locale: Locale) async throws {
+    @available(macOS 26.0, *)
+    private func ensureModel(for transcriber: SpeechTranscriber,
+                             locale: Locale) async throws {
         if await isLocaleInstalled(locale) { return }
         do {
-            if let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
+            if let request = try await AssetInventory.assetInstallationRequest(
+                supporting: [transcriber]) {
                 Log.engine.info("downloading Apple speech model for \(locale.identifier, privacy: .public)…")
                 try await request.downloadAndInstall()
             }
         } catch {
-            throw TranscriptionError.unavailable(reason: "Couldn't download the on-device speech model: \(error.localizedDescription)")
+            throw TranscriptionError.unavailable(
+                reason: "Couldn't download the on-device speech model: \(error.localizedDescription)")
+        }
+    }
+
+    // MARK: - macOS 14–15
+
+    private func transcribeWithLegacyRecognizer(_ audio: PCMBuffer,
+                                                localeID: String) async throws -> String {
+        guard SFSpeechRecognizer.authorizationStatus() == .authorized else {
+            throw TranscriptionError.unavailable(
+                reason: "Allow Speech Recognition access in System Settings.")
+        }
+        guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: localeID)),
+              recognizer.supportsOnDeviceRecognition else {
+            throw TranscriptionError.unavailable(
+                reason: "Apple's on-device recognizer doesn't support \(localeID) on this Mac.")
+        }
+        guard recognizer.isAvailable else {
+            throw TranscriptionError.unavailable(
+                reason: "Apple's on-device recognizer is temporarily unavailable.")
+        }
+        guard let buffer = Self.makeSourceBuffer(from: audio) else {
+            throw TranscriptionError.failed("Could not prepare audio for the speech recognizer.")
+        }
+
+        let request = SFSpeechAudioBufferRecognitionRequest()
+        request.requiresOnDeviceRecognition = true
+        request.shouldReportPartialResults = false
+        request.taskHint = .dictation
+
+        do {
+            return try await LegacyRecognitionSession(
+                recognizer: recognizer, request: request).recognize(buffer)
+        } catch let error as TranscriptionError {
+            throw error
+        } catch {
+            throw TranscriptionError.failed(
+                "Apple on-device recognition failed: \(error.localizedDescription)")
         }
     }
 
     // MARK: - Audio bridging
 
-    /// Build an `AVAudioPCMBuffer` in the analyzer's required format from our
-    /// mono 16 kHz float buffer, resampling if the analyzer wants a different rate.
-    static func makeBuffer(from audio: PCMBuffer, targetFormat: AVAudioFormat) -> AVAudioPCMBuffer? {
-        // Source: mono float at audio.sampleRate.
-        guard let srcFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32,
-                                            sampleRate: audio.sampleRate, channels: 1, interleaved: false),
-              let srcBuffer = AVAudioPCMBuffer(pcmFormat: srcFormat,
-                                               frameCapacity: AVAudioFrameCount(max(1, audio.samples.count))) else {
+    private static func makeSourceBuffer(from audio: PCMBuffer) -> AVAudioPCMBuffer? {
+        guard let format = AVAudioFormat(commonFormat: .pcmFormatFloat32,
+                                         sampleRate: audio.sampleRate,
+                                         channels: 1,
+                                         interleaved: false),
+              let buffer = AVAudioPCMBuffer(
+                pcmFormat: format,
+                frameCapacity: AVAudioFrameCount(max(1, audio.samples.count))) else {
             return nil
         }
-        srcBuffer.frameLength = AVAudioFrameCount(audio.samples.count)
-        if let dst = srcBuffer.floatChannelData {
-            audio.samples.withUnsafeBufferPointer { src in
-                if let base = src.baseAddress { dst[0].update(from: base, count: audio.samples.count) }
+        buffer.frameLength = AVAudioFrameCount(audio.samples.count)
+        if let channels = buffer.floatChannelData {
+            audio.samples.withUnsafeBufferPointer { source in
+                if let base = source.baseAddress {
+                    channels[0].update(from: base, count: audio.samples.count)
+                }
             }
         }
+        return buffer
+    }
 
-        if srcFormat == targetFormat { return srcBuffer }
+    static func makeBuffer(from audio: PCMBuffer,
+                           targetFormat: AVAudioFormat) -> AVAudioPCMBuffer? {
+        guard let sourceBuffer = makeSourceBuffer(from: audio) else { return nil }
+        let sourceFormat = sourceBuffer.format
+        if sourceFormat == targetFormat { return sourceBuffer }
 
-        guard let converter = AVAudioConverter(from: srcFormat, to: targetFormat) else { return srcBuffer }
+        guard let converter = AVAudioConverter(from: sourceFormat, to: targetFormat) else {
+            return sourceBuffer
+        }
         let ratio = targetFormat.sampleRate / audio.sampleRate
         let capacity = AVAudioFrameCount(Double(audio.samples.count) * ratio) + 4096
-        guard let outBuffer = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: capacity) else { return srcBuffer }
+        guard let outputBuffer = AVAudioPCMBuffer(
+            pcmFormat: targetFormat, frameCapacity: capacity) else {
+            return sourceBuffer
+        }
 
         var fed = false
         var error: NSError?
-        _ = converter.convert(to: outBuffer, error: &error) { _, outStatus in
-            if fed { outStatus.pointee = .endOfStream; return nil }
-            fed = true; outStatus.pointee = .haveData; return srcBuffer
+        _ = converter.convert(to: outputBuffer, error: &error) { _, status in
+            if fed {
+                status.pointee = .endOfStream
+                return nil
+            }
+            fed = true
+            status.pointee = .haveData
+            return sourceBuffer
         }
-        return outBuffer
+        return error == nil ? outputBuffer : sourceBuffer
+    }
+}
+
+/// Retains the legacy recognition task until its callback produces a final
+/// result. The request is explicitly on-device before this bridge is created.
+private final class LegacyRecognitionSession: @unchecked Sendable {
+    private let recognizer: SFSpeechRecognizer
+    private let request: SFSpeechAudioBufferRecognitionRequest
+    private let lock = NSLock()
+    private var task: SFSpeechRecognitionTask?
+    private var continuation: CheckedContinuation<String, Error>?
+
+    init(recognizer: SFSpeechRecognizer,
+         request: SFSpeechAudioBufferRecognitionRequest) {
+        self.recognizer = recognizer
+        self.request = request
+    }
+
+    func recognize(_ buffer: AVAudioPCMBuffer) async throws -> String {
+        try await withCheckedThrowingContinuation { continuation in
+            lock.lock()
+            self.continuation = continuation
+            lock.unlock()
+
+            let task = recognizer.recognitionTask(with: request) { [weak self] result, error in
+                if let error {
+                    self?.finish(.failure(error))
+                } else if let result, result.isFinal {
+                    self?.finish(.success(result.bestTranscription.formattedString))
+                }
+            }
+
+            lock.lock()
+            if self.continuation != nil {
+                self.task = task
+            } else {
+                task.cancel()
+            }
+            lock.unlock()
+
+            request.append(buffer)
+            request.endAudio()
+        }
+    }
+
+    private func finish(_ result: Result<String, Error>) {
+        lock.lock()
+        guard let continuation else {
+            lock.unlock()
+            return
+        }
+        self.continuation = nil
+        task = nil
+        lock.unlock()
+        continuation.resume(with: result)
     }
 }
