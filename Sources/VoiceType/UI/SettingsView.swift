@@ -37,7 +37,7 @@ private struct GeneralSections: View {
                        isOn: $coordinator.settings.soundFeedback)
                 Toggle(L("Keep an on-device history of recent dictations"),
                        isOn: $coordinator.settings.keepHistory)
-                Text(L("Stored locally and never leaves your Mac; audio is never saved. Turning this off just pauses new recordings — your existing transcripts are kept. Delete them anytime from Transcripts."))
+                Text(L("Stored locally and never leaves your Mac — audio is never saved."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } header: {
@@ -122,69 +122,19 @@ private struct CleanupSections: View {
                 }
                 .pickerStyle(.radioGroup)
 
-                cleanupStatusNote(for: coordinator.settings.cleanupEngine)
+                Group {
+                    Toggle(L("Remove filler words (um, uh, like)"),
+                           isOn: $coordinator.settings.cleanupOptions.removeFillers)
+                    Toggle(L("Add punctuation"),
+                           isOn: $coordinator.settings.cleanupOptions.addPunctuation)
+                    Toggle(L("Fix capitalization"),
+                           isOn: $coordinator.settings.cleanupOptions.fixCapitalization)
+                }
+                .disabled(coordinator.settings.cleanupEngine == .none)
             } header: {
                 Text(L("Cleanup"))
-            } footer: {
-                Text(L("Cleanup only changes delivery — punctuation, casing, fillers — never your meaning. It falls back to raw text if it can't run."))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
-
-            Section {
-                Toggle(L("Remove filler words (um, uh, like)"),
-                       isOn: $coordinator.settings.cleanupOptions.removeFillers)
-                Toggle(L("Add punctuation"),
-                       isOn: $coordinator.settings.cleanupOptions.addPunctuation)
-                Toggle(L("Fix capitalization"),
-                       isOn: $coordinator.settings.cleanupOptions.fixCapitalization)
-            } header: {
-                Text(L("What to clean up"))
-            }
-            .disabled(coordinator.settings.cleanupEngine == .none)
-
         }
-    }
-
-    @ViewBuilder
-    private func cleanupStatusNote(for kind: CleanupEngineKind) -> some View {
-        switch kind {
-        case .foundationModels:
-            EngineStatusRow(
-                ready: coordinator.availableCleanup.contains(.foundationModels),
-                readyText: L("Ready. Runs on-device with Apple Intelligence."),
-                pendingText: L("Needs Apple Intelligence; falls back to built-in rules if unavailable."))
-        case .ruleBased:
-            EngineStatusRow(
-                ready: true,
-                readyText: L("Always available. Deterministic, on-device."),
-                pendingText: "")
-        case .none:
-            EngineStatusRow(
-                ready: true,
-                readyText: L("Inserts the raw transcript verbatim."),
-                pendingText: "")
-        }
-    }
-}
-
-// MARK: - Shared status rows
-
-/// A small ready/needs-setup line shown under an engine picker.
-private struct EngineStatusRow: View {
-    let ready: Bool
-    let readyText: String
-    let pendingText: String
-
-    var body: some View {
-        Label {
-            Text(ready ? readyText : pendingText)
-        } icon: {
-            Image(systemName: ready ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                .foregroundStyle(ready ? .green : .orange)
-        }
-        .font(.caption)
-        .foregroundStyle(.secondary)
     }
 }
 
