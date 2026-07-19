@@ -37,7 +37,7 @@ private struct GeneralSections: View {
                        isOn: $coordinator.settings.soundFeedback)
                 Toggle(L("Keep an on-device history of recent dictations"),
                        isOn: $coordinator.settings.keepHistory)
-                Text(L("Stored locally and never leaves your Mac; audio is never saved. Turning this off just pauses new recordings — your existing transcripts are kept. Delete them anytime from Transcripts."))
+                Text(L("Stored locally and never leaves your Mac — audio is never saved."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } header: {
