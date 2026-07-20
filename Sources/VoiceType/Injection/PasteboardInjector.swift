@@ -13,7 +13,10 @@ struct PasteboardInjector: TextInjector {
         guard !text.isEmpty else { return }
         guard AXIsProcessTrusted() else { throw InjectionError.notTrusted }
 
-        await MainActor.run {
+        try await MainActor.run {
+            // Escape may cancel the dictation while this injection is queued.
+            // Check on the main actor immediately before touching the clipboard.
+            try Task.checkCancellation()
             let pasteboard = NSPasteboard.general
             // Snapshot existing contents so we can restore them.
             let previous = pasteboard.string(forType: .string)
