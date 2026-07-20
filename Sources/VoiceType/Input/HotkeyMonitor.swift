@@ -25,6 +25,7 @@ final class HotkeyMonitor {
     /// for unresponsiveness and key events get dropped.
     var onPress: (() -> Void)?
     var onRelease: (() -> Void)?
+    var onCancel: (() -> Void)?
 
     private(set) var trigger: Hotkey.Trigger
     private var eventTap: CFMachPort?
@@ -48,7 +49,8 @@ final class HotkeyMonitor {
     func start() {
         stop()
 
-        let mask = CGEventMask(1) << CGEventType.flagsChanged.rawValue
+        let mask = (CGEventMask(1) << CGEventType.flagsChanged.rawValue)
+            | (CGEventMask(1) << CGEventType.keyDown.rawValue)
         guard let tap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
@@ -120,6 +122,10 @@ final class HotkeyMonitor {
                 onRelease?()
             }
 
+        case .keyDown:
+            let keyCode = UInt16(truncatingIfNeeded: event.getIntegerValueField(.keyboardEventKeycode))
+            if keyCode == Self.escapeKeyCode { onCancel?() }
+
         default:
             break
         }
@@ -143,6 +149,8 @@ final class HotkeyMonitor {
     // Hardware key codes for the modifier keys (left/right are distinct), which is
     // how we tell left vs. right Option apart — CGEventFlags only reports "an
     // Option is down", not which side.
+    private static let escapeKeyCode: UInt16 = 53
+
     private static func keyCode(for trigger: Hotkey.Trigger) -> UInt16 {
         switch trigger {
         case .leftOption: return 58
