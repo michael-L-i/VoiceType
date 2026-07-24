@@ -148,9 +148,15 @@ final class AppleSpeechEngine: TranscriptionEngine {
         request.shouldReportPartialResults = false
         request.taskHint = .dictation
 
+        // The recognizer can stall without ever reporting a final result or an
+        // error, which would hang the pipeline forever. Give it a deadline that
+        // scales with how much audio it has to chew through.
+        let audioSeconds = audio.sampleRate > 0 ? Double(audio.samples.count) / audio.sampleRate : 0
+        let deadline = Duration.seconds(max(15, audioSeconds * 2))
+
         do {
             return try await LegacyRecognitionSession(
-                recognizer: recognizer, request: request).recognize(buffer)
+                recognizer: recognizer, request: request).recognize(buffer, deadline: deadline)
         } catch let error as TranscriptionError {
             throw error
         } catch {
@@ -220,6 +226,7 @@ private final class LegacyRecognitionSession: @unchecked Sendable {
     private let request: SFSpeechAudioBufferRecognitionRequest
     private let lock = NSLock()
     private var task: SFSpeechRecognitionTask?
+    private var watchdog: Task<Void, Never>?
     private var continuation: CheckedContinuation<String, Error>?
 
     init(recognizer: SFSpeechRecognizer,
@@ -228,7 +235,7 @@ private final class LegacyRecognitionSession: @unchecked Sendable {
         self.request = request
     }
 
-    func recognize(_ buffer: AVAudioPCMBuffer) async throws -> String {
+    func recognize(_ buffer: AVAudioPCMBuffer, deadline: Duration) async throws -> String {
         try await withCheckedThrowingContinuation { continuation in
             lock.lock()
             self.continuation = continuation
@@ -245,6 +252,12 @@ private final class LegacyRecognitionSession: @unchecked Sendable {
             lock.lock()
             if self.continuation != nil {
                 self.task = task
+                self.watchdog = Task { [weak self] in
+                    try? await Task.sleep(for: deadline)
+                    guard !Task.isCancelled else { return }
+                    self?.finish(.failure(TranscriptionError.failed(
+                        "Apple's on-device recognizer timed out.")), cancelTask: true)
+                }
             } else {
                 task.cancel()
             }
@@ -255,15 +268,21 @@ private final class LegacyRecognitionSession: @unchecked Sendable {
         }
     }
 
-    private func finish(_ result: Result<String, Error>) {
+    private func finish(_ result: Result<String, Error>, cancelTask: Bool = false) {
         lock.lock()
         guard let continuation else {
             lock.unlock()
             return
         }
         self.continuation = nil
-        task = nil
+        let task = self.task
+        let watchdog = self.watchdog
+        self.task = nil
+        self.watchdog = nil
         lock.unlock()
+
+        watchdog?.cancel()
+        if cancelTask { task?.cancel() }
         continuation.resume(with: result)
     }
 }
