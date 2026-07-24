@@ -1,6 +1,6 @@
 # Releasing VoiceType
 
-VoiceType ships two things per release:
+VoiceType ships two install paths per release:
 
 - **`VoiceType.dmg`** — the human download (drag-to-Applications).
 - **`VoiceType.zip` + `appcast.xml`** — the [Sparkle](https://sparkle-project.org)
@@ -35,7 +35,8 @@ cp .env.example .env.local
 ```
 
 `Scripts/release.sh` loads `.env.local` automatically. Without those variables,
-the scripts keep using ad-hoc signing for local builds.
+ordinary local app builds keep using ad-hoc signing, while `release.sh` refuses
+to produce public release artifacts.
 
 ## One-time setup: the Sparkle signing key
 
@@ -62,33 +63,107 @@ rm sparkle_private_key.txt   # never commit this
 > The private key is the trust root for updates. Keep it out of the repo. The
 > public key in `Info.plist` is safe to publish.
 
-## Cut a release
+## Prepare the release commit
 
-1. Pick the next version and build the signed artifacts locally:
+1. Choose the next `major.minor.patch` version. VoiceType intentionally uses the
+   same three-integer value for `CFBundleShortVersionString`,
+   `CFBundleVersion`, and the Git tag.
 
-   ```bash
-   Scripts/release.sh 0.1.2
-   ```
-
-   This stamps the bundle version, builds the DMG, signs/notarizes when the
-   Developer ID environment variables are set, zips + signs the app, and writes
-   `appcast.xml` (enclosure URL → the `v0.1.2` release assets).
-
-2. Publish the GitHub Release with all three artifacts:
+2. Update both version values in `Resources/Info.plist`, then commit the bump:
 
    ```bash
-   gh release create v0.1.2 --target main \
-       --title "VoiceType 0.1.2" --notes "What changed…" \
-       VoiceType.dmg VoiceType.zip appcast.xml
+   /usr/libexec/PlistBuddy \
+       -c "Set :CFBundleShortVersionString 2.5.0" \
+       -c "Set :CFBundleVersion 2.5.0" \
+       Resources/Info.plist
+   git add Resources/Info.plist
+   git commit -m "chore(release): bump version to 2.5.0"
    ```
 
-   Local is the canonical path: only the maintainer's machine has the Apple
-   Developer ID + notary credentials, so the DMG it produces is signed and
-   notarized (a plain double-click works). `.github/workflows/release.yml` exists
-   as a **manual** fallback (Actions → Release → Run workflow) for a machine-less
-   release — but a GitHub runner can't notarize, so its DMG is ad-hoc only. Don't
-   run it to re-publish a tag you already released locally; it would overwrite the
-   notarized DMG. It also needs the `SPARKLE_PRIVATE_KEY` repo secret.
+3. Merge that commit to `main`. Confirm CI is green, then update the local
+   release checkout:
+
+   ```bash
+   git switch main
+   git pull --ff-only
+   git status --short
+   ```
+
+   The status output must be empty. `release.sh` also verifies that local `main`
+   exactly matches `origin/main` and that the release tag does not already exist.
+
+## Build signed artifacts
+
+Build the release locally:
+
+```bash
+Scripts/release.sh 2.5.0
+```
+
+This stamps the bundle version, builds the DMG, signs and notarizes the app,
+zips and signs the Sparkle update, and writes `appcast.xml` (enclosure URL →
+the `v2.5.0` release assets).
+
+Public releases fail closed if Developer ID signing or notarization is not
+configured. For a packaging rehearsal on a feature branch only:
+
+```bash
+ALLOW_UNNOTARIZED_RELEASE=1 ALLOW_NON_MAIN_RELEASE=1 \
+    Scripts/release.sh 2.5.0
+```
+
+Those rehearsal artifacts are ad-hoc signed. Never publish or share them.
+
+## Release smoke test
+
+Before publishing, test the signed release candidate on a representative
+Apple-silicon Mac. Avoid resetting macOS permissions on your daily-use install;
+use a separate test account or machine when you need a true first-run test.
+
+- Install from the generated DMG and confirm Gatekeeper opens it without a
+  warning.
+- Complete first-run Microphone, Speech Recognition, and Accessibility setup.
+- Dictate into at least one native app and one browser; verify hold/tap behavior,
+  insertion, clipboard restoration, and Escape cancellation.
+- Switch languages and run a short non-English dictation.
+- Download, test, select, and remove at least one optional model.
+- Transcribe an audio file, then verify copy, history, individual deletion, and
+  **Delete all**.
+- Turn history off and confirm a new dictation is not retained.
+- Check launch-at-login behavior and run **Check for Updates…**.
+- Launch once with the network unavailable; installed engines must continue to
+  work locally.
+
+## Publish and verify
+
+1. Publish the GitHub Release with all three artifacts:
+
+    ```bash
+    gh release create v2.5.0 --target main \
+        --title "VoiceType 2.5.0" --notes "What changed…" \
+        VoiceType.dmg VoiceType.zip appcast.xml
+    ```
+
+    Local is the canonical path: only the maintainer's machine has the Apple
+    Developer ID + notary credentials, so the DMG it produces is signed and
+    notarized (a plain double-click works).
+
+    `.github/workflows/release.yml` is a manual package check, not a publishing
+    fallback. It retains explicitly labeled, unnotarized artifacts for three
+    days and cannot create or overwrite a GitHub Release. It needs the
+    `SPARKLE_PRIVATE_KEY` repository secret.
+
+2. Verify the public release itself:
+
+    ```bash
+    gh release view v2.5.0
+    curl -fL -o /tmp/VoiceType.dmg \
+        https://github.com/michael-L-i/VoiceType/releases/download/v2.5.0/VoiceType.dmg
+    hdiutil verify /tmp/VoiceType.dmg
+    ```
+
+    Confirm the release page contains `VoiceType.dmg`, `VoiceType.zip`, and
+    `appcast.xml`, and that an existing install sees the update.
 
 That's it. Because the app's `SUFeedURL` points at
 `releases/latest/download/appcast.xml`, every existing install will discover the
@@ -97,8 +172,9 @@ offer to install it.
 
 ## Notes
 
-- **Bump the version every release.** Sparkle compares `CFBundleVersion`; an equal
-  or lower number won't be offered. `release.sh` handles the stamping.
+- **Bump and commit the version every release.** Sparkle compares
+  `CFBundleVersion`; an equal or lower number won't be offered. `release.sh`
+  verifies the committed version and stamps the same value into the bundle.
 - **The first auto-update-capable build is 0.1.1.** Earlier builds (0.1.0) have no
   updater and must be replaced manually.
 - Keep `.env.local` populated for public releases so both the human download and

@@ -1,20 +1,17 @@
-# Release — build the DMG (human download) + the signed Sparkle ZIP/appcast
-# (auto-update) and publish all three to a GitHub Release.
+# Release candidate check — build the DMG + signed Sparkle ZIP/appcast on a
+# GitHub runner, verify the package closure, and retain the artifacts briefly.
 #
-# MANUAL ONLY (workflow_dispatch). Releases are normally cut LOCALLY with
-# `Scripts/release.sh <version>` + `gh release create`, because the maintainer's
-# machine has the Apple Developer ID + notary credentials that produce a SIGNED,
-# NOTARIZED DMG (a plain double-click works). This workflow is a fallback for a
-# machine-less release: it builds on a GitHub runner, which can compile (runners
-# now ship Xcode 26) but CANNOT notarize, so its DMG is ad-hoc only. Don't run it
-# to "re-publish" a notarized tag — action-gh-release would overwrite the good
-# DMG with the un-notarized one.
+# MANUAL ONLY (workflow_dispatch). This is deliberately NOT a publishing path:
+# GitHub runners do not have the maintainer's Developer ID certificate or Apple
+# notary credentials, so the DMG is ad-hoc signed and must never be shared as a
+# public release. Canonical releases are cut locally with Scripts/release.sh and
+# published only after its Developer ID + notarization checks pass.
 #
 # REQUIRED SECRET: SPARKLE_PRIVATE_KEY — the EdDSA private key that signs updates
 # (export it once with Sparkle's `generate_keys -x`). Without it the appcast
 # can't be signed and the run fails at the signing step. The matching public key
 # is pinned in Info.plist as SUPublicEDKey; the private key is NEVER committed.
-name: Release
+name: Release candidate check
 
 on:
   workflow_dispatch:
@@ -24,10 +21,10 @@ on:
         required: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  release:
+  package-check:
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -40,17 +37,18 @@ jobs:
 
       - name: Build DMG + signed Sparkle update
         env:
+          ALLOW_NON_MAIN_RELEASE: "1"
+          ALLOW_UNNOTARIZED_RELEASE: "1"
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: ./Scripts/release.sh "${{ inputs.version }}"
 
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Retain unnotarized artifacts for inspection
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: "v${{ inputs.version }}"
-          files: |
+          name: "UNNOTARIZED-VoiceType-${{ inputs.version }}"
+          retention-days: 3
+          if-no-files-found: error
+          path: |
             VoiceType.dmg
             VoiceType.zip
             appcast.xml
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

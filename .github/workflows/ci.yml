@@ -27,6 +27,12 @@ jobs:
       - name: Swift version
         run: swift --version
 
+      - name: Validate release metadata and scripts
+        run: |
+          plutil -lint Resources/Info.plist Resources/VoiceType.entitlements Resources/PrivacyInfo.xcprivacy
+          for script in Scripts/*.sh; do bash -n "$script"; done
+          ./Scripts/check-l10n.sh
+
       - name: Build
         run: swift build
 
