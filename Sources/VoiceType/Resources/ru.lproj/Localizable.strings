@@ -18,6 +18,7 @@
 "Always available. Deterministic, on-device." = "Всегда доступно. Детерминированно, на устройстве.";
 "Another entry already matches this phrase; the first one wins." = "Этой фразе уже соответствует другая запись; применяется первая.";
 "Apple Intelligence (on-device)" = "Apple Intelligence (на устройстве)";
+"Apple's on-device dictation isn't available on this Mac." = "Локальная диктовка Apple недоступна на этом Mac.";
 "Audio device changed. Try again." = "Аудиоустройство изменилось. Попробуйте ещё раз.";
 "Built-in" = "Встроенный";
 "Built-in rules" = "Встроенные правила";
@@ -49,6 +50,7 @@
 "Didn't catch that." = "Не удалось разобрать.";
 "Download" = "Загрузить";
 "Download (%@)" = "Загрузить (%@)";
+"Download a model to start dictating" = "Загрузите модель, чтобы диктовать";
 "Download failed. Check your connection and try again." = "Не удалось загрузить. Проверьте подключение и попробуйте ещё раз.";
 "Downloading…" = "Загрузка…";
 "Drop an audio or video file" = "Перетяните аудио- или видеофайл";
@@ -100,6 +102,7 @@
 "No transcripts yet" = "Пока нет расшифровок";
 "None (raw)" = "Нет (исходный текст)";
 "Not available for %@" = "Недоступно для %@";
+"Not available on this Mac" = "Недоступно на этом Mac";
 "Open Settings" = "Открыть настройки";
 "Open System Settings" = "Открыть Системные настройки";
 "Open VoiceType at login" = "Открывать VoiceType при входе";

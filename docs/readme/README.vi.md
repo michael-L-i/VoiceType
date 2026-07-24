@@ -15,7 +15,7 @@ bất kỳ ứng dụng nào đang dùng. Âm thanh không bao giờ rời khỏ
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
 [![Latest release](https://img.shields.io/github/v/release/michael-L-i/VoiceType?label=release&color=F2743E)](https://github.com/michael-L-i/VoiceType/releases/latest)
-&nbsp;[![Platform](https://img.shields.io/badge/macOS-26%2B-111111?logo=apple)](https://www.apple.com/macos/)
+&nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
 &nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
@@ -47,7 +47,7 @@ _Bản dịch này được duy trì trong khả năng có thể; README tiếng
 2. Mở DMG và kéo **VoiceType** vào thư mục **Applications**. Ứng dụng được Apple **ký và công chứng**, nên mở bằng nhấp đúp bình thường, không cần vượt qua Gatekeeper.
 3. Cấp ba quyền mà VoiceType yêu cầu: **Microphone**, **Speech Recognition** và **Accessibility**.
 
-> Yêu cầu macOS 26 trở lên (Apple Silicon).
+> Yêu cầu macOS 14 trở lên (Apple Silicon).
 
 **Cập nhật tự động.** VoiceType kiểm tra phiên bản mới ở nền (và theo yêu cầu qua **Check for Updates…**) rồi cài tại chỗ bằng [Sparkle](https://sparkle-project.org); mỗi bản cập nhật đều được ký và xác minh bằng mật mã. _(Tự động cập nhật hoạt động từ v0.1.1; bản đầu tiên v0.1.0 cần được thay thế thủ công một lần.)_
 
@@ -61,8 +61,8 @@ Mọi thứ chạy trên thiết bị. Mô hình Apple có sẵn trong macOS và
 
 | Giai đoạn | Mặc định (tích hợp) | Lựa chọn tùy chọn (trên thiết bị) |
 | --- | --- | --- |
-| **Chép lời** | `SpeechTranscriber` của Apple | **Parakeet TDT 0.6B V3** (NVIDIA, qua [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, qua [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — tải theo yêu cầu |
-| **Làm sạch** | Quy tắc tích hợp (ngay tức thì, xác định) | Apple Intelligence (`FoundationModels`) — có sẵn trong macOS, không cần tải |
+| **Chép lời** | `Speech` của Apple | **Parakeet TDT 0.6B V3** (NVIDIA, qua [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, qua [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — tải theo yêu cầu |
+| **Làm sạch** | Quy tắc tích hợp (ngay tức thì, xác định) | Apple Intelligence (`FoundationModels`, macOS 26+) — có sẵn trong macOS, không cần tải |
 
 Các mô hình có thể tải chỉ được lấy một lần khi cần; không có đám mây lúc suy luận nên âm thanh vẫn ở trên Mac. Chúng chạy bằng CoreML trên Apple Neural Engine. Nếu lựa chọn của bạn không chạy được, VoiceType tự động chuyển sang động cơ khả dụng và luôn trả về văn bản thô thay vì thất bại.
 
@@ -100,7 +100,7 @@ Chúng tôi hoan nghênh đóng góp. Hãy đọc [hướng dẫn đóng góp](.
 
 ## Kiến trúc
 
-Ứng dụng Dock **Swift 6 / SwiftUI** thuần (macOS 26) với bảng điều khiển Home. Phím tắt nhấn-để-nói toàn cục · thu âm mic AVAudioEngine · chép lời trên thiết bị có thể thay thế · làm sạch có thể thay thế · chèn văn bản qua clipboard/Accessibility · HUD ghi âm nổi. Lõi (`VoiceTypeKit`) thuần và có kiểm thử; mục tiêu ứng dụng chứa động cơ hệ thống và giao diện. Chi tiết nằm trong [`CLAUDE.md`](../../CLAUDE.md) và phát triển qua `specs/`.
+Ứng dụng Dock **Swift 6 / SwiftUI** thuần (macOS 14) với bảng điều khiển Home. Phím tắt nhấn-để-nói toàn cục · thu âm mic AVAudioEngine · chép lời trên thiết bị có thể thay thế · làm sạch có thể thay thế · chèn văn bản qua clipboard/Accessibility · HUD ghi âm nổi. Lõi (`VoiceTypeKit`) thuần và có kiểm thử; mục tiêu ứng dụng chứa động cơ hệ thống và giao diện. Chi tiết nằm trong [`CLAUDE.md`](../../CLAUDE.md) và phát triển qua `specs/`.
 
 ## Giấy phép
 

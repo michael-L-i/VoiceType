@@ -18,6 +18,7 @@
 "Always available. Deterministic, on-device." = "Luôn khả dụng. Kết quả nhất quán, chạy trên thiết bị.";
 "Another entry already matches this phrase; the first one wins." = "Đã có một mục khác khớp với cụm từ này; mục đầu tiên sẽ được ưu tiên.";
 "Apple Intelligence (on-device)" = "Apple Intelligence (trên thiết bị)";
+"Apple's on-device dictation isn't available on this Mac." = "Tính năng đọc chính tả trên thiết bị của Apple không khả dụng trên máy Mac này.";
 "Audio device changed. Try again." = "Thiết bị âm thanh đã thay đổi. Hãy thử lại.";
 "Built-in" = "Tích hợp sẵn";
 "Built-in rules" = "Quy tắc tích hợp sẵn";
@@ -49,6 +50,7 @@
 "Didn't catch that." = "Không nghe rõ.";
 "Download" = "Tải về";
 "Download (%@)" = "Tải về (%@)";
+"Download a model to start dictating" = "Tải một mô hình để bắt đầu đọc chính tả";
 "Download failed. Check your connection and try again." = "Tải về không thành công. Hãy kiểm tra kết nối và thử lại.";
 "Downloading…" = "Đang tải về…";
 "Drop an audio or video file" = "Thả tệp âm thanh hoặc video vào đây";
@@ -100,6 +102,7 @@
 "No transcripts yet" = "Chưa có bản chép lời nào";
 "None (raw)" = "Không (văn bản thô)";
 "Not available for %@" = "Không khả dụng cho %@";
+"Not available on this Mac" = "Không khả dụng trên máy Mac này";
 "Open Settings" = "Mở Cài đặt";
 "Open System Settings" = "Mở Cài đặt Hệ thống";
 "Open VoiceType at login" = "Mở VoiceType khi đăng nhập";

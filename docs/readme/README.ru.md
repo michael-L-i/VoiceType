@@ -15,7 +15,7 @@ Mac — всё работает на устройстве.
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
 [![Latest release](https://img.shields.io/github/v/release/michael-L-i/VoiceType?label=release&color=F2743E)](https://github.com/michael-L-i/VoiceType/releases/latest)
-&nbsp;[![Platform](https://img.shields.io/badge/macOS-26%2B-111111?logo=apple)](https://www.apple.com/macos/)
+&nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
 &nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
@@ -66,7 +66,7 @@ _Этот перевод выполнен по мере возможностей
 3. Выдайте три разрешения, которые запросит VoiceType, — **Микрофон**,
    **Распознавание речи** и **Универсальный доступ** — и всё готово.
 
-> Требуется **macOS 26** или новее (Apple Silicon).
+> Требуется **macOS 14** или новее (Apple Silicon).
 
 **Обновления устанавливаются автоматически.** VoiceType проверяет новые версии в
 фоновом режиме (и по запросу через **Проверить обновления…**) и устанавливает их
@@ -92,8 +92,8 @@ _(Автообновление работает начиная с v0.1.1; сам
 
 | Этап | По умолчанию (встроенный) | Необязательные альтернативы (на устройстве) |
 | --- | --- | --- |
-| **Транскрипция** | Apple `SpeechTranscriber` | **Parakeet TDT 0.6B V3** (NVIDIA, через [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, через [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — загружаются по запросу |
-| **Очистка** | Встроенные правила (мгновенно, детерминированно) | Apple Intelligence (`FoundationModels`) — встроено в macOS, загрузка не нужна |
+| **Транскрипция** | Apple `Speech` | **Parakeet TDT 0.6B V3** (NVIDIA, через [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, через [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — загружаются по запросу |
+| **Очистка** | Встроенные правила (мгновенно, детерминированно) | Apple Intelligence (`FoundationModels`, macOS 26+) — встроено в macOS, загрузка не нужна |
 
 Загружаемые модели скачиваются один раз по запросу (во время распознавания
 облако не используется — ваш звук по-прежнему не покидает Mac) и работают как
@@ -164,7 +164,7 @@ open VoiceType.app
 
 ## Архитектура
 
-Нативное Dock-приложение на **Swift 6 / SwiftUI** (macOS 26) с панелью
+Нативное Dock-приложение на **Swift 6 / SwiftUI** (macOS 14) с панелью
 «Главная». Глобальная клавиша push-to-talk · захват микрофона через
 AVAudioEngine · подключаемая транскрипция на устройстве · подключаемая очистка ·
 вставка текста через буфер обмена/Универсальный доступ · плавающий HUD записи.

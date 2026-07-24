@@ -18,6 +18,7 @@
 "Always available. Deterministic, on-device." = "始终可用。确定性规则，全程本机运行。";
 "Another entry already matches this phrase; the first one wins." = "已有另一条规则匹配此短语；以先添加的为准。";
 "Apple Intelligence (on-device)" = "Apple 智能（本机）";
+"Apple's on-device dictation isn't available on this Mac." = "此 Mac 不支持 Apple 的设备端听写。";
 "Audio device changed. Try again." = "音频设备已更换，请重试。";
 "Built-in" = "内置";
 "Built-in rules" = "内置规则";
@@ -49,6 +50,7 @@
 "Didn't catch that." = "没有听清。";
 "Download" = "下载";
 "Download (%@)" = "下载（%@）";
+"Download a model to start dictating" = "下载模型即可开始听写";
 "Download failed. Check your connection and try again." = "下载失败。请检查网络后重试。";
 "Downloading…" = "正在下载…";
 "Drop an audio or video file" = "拖入音频或视频文件";
@@ -100,6 +102,7 @@
 "No transcripts yet" = "还没有转写记录";
 "None (raw)" = "无（原始文本）";
 "Not available for %@" = "不支持%@";
+"Not available on this Mac" = "此 Mac 不支持";
 "Open Settings" = "打开设置";
 "Open System Settings" = "打开系统设置";
 "Open VoiceType at login" = "登录时打开 VoiceType";

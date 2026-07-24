@@ -40,7 +40,7 @@
 	<key>CFBundleVersion</key>
 	<string>2.3.1</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>26.0</string>
+	<string>14.0</string>
 	<key>LSMultipleInstancesProhibited</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>

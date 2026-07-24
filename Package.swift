@@ -5,9 +5,9 @@ let package = Package(
     name: "VoiceType",
     defaultLocalization: "en",
     platforms: [
-        // macOS 26 ("Tahoe") is required for on-device SpeechTranscriber and
-        // FoundationModels. Older systems are out of scope (Mac-only, latest-OS first).
-        .macOS("26.0")
+        // FluidAudio sets the deployment floor at macOS 14. Newer Apple-only
+        // APIs remain availability-gated and degrade to compatible local paths.
+        .macOS(.v14)
     ],
     products: [
         .executable(name: "VoiceType", targets: ["VoiceType"]),

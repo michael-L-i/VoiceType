@@ -21,7 +21,8 @@ public enum EngineVendor: String, Sendable {
 /// runs on-device. Apple's model is built into the OS; the others download their
 /// weights on demand. More local engines plug in here over time.
 public enum TranscriptionEngineKind: String, Sendable, Codable, CaseIterable {
-    /// Apple on-device `SpeechTranscriber` (macOS 26+). Built in; the default.
+    /// Apple on-device speech recognition. Uses `SpeechTranscriber` on macOS 26+
+    /// and the legacy on-device recognizer on macOS 14–15. Built in; the default.
     case appleOnDevice
     /// NVIDIA Parakeet TDT 0.6B V3 (FastConformer-TDT) on the Neural Engine via
     /// FluidAudio.

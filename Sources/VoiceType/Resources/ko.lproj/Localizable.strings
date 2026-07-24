@@ -18,6 +18,7 @@
 "Always available. Deterministic, on-device." = "항상 사용 가능합니다. 결정적 규칙으로 기기 내에서 실행됩니다.";
 "Another entry already matches this phrase; the first one wins." = "다른 항목이 이미 이 문구와 일치합니다. 먼저 추가된 항목이 적용됩니다.";
 "Apple Intelligence (on-device)" = "Apple Intelligence (기기 내)";
+"Apple's on-device dictation isn't available on this Mac." = "Apple의 온디바이스 받아쓰기를 이 Mac에서 사용할 수 없습니다.";
 "Audio device changed. Try again." = "오디오 기기가 변경되었습니다. 다시 시도해 주세요.";
 "Built-in" = "내장";
 "Built-in rules" = "내장 규칙";
@@ -49,6 +50,7 @@
 "Didn't catch that." = "잘 알아듣지 못했습니다.";
 "Download" = "다운로드";
 "Download (%@)" = "다운로드 (%@)";
+"Download a model to start dictating" = "받아쓰기를 시작하려면 모델을 다운로드하세요";
 "Download failed. Check your connection and try again." = "다운로드에 실패했습니다. 연결을 확인하고 다시 시도해 주세요.";
 "Downloading…" = "다운로드 중…";
 "Drop an audio or video file" = "오디오 또는 비디오 파일을 끌어다 놓으세요";
@@ -100,6 +102,7 @@
 "No transcripts yet" = "아직 변환 기록이 없습니다";
 "None (raw)" = "없음 (원본)";
 "Not available for %@" = "%@에서는 사용할 수 없음";
+"Not available on this Mac" = "이 Mac에서 사용할 수 없음";
 "Open Settings" = "설정 열기";
 "Open System Settings" = "시스템 설정 열기";
 "Open VoiceType at login" = "로그인 시 VoiceType 열기";

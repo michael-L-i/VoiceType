@@ -99,6 +99,13 @@ private struct EngineRow: View {
     }
     private var selectable: Bool { state.isReady && supportsLanguage }
 
+    /// Built in, but unusable on this Mac — reads as disabled like a
+    /// language-incompatible engine, since there is no action that enables it.
+    private var isUnsupported: Bool {
+        if case .unsupported = state { return true }
+        return false
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(alignment: .center, spacing: VT.Space.m) {
@@ -154,7 +161,7 @@ private struct EngineRow: View {
             // The whole row reads as disabled when the engine can't do the
             // dictation language; the trash affordance stays live below so an
             // unusable model can still be removed.
-            .opacity(supportsLanguage ? 1 : 0.45)
+            .opacity(supportsLanguage && !isUnsupported ? 1 : 0.45)
             .onTapGesture {
                 if selectable { coordinator.settings.transcriptionEngine = kind }
             }
@@ -229,6 +236,13 @@ private struct EngineRow: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .help(message)
+        // Built in, but this Mac can't run it — there is nothing to download or
+        // retry, so the row offers no action and just says why.
+        case .unsupported(let reason):
+            Text(reason)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.trailing)
         }
     }
 }

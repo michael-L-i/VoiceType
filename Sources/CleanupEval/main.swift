@@ -125,6 +125,10 @@ struct CleanupEval {
 
         if engine == .model {
             #if canImport(FoundationModels)
+            guard #available(macOS 26.0, *) else {
+                FileHandle.standardError.write(Data("FATAL: FoundationModels requires macOS 26 or later; try --engine rules.\n".utf8))
+                exit(1)
+            }
             guard case .available = SystemLanguageModel.default.availability else {
                 FileHandle.standardError.write(Data("FATAL: on-device model unavailable: \(SystemLanguageModel.default.availability)\n".utf8))
                 exit(1)
@@ -161,20 +165,10 @@ struct CleanupEval {
                     cleaned = RuleBasedCleanup.process(c.transcript, options: .default, context: context, locale: locale)
                 case .model:
                     #if canImport(FoundationModels)
-                    let session = LanguageModelSession(
-                        instructions: CleanupPrompt.instructions(for: .default, context: context, locale: locale))
-                    do {
-                        let response = try await session.respond(
-                            to: CleanupPrompt.prompt(for: c.transcript),
-                            options: GenerationOptions(temperature: 0.2))
-                        cleaned = CleanupSanitizer.strip(
-                            response.content.trimmingCharacters(in: .whitespacesAndNewlines))
-                        // Mirror the engine: polish only what the guard would ship.
-                        if !CleanupGuard.looksUnfaithful(raw: c.transcript, cleaned: cleaned) {
-                            cleaned = CleanupPolish.apply(cleaned, options: .default, context: context, locale: locale)
-                        }
-                    } catch {
-                        cleaned = "<<ERROR: \(error)>>"
+                    if #available(macOS 26.0, *) {
+                        cleaned = await cleanWithModel(c.transcript, context: context, locale: locale)
+                    } else {
+                        cleaned = "<<ERROR: FoundationModels requires macOS 26 or later>>"
                     }
                     #else
                     cleaned = "<<ERROR: FoundationModels unavailable>>"
@@ -225,4 +219,29 @@ struct CleanupEval {
         }
         FileHandle.standardError.write(Data("done (\(engine.rawValue)): \(passed) passed, \(failed) failed, \(manual) manual-judge\n".utf8))
     }
+
+    #if canImport(FoundationModels)
+    @available(macOS 26.0, *)
+    private static func cleanWithModel(_ transcript: String,
+                                       context: CleanupContext,
+                                       locale: String) async -> String {
+        let session = LanguageModelSession(
+            instructions: CleanupPrompt.instructions(for: .default, context: context, locale: locale))
+        do {
+            let response = try await session.respond(
+                to: CleanupPrompt.prompt(for: transcript),
+                options: GenerationOptions(temperature: 0.2))
+            var cleaned = CleanupSanitizer.strip(
+                response.content.trimmingCharacters(in: .whitespacesAndNewlines))
+            // Mirror the engine: polish only what the guard would ship.
+            if !CleanupGuard.looksUnfaithful(raw: transcript, cleaned: cleaned) {
+                cleaned = CleanupPolish.apply(
+                    cleaned, options: .default, context: context, locale: locale)
+            }
+            return cleaned
+        } catch {
+            return "<<ERROR: \(error)>>"
+        }
+    }
+    #endif
 }

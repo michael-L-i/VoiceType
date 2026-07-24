@@ -15,7 +15,7 @@ dispositivo.
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
 [![Latest release](https://img.shields.io/github/v/release/michael-L-i/VoiceType?label=release&color=F2743E)](https://github.com/michael-L-i/VoiceType/releases/latest)
-&nbsp;[![Platform](https://img.shields.io/badge/macOS-26%2B-111111?logo=apple)](https://www.apple.com/macos/)
+&nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
 &nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
@@ -66,7 +66,7 @@ _Esta traducción se mantiene con el mejor esfuerzo posible; el README en inglé
 3. Concede los tres permisos que pide VoiceType — **Micrófono**,
    **Reconocimiento de voz** y **Accesibilidad** — y listo.
 
-> Requiere **macOS 26** o posterior (Apple Silicon).
+> Requiere **macOS 14** o posterior (Apple Silicon).
 
 **Las actualizaciones son automáticas.** VoiceType busca versiones nuevas en
 segundo plano (y bajo demanda con **Buscar actualizaciones…**) y las instala en
@@ -93,8 +93,8 @@ activo a la vez).
 
 | Etapa | Por omisión (integrado) | Alternativas opcionales (en el dispositivo) |
 | --- | --- | --- |
-| **Transcripción** | Apple `SpeechTranscriber` | **Parakeet TDT 0.6B V3** (NVIDIA, vía [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, vía [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — se descargan bajo demanda |
-| **Limpieza** | Reglas integradas (instantáneas, deterministas) | Apple Intelligence (`FoundationModels`) — integrado en macOS, sin descarga |
+| **Transcripción** | Apple `Speech` | **Parakeet TDT 0.6B V3** (NVIDIA, vía [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, vía [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — se descargan bajo demanda |
+| **Limpieza** | Reglas integradas (instantáneas, deterministas) | Apple Intelligence (`FoundationModels`, macOS 26+) — integrado en macOS, sin descarga |
 
 Los modelos descargables se obtienen una sola vez bajo demanda (sin nube en el
 momento de la inferencia — tu audio sigue sin salir nunca del Mac) y se ejecutan
@@ -166,7 +166,7 @@ Para vulnerabilidades, sigue el proceso de notificación privada de nuestra
 
 ## Arquitectura
 
-App nativa de Dock en **Swift 6 / SwiftUI** (macOS 26) con un panel de inicio.
+App nativa de Dock en **Swift 6 / SwiftUI** (macOS 14) con un panel de inicio.
 Función rápida de teclado global de pulsar para hablar · captura de micrófono
 con AVAudioEngine · transcripción intercambiable en el dispositivo · limpieza
 intercambiable · inserción de texto por pegado/Accesibilidad · un HUD flotante

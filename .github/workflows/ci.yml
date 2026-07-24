@@ -1,11 +1,8 @@
 # CI — build + test VoiceType on macOS.
 #
-# CAVEAT: VoiceType targets macOS 26 and needs the macOS 26 SDK (Xcode 26) to
-# compile — it uses Apple's on-device `SpeechTranscriber` and `FoundationModels`,
-# which only exist in that SDK. GitHub-hosted runners may not ship Xcode 26 yet,
-# so this workflow will only go green once `macos-latest` provides Xcode 26 (or
-# you point it at a self-hosted macOS 26 runner). The setup below is correct
-# regardless: it selects the newest stable Xcode available on the runner.
+# VoiceType deploys to macOS 14+, but still needs the macOS 26 SDK (Xcode 26) to
+# compile its availability-gated `SpeechTranscriber` and `FoundationModels`
+# paths. The setup below selects the newest stable Xcode on the runner.
 name: CI
 
 on:
@@ -14,7 +11,7 @@ on:
 
 jobs:
   build-test:
-    runs-on: macos-latest
+    runs-on: macos-26
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,3 +34,52 @@ jobs:
         env:
           APP_OUTPUT: ${{ runner.temp }}/VoiceType.app
         run: ./Scripts/build-app.sh release
+
+      - name: Package compatibility smoke bundle
+        run: ditto -c -k --keepParent "${{ runner.temp }}/VoiceType.app" "${{ runner.temp }}/VoiceType-macos14.zip"
+
+      - name: Upload compatibility smoke bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoiceType-macos14-smoke
+          path: ${{ runner.temp }}/VoiceType-macos14.zip
+          retention-days: 1
+
+  macos-14-smoke:
+    needs: build-test
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download compatibility bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: VoiceType-macos14-smoke
+          path: ${{ runner.temp }}/artifact
+
+      # Reports whether Apple's on-device recognizer — the default engine — is
+      # actually usable on macOS 14, and how costly the per-locale probe is.
+      # Diagnostic only: a runner image is not a representative user Mac, so
+      # this prints its findings rather than gating the build.
+      - name: Probe on-device speech capability
+        continue-on-error: true
+        run: swift Scripts/probe-macos14-speech.swift
+
+      - name: Launch on macOS 14
+        shell: bash
+        run: |
+          set -euo pipefail
+          ditto -x -k "${{ runner.temp }}/artifact/VoiceType-macos14.zip" "${{ runner.temp }}"
+          APP="${{ runner.temp }}/VoiceType.app"
+          MINIMUM="$(plutil -extract LSMinimumSystemVersion raw "$APP/Contents/Info.plist")"
+          [[ "$MINIMUM" == "14.0" ]]
+
+          "$APP/Contents/MacOS/VoiceType" >"${{ runner.temp }}/VoiceType.log" 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true' EXIT
+          sleep 5
+          if ! kill -0 "$PID" 2>/dev/null; then
+            cat "${{ runner.temp }}/VoiceType.log"
+            exit 1
+          fi

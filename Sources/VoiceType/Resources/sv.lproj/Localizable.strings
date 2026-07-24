@@ -18,6 +18,7 @@
 "Always available. Deterministic, on-device." = "Alltid tillgänglig. Deterministisk, på enheten.";
 "Another entry already matches this phrase; the first one wins." = "En annan post matchar redan den här frasen; den första gäller.";
 "Apple Intelligence (on-device)" = "Apple Intelligence (på enheten)";
+"Apple's on-device dictation isn't available on this Mac." = "Apples diktering på enheten är inte tillgänglig på den här Macen.";
 "Audio device changed. Try again." = "Ljudenheten ändrades. Försök igen.";
 "Built-in" = "Inbyggd";
 "Built-in rules" = "Inbyggda regler";
@@ -49,6 +50,7 @@
 "Didn't catch that." = "Uppfattade inte det där.";
 "Download" = "Hämta";
 "Download (%@)" = "Hämta (%@)";
+"Download a model to start dictating" = "Hämta en modell för att diktera";
 "Download failed. Check your connection and try again." = "Hämtningen misslyckades. Kontrollera anslutningen och försök igen.";
 "Downloading…" = "Hämtar…";
 "Drop an audio or video file" = "Släpp en ljud- eller videofil";
@@ -100,6 +102,7 @@
 "No transcripts yet" = "Inga transkriptioner ännu";
 "None (raw)" = "Ingen (rå text)";
 "Not available for %@" = "Inte tillgänglig för %@";
+"Not available on this Mac" = "Inte tillgänglig på den här Macen";
 "Open Settings" = "Öppna inställningar";
 "Open System Settings" = "Öppna Systeminställningar";
 "Open VoiceType at login" = "Öppna VoiceType vid inloggning";

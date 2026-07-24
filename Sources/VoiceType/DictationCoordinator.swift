@@ -176,6 +176,12 @@ final class DictationCoordinator {
             && accessibilityPermission == .granted
     }
 
+    /// No engine can transcribe right now, so dictation cannot work until the
+    /// user downloads a model. Real on macOS 14–15, where Apple's recognizer
+    /// reports no on-device locales and nothing has been downloaded yet; on
+    /// macOS 26 the built-in engine keeps this false.
+    var needsTranscriptionModel: Bool { availableTranscription.isEmpty }
+
     func status(for permission: Permission) -> PermissionStatus {
         switch permission {
         case .microphone: return microphonePermission
@@ -254,10 +260,11 @@ final class DictationCoordinator {
     /// through `notDownloaded → downloading → ready`.
     private(set) var modelStates: [TranscriptionEngineKind: ModelAvailability] = [:]
 
-    /// State for one engine, with sensible defaults before the first refresh.
+    /// State for one engine, with sensible defaults before the first refresh
+    /// (assume the built-in engine works until a refresh proves otherwise, so
+    /// the list doesn't flash a scary state on launch).
     func modelState(for kind: TranscriptionEngineKind) -> ModelAvailability {
-        if !kind.requiresDownload { return .builtIn }
-        return modelStates[kind] ?? .notDownloaded
+        modelStates[kind] ?? (kind.requiresDownload ? .notDownloaded : .builtIn)
     }
 
     /// Recompute model states from current availability, preserving any download
@@ -265,7 +272,14 @@ final class DictationCoordinator {
     private func refreshModelStates() {
         for kind in TranscriptionEngineKind.allCases {
             if modelStates[kind]?.isDownloading == true { continue }
-            if !kind.requiresDownload { modelStates[kind] = .builtIn }
+            if !kind.requiresDownload {
+                // Built-in still has to be *available*: on macOS 14–15 Apple's
+                // recognizer reports no on-device locales until the system has
+                // fetched dictation assets.
+                modelStates[kind] = availableTranscription.contains(kind)
+                    ? .builtIn
+                    : .unsupported(L("Not available on this Mac"))
+            }
             else if availableTranscription.contains(kind) { modelStates[kind] = .ready }
             else { modelStates[kind] = .notDownloaded }
         }
@@ -435,6 +449,10 @@ final class DictationCoordinator {
     /// honoring availability fallback. Shared by the live mic path and file
     /// import. Returns nil only when no transcriber can run at all.
     private func resolveEngines() -> (transcriber: TranscriptionEngine, cleaner: CleanupEngine)? {
+        // Nothing can transcribe: bail here so the caller shows one clear,
+        // actionable message instead of letting the engine fail mid-dictation
+        // with a message the user can't act on.
+        guard !availableTranscription.isEmpty else { return nil }
         let tKind = EngineResolver.resolveTranscription(
             preferred: settings.transcriptionEngine,
             available: availableTranscription,
@@ -837,7 +855,10 @@ final class DictationCoordinator {
         availableTranscription = await EngineFactory.availableTranscription()
         availableCleanup = await EngineFactory.availableCleanup()
         languageSupport = await EngineFactory.languageSupport()
-        if availableTranscription.isEmpty { availableTranscription = [.appleOnDevice] }
+        // Deliberately no "fall back to Apple when empty" here. On macOS 14–15
+        // Apple's recognizer can genuinely be unavailable, and pretending
+        // otherwise only moves the failure to mid-dictation. Empty is a real
+        // state; `needsTranscriptionModel` turns it into a guided download.
         refreshModelStates()
         // A persisted engine/language pair can be incompatible (set before this
         // rule existed, or support facts changed) — repair it once facts arrive.
