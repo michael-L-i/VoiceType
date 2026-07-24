@@ -81,6 +81,8 @@ final class DictationCoordinator {
     // runtime-queried locale list.
     private(set) var languageSupport = EngineLanguageSupport()
     private var isProcessing = false
+    private var dictationTask: Task<Void, Never>?
+    private var activeDictationID: UUID?
     private var resetTask: Task<Void, Never>?
     // The frontmost app when recording began — the dictation's intended
     // destination. Feeds the cleanup context and usage stats; never persisted.
@@ -102,6 +104,7 @@ final class DictationCoordinator {
         }
         hotkey.onPress = { [weak self] in self?.handlePress() }
         hotkey.onRelease = { [weak self] in self?.handleRelease() }
+        hotkey.onCancel = { [weak self] in self?.cancelDictation() }
 
         refreshPermissionStatuses()
         refreshInsights()
@@ -335,6 +338,28 @@ final class DictationCoordinator {
         finishRecording()
     }
 
+    /// Escape quietly abandons the current utterance. The event tap is
+    /// listen-only, so Escape still reaches the app the user is working in.
+    private func cancelDictation() {
+        switch state {
+        case .recording:
+            sounds.stop(enabled: settings.soundFeedback)
+            capture.cancel()
+        case .transcribing, .cleaning, .injecting:
+            activeDictationID = nil
+            dictationTask?.cancel()
+            dictationTask = nil
+        case .idle, .done, .error:
+            return
+        }
+
+        resetTask?.cancel()
+        inputLevel = 0
+        dictationTargetApp = nil
+        isProcessing = false
+        state = .idle
+    }
+
     private func beginRecording() {
         resetTask?.cancel()
         guard microphonePermission != .denied else {
@@ -431,6 +456,8 @@ final class DictationCoordinator {
 
     private func runPipeline(on audio: PCMBuffer) {
         isProcessing = true
+        let dictationID = UUID()
+        activeDictationID = dictationID
         let settings = self.settings
         // The app captured when recording began — cleanup biases toward its
         // register (shell commands in a terminal, prose elsewhere) and the
@@ -443,19 +470,28 @@ final class DictationCoordinator {
             category: AppCategorizer.category(forBundleID: app?.bundleID))
 
         guard let pipeline = makePipeline() else {
+            activeDictationID = nil
             isProcessing = false
             setError(L("No transcription engine available."))
             return
         }
 
-        Task { [weak self] in
+        dictationTask = Task { [weak self] in
             guard let self else { return }
             do {
                 let result = try await pipeline.run(
                     audio, locale: settings.locale, options: settings.cleanupOptions,
                     context: context,
                     replacements: settings.wordReplacements,
-                    onState: { st in Task { @MainActor in self.state = st } })
+                    onState: { st in
+                        Task { @MainActor in
+                            guard self.activeDictationID == dictationID else { return }
+                            self.state = st
+                        }
+                    })
+
+                try Task.checkCancellation()
+                guard self.activeDictationID == dictationID else { return }
 
                 if result.finalText.isEmpty {
                     self.finish(state: .idle)
@@ -467,14 +503,20 @@ final class DictationCoordinator {
                     self.record(result, speakingTime: audio.duration, app: app)
                     self.finish(state: .done)
                 }
+            } catch is CancellationError {
+                // Escape already returned the coordinator to idle.
             } catch let error as InjectionError {
-                self.handleInjectionError(error)
+                if self.activeDictationID == dictationID { self.handleInjectionError(error) }
             } catch let error as TranscriptionError {
-                self.setError(Self.describe(error))
+                if self.activeDictationID == dictationID { self.setError(Self.describe(error)) }
             } catch {
-                self.setError(error.localizedDescription)
+                if self.activeDictationID == dictationID { self.setError(error.localizedDescription) }
             }
-            self.isProcessing = false
+            if self.activeDictationID == dictationID {
+                self.activeDictationID = nil
+                self.dictationTask = nil
+                self.isProcessing = false
+            }
         }
     }
 
