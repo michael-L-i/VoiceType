@@ -860,6 +860,15 @@ final class DictationCoordinator {
         // otherwise only moves the failure to mid-dictation. Empty is a real
         // state; `needsTranscriptionModel` turns it into a guided download.
         refreshModelStates()
+        // Engine names and counts carry no user content, so they log plainly.
+        // This is the only externally visible proof that engine resolution
+        // completed — the macOS 14 smoke test asserts on it, and it is the first
+        // thing to look at when a user reports "dictation does nothing".
+        Log.engine.notice("""
+        availability: transcription=[\(self.availableTranscription.map(\.rawValue).sorted().joined(separator: ","), privacy: .public)] \
+        cleanup=[\(self.availableCleanup.map(\.rawValue).sorted().joined(separator: ","), privacy: .public)] \
+        needsModel=\(self.needsTranscriptionModel, privacy: .public)
+        """)
         // A persisted engine/language pair can be incompatible (set before this
         // rule existed, or support facts changed) — repair it once facts arrive.
         switchEngineForLanguageIfNeeded()

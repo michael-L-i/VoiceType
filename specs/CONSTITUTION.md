@@ -7,6 +7,12 @@
 Speak anywhere, get clean text instantly, with your audio never leaving your
 control unless you opt in.
 
+## Platform
+Mac-only, native Swift 6 / SwiftUI. Deployment floor is **macOS 14**, built
+against the newest SDK: newer Apple APIs are availability-gated and must degrade
+to a path that works on 14, never assumed present. Reach was chosen over
+latest-OS-only on 2026-07-24, accepting that macOS 14–15 gets a weaker engine.
+
 ## Principles (the agent must never violate these)
 - **Privacy is the product.** Audio and transcripts stay on-device by default.
   Any off-device path is opt-in, clearly labeled, and explicitly consented to.

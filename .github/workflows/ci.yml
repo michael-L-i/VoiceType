@@ -75,11 +75,28 @@ jobs:
           MINIMUM="$(plutil -extract LSMinimumSystemVersion raw "$APP/Contents/Info.plist")"
           [[ "$MINIMUM" == "14.0" ]]
 
+          STARTED="$(date '+%Y-%m-%d %H:%M:%S')"
           "$APP/Contents/MacOS/VoiceType" >"${{ runner.temp }}/VoiceType.log" 2>&1 &
           PID=$!
           trap 'kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true' EXIT
-          sleep 5
+          sleep 10
           if ! kill -0 "$PID" 2>/dev/null; then
             cat "${{ runner.temp }}/VoiceType.log"
             exit 1
           fi
+
+          # Staying alive only proves dyld resolved the weak-linked macOS 26
+          # frameworks. This asserts the app actually got *through* engine
+          # resolution on macOS 14 — EngineFactory.availableTranscription(),
+          # AppleSpeechEngine.supportedLocales() on the SFSpeechRecognizer path,
+          # refreshModelStates() — by requiring the line it emits at the end.
+          AVAIL="$(/usr/bin/log show --start "$STARTED" --info \
+            --predicate 'subsystem == "com.voicetype.app" AND category == "engine"' \
+            --style compact 2>/dev/null | grep 'availability:' || true)"
+          if [[ -z "$AVAIL" ]]; then
+            echo "✗ App launched but never completed engine resolution on macOS 14."
+            cat "${{ runner.temp }}/VoiceType.log"
+            exit 1
+          fi
+          echo "✓ Engine resolution completed on macOS 14:"
+          echo "$AVAIL"
