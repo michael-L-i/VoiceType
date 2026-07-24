@@ -37,6 +37,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: VT.Space.l) {
                     greeting
                     if !coordinator.permissionsGranted { setupCallout }
+                    if coordinator.needsTranscriptionModel { modelCallout }
                     welcomeHero
                     overviewCard
                     activityCard
@@ -335,6 +336,35 @@ struct HomeView: View {
             .padding(VT.Space.m)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Shown when nothing can transcribe — on macOS 14–15 Apple's recognizer
+    /// may report no on-device locales, and a fresh install has no downloaded
+    /// model either. Points at the one action that fixes it rather than letting
+    /// the first dictation fail with an error the user can't act on.
+    private var modelCallout: some View {
+        Button {
+            onNavigate(.models)
+        } label: {
+            HStack(spacing: VT.Space.s) {
+                Image(systemName: "arrow.down.circle.fill")
+                    .foregroundStyle(VT.tint)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L("Download a model to start dictating"))
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(.primary)
+                    Text(L("Apple's on-device dictation isn't available on this Mac."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(VT.Space.m)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(VT.tint.opacity(0.12), in: RoundedRectangle(cornerRadius: VT.Radius.control, style: .continuous))
         }
         .buttonStyle(.plain)
     }

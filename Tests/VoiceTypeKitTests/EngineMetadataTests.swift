@@ -52,6 +52,16 @@ struct ModelAvailabilityTests {
         #expect(!ModelAvailability.failed("x").isReady)
     }
 
+    // A built-in engine the OS can't actually run (Apple's recognizer on
+    // macOS 14-15 with no dictation assets) must not read as usable, or the UI
+    // offers it and dictation fails at the point of use.
+    @Test("a built-in engine this Mac can't run is not usable")
+    func unsupportedIsNotReady() {
+        let state = ModelAvailability.unsupported("Not available on this Mac")
+        #expect(!state.isReady)
+        #expect(!state.isDownloading)
+    }
+
     @Test("only the downloading state reports in-flight")
     func downloading() {
         #expect(ModelAvailability.downloading(nil).isDownloading)

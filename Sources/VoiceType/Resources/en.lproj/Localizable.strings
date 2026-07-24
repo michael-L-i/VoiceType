@@ -18,6 +18,7 @@
 "Always available. Deterministic, on-device." = "Always available. Deterministic, on-device.";
 "Another entry already matches this phrase; the first one wins." = "Another entry already matches this phrase; the first one wins.";
 "Apple Intelligence (on-device)" = "Apple Intelligence (on-device)";
+"Apple's on-device dictation isn't available on this Mac." = "Apple's on-device dictation isn't available on this Mac.";
 "Audio device changed. Try again." = "Audio device changed. Try again.";
 "Built-in" = "Built-in";
 "Built-in rules" = "Built-in rules";
@@ -49,6 +50,7 @@
 "Didn't catch that." = "Didn't catch that.";
 "Download" = "Download";
 "Download (%@)" = "Download (%@)";
+"Download a model to start dictating" = "Download a model to start dictating";
 "Download failed. Check your connection and try again." = "Download failed. Check your connection and try again.";
 "Downloading…" = "Downloading…";
 "Drop an audio or video file" = "Drop an audio or video file";
@@ -100,6 +102,7 @@
 "No transcripts yet" = "No transcripts yet";
 "None (raw)" = "None (raw)";
 "Not available for %@" = "Not available for %@";
+"Not available on this Mac" = "Not available on this Mac";
 "Open Settings" = "Open Settings";
 "Open System Settings" = "Open System Settings";
 "Open VoiceType at login" = "Open VoiceType at login";

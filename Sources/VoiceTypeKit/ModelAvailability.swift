@@ -1,14 +1,20 @@
 import Foundation
 
 /// Lifecycle of a transcription engine's on-device weights. Drives the engine
-/// list in Settings: the built-in Apple engine is always `builtIn`; downloadable
-/// engines move `notDownloaded → downloading → ready` (or `failed`).
+/// list in Settings: the built-in Apple engine is `builtIn` where the OS can run
+/// it and `unsupported` where it can't; downloadable engines move
+/// `notDownloaded → downloading → ready` (or `failed`).
 ///
 /// Pure value type so the state machine stays in the testable Kit; the app layer
 /// computes it from the model managers.
 public enum ModelAvailability: Sendable, Equatable {
-    /// Ships with the OS / app — no download, always usable (Apple).
+    /// Ships with the OS / app — no download needed, and usable here.
     case builtIn
+    /// Ships with the OS but this Mac can't run it, carrying a user-facing
+    /// reason. Apple's on-device recognizer is absent on macOS 14–15 until the
+    /// system has downloaded dictation assets, so "built in" is not the same as
+    /// "works here" — claiming otherwise strands the user on a dead engine.
+    case unsupported(String)
     /// Downloadable engine whose weights aren't present yet.
     case notDownloaded
     /// Download in flight. Fraction is 0...1, or nil when indeterminate.
@@ -22,7 +28,7 @@ public enum ModelAvailability: Sendable, Equatable {
     public var isReady: Bool {
         switch self {
         case .builtIn, .ready: return true
-        case .notDownloaded, .downloading, .failed: return false
+        case .unsupported, .notDownloaded, .downloading, .failed: return false
         }
     }
 

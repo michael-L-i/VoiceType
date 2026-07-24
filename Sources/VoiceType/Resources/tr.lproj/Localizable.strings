@@ -18,6 +18,7 @@
 "Always available. Deterministic, on-device." = "Her zaman kullanılabilir. Deterministik, aygıt üzerinde.";
 "Another entry already matches this phrase; the first one wins." = "Bu ifadeyle eşleşen başka bir kayıt zaten var; ilk eklenen geçerli olur.";
 "Apple Intelligence (on-device)" = "Apple Intelligence (aygıt üzerinde)";
+"Apple's on-device dictation isn't available on this Mac." = "Apple'ın cihaz üzerinde dikte özelliği bu Mac'te kullanılamıyor.";
 "Audio device changed. Try again." = "Ses aygıtı değişti. Yeniden deneyin.";
 "Built-in" = "Yerleşik";
 "Built-in rules" = "Yerleşik kurallar";
@@ -49,6 +50,7 @@
 "Didn't catch that." = "Anlaşılamadı.";
 "Download" = "İndir";
 "Download (%@)" = "İndir (%@)";
+"Download a model to start dictating" = "Dikte etmek için bir model indirin";
 "Download failed. Check your connection and try again." = "İndirme başarısız oldu. Bağlantınızı denetleyip yeniden deneyin.";
 "Downloading…" = "İndiriliyor…";
 "Drop an audio or video file" = "Bir ses veya video dosyası bırakın";
@@ -100,6 +102,7 @@
 "No transcripts yet" = "Henüz transkript yok";
 "None (raw)" = "Yok (ham)";
 "Not available for %@" = "%@ için kullanılamaz";
+"Not available on this Mac" = "Bu Mac'te kullanılamıyor";
 "Open Settings" = "Ayarları Aç";
 "Open System Settings" = "Sistem Ayarları'nı Aç";
 "Open VoiceType at login" = "Girişte VoiceType'ı aç";
