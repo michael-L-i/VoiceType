@@ -49,11 +49,22 @@ jobs:
     needs: build-test
     runs-on: macos-14
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download compatibility bundle
         uses: actions/download-artifact@v4
         with:
           name: VoiceType-macos14-smoke
           path: ${{ runner.temp }}/artifact
+
+      # Reports whether Apple's on-device recognizer — the default engine — is
+      # actually usable on macOS 14, and how costly the per-locale probe is.
+      # Diagnostic only: a runner image is not a representative user Mac, so
+      # this prints its findings rather than gating the build.
+      - name: Probe on-device speech capability
+        continue-on-error: true
+        run: swift Scripts/probe-macos14-speech.swift
 
       - name: Launch on macOS 14
         shell: bash
