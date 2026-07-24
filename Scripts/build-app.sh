@@ -18,6 +18,14 @@ CONTENTS="$APP/Contents"
 VERSION="${VERSION:-}"
 SIGN_IDENTITY="${DEVELOPER_ID_APPLICATION:--}"
 
+case "$APP" in
+    /*.app) ;;
+    *)
+        echo "✗ APP_OUTPUT must be an absolute path ending in .app: $APP" >&2
+        exit 1
+        ;;
+esac
+
 echo "▸ Building VoiceType ($CONFIG)…"
 swift build -c "$CONFIG" --package-path "$ROOT"
 BIN="$(swift build -c "$CONFIG" --package-path "$ROOT" --show-bin-path)/VoiceType"
@@ -28,8 +36,12 @@ mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources"
 cp "$BIN" "$CONTENTS/MacOS/VoiceType"
 cp "$ROOT/Resources/Info.plist" "$CONTENTS/Info.plist"
 cp "$ROOT/Resources/AppIcon.icns" "$CONTENTS/Resources/AppIcon.icns"
-# Vendor logos (e.g. the NVIDIA mark shown on the Models page).
-cp "$ROOT"/Resources/*.svg "$CONTENTS/Resources/" 2>/dev/null || true
+# Public metadata and notices must ship in every bundle.
+cp "$ROOT/Resources/PrivacyInfo.xcprivacy" "$CONTENTS/Resources/PrivacyInfo.xcprivacy"
+cp "$ROOT/THIRD_PARTY_LICENSES.md" "$CONTENTS/Resources/THIRD_PARTY_LICENSES.md"
+# Vendor logos shown on the Models page.
+cp "$ROOT/Resources/OpenAILogo.svg" "$CONTENTS/Resources/OpenAILogo.svg"
+cp "$ROOT/Resources/NVIDIALogo.svg" "$CONTENTS/Resources/NVIDIALogo.svg"
 # SwiftPM resource bundles belong in the standard macOS Resources directory.
 # Copy the complete runtime resource closure, including bundles supplied by
 # statically linked packages, rather than maintaining a fragile hand-written
@@ -45,9 +57,6 @@ if [[ "$RESOURCE_BUNDLE_COUNT" -eq 0 ]]; then
     echo "✗ SwiftPM produced no resource bundles." >&2
     exit 1
 fi
-# Third-party license notices, bundled so they ship with the distributed app.
-cp "$ROOT/THIRD_PARTY_LICENSES.md" "$CONTENTS/Resources/" 2>/dev/null || true
-
 # Embed dynamic frameworks (Sparkle ships as a framework with nested helpers)
 # next to the binary's runtime search path. SwiftPM builds the framework beside
 # the executable but doesn't bundle it, so we copy it and add the standard app

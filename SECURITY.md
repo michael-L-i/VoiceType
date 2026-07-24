@@ -27,3 +27,6 @@ VoiceType handles microphone input, local transcripts, and Accessibility
 permissions. Reports involving accidental audio/transcript disclosure, unsafe
 network transmission, permission bypass, code-signing or update integrity are
 all security reports and should use the private channel above.
+
+For the product's normal local storage, network connections, permissions, and
+deletion behavior, see the [Privacy Policy](./PRIVACY.md).

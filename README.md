@@ -46,7 +46,7 @@ your Mac — everything runs on-device.
 
 ## Why VoiceType
 
-- 🔒 **Private by design.** Audio and transcripts stay on your Mac. No account, no telemetry, no cloud — there's nothing to opt out of.
+- 🔒 **Private by design.** Audio and transcripts stay on your Mac. No account, no telemetry, and no cloud speech processing.
 - ⚡ **Latency is the feature.** Native Swift with Apple's on-device speech model — time-to-text is what we optimize.
 - 🌍 **Speaks your language.** Dictate in 30+ languages — not just English. Cleanup understands each language's conventions (full-width 中文 punctuation, spoken 句号, language-aware fillers), the app picks an engine that actually supports your language, and the UI itself ships in 16 languages.
 - 🎙️ **Press-to-talk anywhere.** A global hotkey works in any app; the cleaned text is inserted right where your cursor is.
@@ -61,6 +61,9 @@ Requires macOS 26 or later on Apple silicon.
 
 Open the DMG, move VoiceType to Applications, and follow the prompts on first
 launch.
+
+VoiceType checks for cryptographically signed updates with Sparkle. Use
+**VoiceType → Check for Updates…** to check manually.
 
 ## How it works
 
@@ -120,6 +123,13 @@ friendly usage summary is built from aggregate counts only — never your transc
 text. This is a constitutional invariant of the project, not a setting we might
 change later.
 
+VoiceType does make narrowly scoped network connections to check GitHub for
+signed app updates and, only when you click Download, to fetch optional on-device
+model weights. Neither connection includes audio or transcript text. Transcript
+history is stored locally by default and can be disabled or cleared in the app.
+See the full [Privacy Policy](./PRIVACY.md) for storage, deletion, permissions,
+and network details.
+
 ## Build from source
 
 ```bash
@@ -156,13 +166,6 @@ and evolve via `specs/`.
 Third-party components and on-device models bundled with the app retain their own
 licenses — see [`THIRD_PARTY_LICENSES.md`](./THIRD_PARTY_LICENSES.md) (also shipped
 inside the app bundle).
-
-## How this repo is run
-
-VoiceType is a standalone product repo run day-to-day by an agent (the **outer
-loop**: triage → review → merge/escalate), with a human supplying **taste** by
-editing `specs/`. It links the [`@aros/*`](../agent-repo-os) framework during
-local dev. See [`CLAUDE.md`](./CLAUDE.md) for the operating rules.
 
 ## Repo layout
 

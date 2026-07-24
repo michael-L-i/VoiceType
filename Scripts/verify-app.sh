@@ -19,6 +19,27 @@ fail() {
 [[ -f "$CONTENTS/Info.plist" ]] || fail "App bundle has no Info.plist"
 [[ -x "$EXECUTABLE" ]] || fail "App bundle has no executable VoiceType binary"
 
+for REQUIRED_FILE in \
+    PrivacyInfo.xcprivacy \
+    THIRD_PARTY_LICENSES.md \
+    OpenAILogo.svg \
+    NVIDIALogo.svg; do
+    [[ -s "$RESOURCES/$REQUIRED_FILE" ]] \
+        || fail "Missing required bundled file: $REQUIRED_FILE"
+done
+plutil -lint "$CONTENTS/Info.plist" "$RESOURCES/PrivacyInfo.xcprivacy" >/dev/null
+
+BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$CONTENTS/Info.plist")"
+SHORT_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$CONTENTS/Info.plist")"
+BUILD_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$CONTENTS/Info.plist")"
+[[ "$BUNDLE_ID" == "com.voicetype.app" ]] || fail "Unexpected bundle identifier: $BUNDLE_ID"
+[[ -n "$SHORT_VERSION" ]] || fail "Bundle marketing version is empty"
+[[ "$BUILD_VERSION" == "$SHORT_VERSION" ]] \
+    || fail "Bundle version mismatch: marketing=$SHORT_VERSION build=$BUILD_VERSION"
+if [[ -n "${VERSION:-}" && "$SHORT_VERSION" != "$VERSION" ]]; then
+    fail "Expected bundle version $VERSION, found $SHORT_VERSION"
+fi
+
 for REQUIRED_BUNDLE in VoiceType_VoiceType.bundle swift-transformers_Hub.bundle; do
     [[ -d "$RESOURCES/$REQUIRED_BUNDLE" ]] \
         || fail "Missing runtime resource bundle: $REQUIRED_BUNDLE"

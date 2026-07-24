@@ -52,6 +52,15 @@ final class HistoryStore: @unchecked Sendable {
               let data = try? JSONEncoder().encode(StoredFile(version: 1, records: records)) else {
             return
         }
-        try? data.write(to: url, options: .atomic)
+        do {
+            try data.write(to: url, options: .atomic)
+            try FileManager.default.setAttributes(
+                [.posixPermissions: 0o600],
+                ofItemAtPath: url.path
+            )
+        } catch {
+            // Persistence is best-effort: dictation must keep working even when
+            // Application Support is temporarily unavailable.
+        }
     }
 }

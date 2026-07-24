@@ -14,7 +14,17 @@ enum AppSupport {
             create: true
         )
         let dir = support.appendingPathComponent("VoiceType", isDirectory: true)
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: dir,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: 0o700]
+        )
+        // Tighten an existing directory too. Transcript history can contain
+        // sensitive text, so it should never inherit a permissive umask.
+        try? FileManager.default.setAttributes(
+            [.posixPermissions: 0o700],
+            ofItemAtPath: dir.path
+        )
         return dir.appendingPathComponent(name, isDirectory: false)
     }
 }
