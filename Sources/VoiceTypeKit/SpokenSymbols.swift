@@ -13,57 +13,33 @@ import Foundation
 /// bias the model prompt applies.
 public enum SpokenSymbols {
 
-    /// Render spoken symbols in `text` for the given app category. English-only
-    /// by contract — the trigger words ("dot", "underscore", …) are English;
-    /// callers gate on the locale.
-    public static func render(_ text: String, category: AppCategory) -> String {
-        var tokens = renderEmails(text).split(separator: " ").map(String.init)
-        tokens = renderParens(tokens)
-        tokens = renderUnderscores(tokens)
+    /// Render spoken symbols in `text` for the given app category, using one
+    /// language's trigger words. The neighbor rules below are language-neutral;
+    /// everything language-specific arrives in `vocabulary`. Defaults to
+    /// English, the reference vocabulary.
+    public static func render(_ text: String,
+                              category: AppCategory,
+                              vocabulary: SpokenSymbolVocabulary = .english) -> String {
+        var tokens = renderEmails(text, vocabulary).split(separator: " ").map(String.init)
+        tokens = renderParens(tokens, vocabulary)
+        tokens = renderUnderscores(tokens, vocabulary)
         if category == .terminal {
-            tokens = renderTerminalPaths(tokens)
+            tokens = renderTerminalPaths(tokens, vocabulary)
         }
-        tokens = renderDotExtensions(tokens)
+        tokens = renderDotExtensions(tokens, vocabulary)
         tokens = category == .terminal
-            ? renderTerminalFlags(tokens)
-            : renderLetterDashes(tokens)
+            ? renderTerminalFlags(tokens, vocabulary)
+            : renderLetterDashes(tokens, vocabulary)
         return assemble(tokens)
     }
-
-    // MARK: - Vocabulary
-
-    /// File extensions we join after a spoken "dot". Kept to common, unambiguous
-    /// ones; anything else stays prose.
-    static let extensions: Set<String> = [
-        "py", "js", "ts", "jsx", "tsx", "rs", "go", "swift", "c", "h", "cpp",
-        "hpp", "java", "rb", "php", "sh", "md", "txt", "json", "yaml", "yml",
-        "toml", "html", "css", "xml", "sql", "csv", "log", "lock", "env",
-    ]
-
-    /// Homophones a transcriber produces for extensions ("open main dot pie").
-    static let extensionHomophones: [String: String] = [
-        "pie": "py",
-        "pi": "py",
-    ]
-
-    /// Top-level domains that anchor the spoken-email pattern.
-    private static let emailTLDs = "com|net|org|io|co|dev|app|ai|edu|gov|me"
-
-    /// Words that read as prose in front of "at", not as an email local part:
-    /// "have a look at gmail dot com" must stay a sentence. Function words plus
-    /// the verbs that commonly precede "at".
-    private static let emailLocalGuards: Set<String> = CleanupGuard.openerStopwords.union([
-        "look", "looking", "looked", "go", "going", "meet", "meeting",
-        "back", "up", "over", "out", "stay", "arrive", "start", "starts",
-    ])
 
     /// A token qualifies as an identifier part when it is word-like (letters,
     /// digits, or characters an earlier join introduced) and not a function
     /// word — "to underscore the" must never become "to_the".
-    private static func isJoinable(_ token: String) -> Bool {
+    private static func isJoinable(_ token: String, _ vocab: SpokenSymbolVocabulary) -> Bool {
         !token.isEmpty
             && token.allSatisfy { $0.isLetter || $0.isNumber || "._-".contains($0) }
-            && !CleanupGuard.openerStopwords.contains(token.lowercased())
+            && !vocab.joinGuards.contains(token.lowercased())
     }
 
     /// A plain word-like token (used where any word is acceptable, e.g. the
@@ -84,13 +60,35 @@ public enum SpokenSymbols {
         return (core, suffix)
     }
 
+    /// A regex alternation of the vocabulary's trigger words, longest first so
+    /// a multi-word name can't be shadowed by a prefix of itself.
+    private static func alternation(_ words: Set<String>) -> String {
+        words.sorted { $0.count > $1.count }
+            .map { NSRegularExpression.escapedPattern(for: $0) }
+            .joined(separator: "|")
+    }
+
+    /// Collapse the spoken dot words inside a matched address: "john dot
+    /// smith" → "john.smith".
+    private static func joinSpokenDots(_ text: String, _ vocab: SpokenSymbolVocabulary) -> String {
+        var out = text
+        for word in vocab.dot {
+            out = out.replacingOccurrences(of: " \(word) ", with: ".",
+                                           options: [.caseInsensitive])
+        }
+        return out
+    }
+
     // MARK: - Emails
 
     /// "john dot smith at gmail dot com" → "john.smith@gmail.com". Anchored on
     /// the TLD so ordinary uses of "at" never match; the local part must not be
     /// a lone function word ("look at gmail dot com" stays prose).
-    private static func renderEmails(_ text: String) -> String {
-        let pattern = "(?i)\\b([a-z0-9]+(?: dot [a-z0-9]+)*) at ((?:[a-z0-9]+ dot )+(?:\(emailTLDs)))\\b"
+    private static func renderEmails(_ text: String, _ vocab: SpokenSymbolVocabulary) -> String {
+        let dot = alternation(vocab.dot)
+        let at = alternation(vocab.emailAt)
+        let tlds = alternation(vocab.emailTLDs)
+        let pattern = "(?i)\\b([a-z0-9]+(?: (?:\(dot)) [a-z0-9]+)*) (?:\(at)) ((?:[a-z0-9]+ (?:\(dot)) )+(?:\(tlds)))\\b"
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return text }
         var result = text
         let matches = regex.matches(in: text, range: NSRange(text.startIndex..., in: text))
@@ -99,12 +97,12 @@ public enum SpokenSymbols {
                   let localRange = Range(match.range(at: 1), in: result),
                   let domainRange = Range(match.range(at: 2), in: result) else { continue }
             let local = String(result[localRange])
-            if !local.contains(" "), emailLocalGuards.contains(local.lowercased()) {
+            if !local.contains(" "), vocab.emailLocalGuards.contains(local.lowercased()) {
                 continue
             }
-            let rendered = local.replacingOccurrences(of: " dot ", with: ".")
+            let rendered = joinSpokenDots(local, vocab)
                 + "@"
-                + String(result[domainRange]).replacingOccurrences(of: " dot ", with: ".")
+                + joinSpokenDots(String(result[domainRange]), vocab)
             result.replaceSubrange(whole, with: rendered.lowercased())
         }
         return result
@@ -115,28 +113,29 @@ public enum SpokenSymbols {
     /// "open paren" / "close paren" (and bracket) become symbol tokens; a spoken
     /// "comma" *inside* an open pair is a literal comma. Attachment happens in
     /// `assemble`.
-    private static func renderParens(_ tokens: [String]) -> [String] {
+    private static func renderParens(_ tokens: [String], _ vocab: SpokenSymbolVocabulary) -> [String] {
         var out: [String] = []
         var depth = 0
         var i = 0
         while i < tokens.count {
             let t = tokens[i].lowercased()
-            if i + 1 < tokens.count, t == "open" || t == "close" {
+            if i + 1 < tokens.count, vocab.openers.contains(t) || vocab.closers.contains(t) {
                 let next = tokens[i + 1].lowercased()
                 var symbol: String?
-                if ["paren", "parens", "parenthesis"].contains(next) {
-                    symbol = t == "open" ? "(" : ")"
-                } else if next == "bracket" || next == "brackets" {
-                    symbol = t == "open" ? "[" : "]"
+                let isOpener = vocab.openers.contains(t)
+                if vocab.parenNouns.contains(next) {
+                    symbol = isOpener ? "(" : ")"
+                } else if vocab.bracketNouns.contains(next) {
+                    symbol = isOpener ? "[" : "]"
                 }
                 if let symbol {
-                    depth = t == "open" ? depth + 1 : max(0, depth - 1)
+                    depth = isOpener ? depth + 1 : max(0, depth - 1)
                     out.append(symbol)
                     i += 2
                     continue
                 }
             }
-            if depth > 0, t == "comma" {
+            if depth > 0, vocab.comma.contains(t) {
                 out.append(",")
                 i += 1
                 continue
@@ -152,15 +151,15 @@ public enum SpokenSymbols {
     /// "max underscore retries" → "max_retries". Both neighbors must be
     /// identifier parts; chains fold left ("test underscore client" first, so a
     /// following "dot pie" sees "test_client").
-    private static func renderUnderscores(_ tokens: [String]) -> [String] {
+    private static func renderUnderscores(_ tokens: [String], _ vocab: SpokenSymbolVocabulary) -> [String] {
         var out: [String] = []
         var i = 0
         while i < tokens.count {
-            if tokens[i].lowercased() == "underscore",
-               let left = out.last, isJoinable(left),
+            if vocab.underscore.contains(tokens[i].lowercased()),
+               let left = out.last, isJoinable(left, vocab),
                i + 1 < tokens.count {
                 let (core, suffix) = splitTrailingPunctuation(tokens[i + 1])
-                if isJoinable(core) {
+                if isJoinable(core, vocab) {
                     out[out.count - 1] = left + "_" + core + suffix
                     i += 2
                     continue
@@ -177,12 +176,12 @@ public enum SpokenSymbols {
     /// "main dot pie" → "main.py"; "index dot j s" → "index.js". Joins only
     /// when the trailing words actually name a known extension — "the dot
     /// product" has neither a joinable left ("the") nor an extension right.
-    private static func renderDotExtensions(_ tokens: [String]) -> [String] {
+    private static func renderDotExtensions(_ tokens: [String], _ vocab: SpokenSymbolVocabulary) -> [String] {
         var out: [String] = []
         var i = 0
         while i < tokens.count {
-            if tokens[i].lowercased() == "dot",
-               let left = out.last, isJoinable(left),
+            if vocab.dot.contains(tokens[i].lowercased()),
+               let left = out.last, isJoinable(left, vocab),
                i + 1 < tokens.count {
                 // Spelled letters: "dot t s" → ".ts" when they form an extension.
                 var letters: [String] = []
@@ -196,7 +195,7 @@ public enum SpokenSymbols {
                 var k = letters.count
                 while k >= 1 {
                     let candidate = letters.prefix(k).joined()
-                    if extensions.contains(candidate) {
+                    if vocab.fileExtensions.contains(candidate) {
                         out[out.count - 1] = left + "." + candidate
                         i += 1 + k
                         joined = true
@@ -209,7 +208,7 @@ public enum SpokenSymbols {
                 // Whole-word extension or homophone: "dot pie" → ".py".
                 let (core, suffix) = splitTrailingPunctuation(tokens[i + 1])
                 let lowered = core.lowercased()
-                if let ext = extensionHomophones[lowered] ?? (extensions.contains(lowered) ? lowered : nil) {
+                if let ext = vocab.extensionHomophones[lowered] ?? (vocab.fileExtensions.contains(lowered) ? lowered : nil) {
                     out[out.count - 1] = left + "." + ext + suffix
                     i += 2
                     continue
@@ -227,12 +226,12 @@ public enum SpokenSymbols {
     /// spoken letter — "michael dash L dash I" → "michael-L-i" — so "a dash of
     /// salt" stays prose. A joined capital "I" lowers: it was capitalized as
     /// the pronoun, which it no longer is inside a handle.
-    private static func renderLetterDashes(_ tokens: [String]) -> [String] {
+    private static func renderLetterDashes(_ tokens: [String], _ vocab: SpokenSymbolVocabulary) -> [String] {
         var out: [String] = []
         var i = 0
         while i < tokens.count {
-            if tokens[i].lowercased() == "dash",
-               let left = out.last, isJoinable(left),
+            if vocab.dash.contains(tokens[i].lowercased()),
+               let left = out.last, isJoinable(left, vocab),
                i + 1 < tokens.count {
                 let (core, suffix) = splitTrailingPunctuation(tokens[i + 1])
                 if core.count == 1, core.first!.isLetter {
@@ -251,12 +250,12 @@ public enum SpokenSymbols {
     /// In a terminal, "dash" is a flag marker: "dash dash verbose" → "--verbose",
     /// "dash m" → "-m". Aggressive on purpose — prose dictated into a terminal
     /// accepts the same bias the model prompt does.
-    private static func renderTerminalFlags(_ tokens: [String]) -> [String] {
+    private static func renderTerminalFlags(_ tokens: [String], _ vocab: SpokenSymbolVocabulary) -> [String] {
         var out: [String] = []
         var i = 0
         while i < tokens.count {
-            if tokens[i].lowercased() == "dash", i + 1 < tokens.count {
-                if tokens[i + 1].lowercased() == "dash", i + 2 < tokens.count, isWordy(tokens[i + 2]) {
+            if vocab.dash.contains(tokens[i].lowercased()), i + 1 < tokens.count {
+                if vocab.dash.contains(tokens[i + 1].lowercased()), i + 2 < tokens.count, isWordy(tokens[i + 2]) {
                     out.append("--" + tokens[i + 2])
                     i += 3
                     continue
@@ -278,19 +277,20 @@ public enum SpokenSymbols {
     /// "tilde slash projects slash voice" → "~/projects/voice"; "dot slash
     /// build" → "./build"; "src slash main" → "src/main". Terminal-only: in
     /// prose, "slash" is more often a word than a path separator.
-    private static func renderTerminalPaths(_ tokens: [String]) -> [String] {
+    private static func renderTerminalPaths(_ tokens: [String], _ vocab: SpokenSymbolVocabulary) -> [String] {
         var out: [String] = []
         var i = 0
         while i < tokens.count {
             let t = tokens[i].lowercased()
-            if (t == "tilde" || t == "dot"), i + 1 < tokens.count,
-               tokens[i + 1].lowercased() == "slash",
+            let isTilde = vocab.tilde.contains(t)
+            if isTilde || vocab.dot.contains(t), i + 1 < tokens.count,
+               vocab.slash.contains(tokens[i + 1].lowercased()),
                i + 2 < tokens.count, isWordy(tokens[i + 2]) {
-                out.append((t == "tilde" ? "~/" : "./") + tokens[i + 2])
+                out.append((isTilde ? "~/" : "./") + tokens[i + 2])
                 i += 3
                 continue
             }
-            if t == "slash", i + 1 < tokens.count, isWordy(tokens[i + 1]),
+            if vocab.slash.contains(t), i + 1 < tokens.count, isWordy(tokens[i + 1]),
                let left = out.last,
                left.allSatisfy({ $0.isLetter || $0.isNumber || "._-/~".contains($0) }) {
                 out[out.count - 1] = left + "/" + tokens[i + 1]

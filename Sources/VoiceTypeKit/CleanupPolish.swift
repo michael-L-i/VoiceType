@@ -51,8 +51,8 @@ public enum CleanupPolish {
         }
         guard options.fixCapitalization, !isTerminal,
               pack.separatesWordsWithSpaces else { return out }
-        if pack.code == "en" {
-            out = RuleBasedCleanup.capitalizeStandaloneI(out)
+        if let pronoun = pack.capitalizedStandalonePronoun {
+            out = RuleBasedCleanup.capitalizeStandalonePronoun(out, pronoun: pronoun)
         }
         return capitalizeFirstPlainWord(out)
     }

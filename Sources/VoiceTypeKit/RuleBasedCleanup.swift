@@ -42,10 +42,11 @@ public struct RuleBasedCleanup: CleanupEngine {
         }
 
         // Render spoken symbol names ("main dot pie" → main.py) the same way
-        // the model prompt does. English-only by SpokenSymbols' contract: the
-        // trigger words are English.
-        if pack.code == "en" {
-            text = SpokenSymbols.render(text, category: context.category)
+        // the model prompt does. Only languages that have contributed a
+        // vocabulary opt in; the trigger words are the pack's, not English's.
+        if let symbols = pack.symbols {
+            text = SpokenSymbols.render(text, category: context.category,
+                                        vocabulary: symbols)
         }
 
         // Tidy spacing/width around punctuation regardless of cleanup options,
@@ -68,7 +69,9 @@ public struct RuleBasedCleanup: CleanupEngine {
         // exactly as spoken.
         if options.fixCapitalization && pack.separatesWordsWithSpaces {
             if !isTerminal { text = capitalizeSentences(text) }
-            if pack.code == "en" { text = capitalizeStandaloneI(text) }
+            if let pronoun = pack.capitalizedStandalonePronoun {
+                text = capitalizeStandalonePronoun(text, pronoun: pronoun)
+            }
         }
 
         if options.addPunctuation && !isTerminal {
@@ -181,14 +184,18 @@ public struct RuleBasedCleanup: CleanupEngine {
         return !core.isEmpty && core.allSatisfy { $0.isLetter || $0 == "'" }
     }
 
-    /// Capitalize the standalone pronoun "i" -> "I". Internal (not private) so
-    /// `CleanupPolish` applies the same rule to model output.
+    /// Capitalize a language's standalone one-letter pronoun — English "i" →
+    /// "I". Internal (not private) so `CleanupPolish` applies the same rule to
+    /// model output.
     ///
     /// Plain `\b` treats `-`, `.`, `/` as boundaries, which would corrupt
     /// identifiers ("michael-L-i" → "michael-L-I"), so the lookarounds also
     /// reject symbol neighbors. Apostrophes stay allowed ("i'll" → "I'll").
-    static func capitalizeStandaloneI(_ text: String) -> String {
-        replace(text, pattern: "(?<![\\w.\\-_/@~])i(?![\\w.\\-_/@~])", template: "I")
+    static func capitalizeStandalonePronoun(_ text: String, pronoun: String) -> String {
+        let escaped = NSRegularExpression.escapedPattern(for: pronoun)
+        return replace(text,
+                       pattern: "(?<![\\w.\\-_/@~])\(escaped)(?![\\w.\\-_/@~])",
+                       template: NSRegularExpression.escapedTemplate(for: pronoun.uppercased()))
     }
 
     // MARK: - Terminal punctuation

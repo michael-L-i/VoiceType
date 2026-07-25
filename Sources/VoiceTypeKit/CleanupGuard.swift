@@ -130,21 +130,6 @@ public enum CleanupGuard {
         return found
     }
 
-    /// Function words too common to prove anything about whether the opening
-    /// of the dictation survived into the output.
-    static let openerStopwords: Set<String> = [
-        "the", "a", "an", "and", "or", "but", "so", "to", "of", "in", "on",
-        "at", "for", "with", "about", "from",
-        "i", "we", "you", "he", "she", "they", "it", "me", "my", "your", "our", "us",
-        "is", "are", "was", "were", "be", "been", "am",
-        "do", "does", "did", "have", "has", "had",
-        "there", "here", "this", "that", "these", "those",
-        "okay", "ok", "yeah", "yes", "well", "just", "like", "really",
-        // Self-correction markers: legitimately removed along with the words
-        // they retract, so they prove nothing about the opening.
-        "no", "not", "wait", "actually", "sorry",
-    ]
-
     /// True when the start of the dictation vanished from the output. The
     /// observed failure mode: the model treats a declarative opener ("we have
     /// to do three things", "the way I see it") as disposable framing and
@@ -168,7 +153,7 @@ public enum CleanupGuard {
             word.count >= 2
                 && !LanguagePack.english.fillers.contains(word)
                 && !spokenSymbols.contains(word)
-                && !openerStopwords.contains(word)
+                && !LanguagePack.english.stopwords.contains(word)
         }
         guard probe.count >= 2 else { return false }
         var opening = Set<String>()

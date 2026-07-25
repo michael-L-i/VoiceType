@@ -15,6 +15,28 @@ struct EnglishPackPolicyTests {
         #expect(!LanguagePack.english.fillers.contains("like"))
         #expect(!LanguagePack.english.fillers.contains("so"))
     }
+
+    @Test("owns the stopword list the guard and the symbol renderer both probe")
+    func stopwords() {
+        #expect(LanguagePack.english.stopwords.contains("the"))
+        #expect(LanguagePack.english.stopwords.contains("actually"))
+        #expect(!LanguagePack.english.stopwords.contains("deploy"))
+    }
+
+    @Test("owns the standalone pronoun and the spoken-symbol vocabulary")
+    func ownedRules() {
+        #expect(LanguagePack.english.capitalizedStandalonePronoun == "i")
+        #expect(LanguagePack.english.symbols?.dot == ["dot"])
+        #expect(LanguagePack.english.symbols?.fileExtensions.contains("swift") == true)
+    }
+
+    @Test("no other pack claims symbol rendering or a standalone pronoun yet")
+    func englishIsTheOnlyOptIn() {
+        for pack in LanguagePack.all where pack.code != "en" {
+            #expect(pack.symbols == nil, "\(pack.code)")
+            #expect(pack.capitalizedStandalonePronoun == nil, "\(pack.code)")
+        }
+    }
 }
 
 @Suite("Cleanup polish — English model output")

@@ -40,9 +40,56 @@ public struct LanguagePack: Sendable {
     /// … or sentence-final particles that end one (Chinese 吗).
     public let questionSuffixParticles: Set<String>
 
+    /// Function words that prove nothing about a sentence's content: the guard
+    /// skips them when probing whether a dictation's opening survived, and the
+    /// spoken-symbol renderer refuses to join them into identifiers. Empty is
+    /// safe — it only makes both checks more conservative.
+    public let stopwords: Set<String>
+
+    /// The words this language uses to speak a symbol out loud. Non-nil opts
+    /// the language into the `SpokenSymbols` token pipeline ("main dot pie" →
+    /// main.py); nil skips it entirely, which is what every language except
+    /// English does today.
+    public let symbols: SpokenSymbolVocabulary?
+
+    /// A one-letter pronoun written capitalized even mid-sentence — English
+    /// "i" → "I". Nil for every other language, which is the common case:
+    /// almost no orthography has one.
+    public let capitalizedStandalonePronoun: String?
+
     /// Extra lines appended to the LLM cleanup instructions for this language.
     /// Keep minimal — few-shot content leaks into output (see CleanupPrompt).
     public let promptAddendum: String?
+
+    /// Explicit rather than synthesized so a language can fill in only the
+    /// fields it needs: everything after `questionSuffixParticles` defaults to
+    /// "this language doesn't do that", and adding a new field here never
+    /// touches the 16 existing packs.
+    public init(code: String,
+                separatesWordsWithSpaces: Bool,
+                usesFullWidthPunctuation: Bool,
+                terminalPeriod: String,
+                fillers: Set<String>,
+                spokenPunctuation: [String: String],
+                questionPrefixWords: Set<String>,
+                questionSuffixParticles: Set<String>,
+                stopwords: Set<String> = [],
+                symbols: SpokenSymbolVocabulary? = nil,
+                capitalizedStandalonePronoun: String? = nil,
+                promptAddendum: String? = nil) {
+        self.code = code
+        self.separatesWordsWithSpaces = separatesWordsWithSpaces
+        self.usesFullWidthPunctuation = usesFullWidthPunctuation
+        self.terminalPeriod = terminalPeriod
+        self.fillers = fillers
+        self.spokenPunctuation = spokenPunctuation
+        self.questionPrefixWords = questionPrefixWords
+        self.questionSuffixParticles = questionSuffixParticles
+        self.stopwords = stopwords
+        self.symbols = symbols
+        self.capitalizedStandalonePronoun = capitalizedStandalonePronoun
+        self.promptAddendum = promptAddendum
+    }
 
     // MARK: - Registry
 
