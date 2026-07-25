@@ -5,6 +5,24 @@ dictation app: audio and transcripts stay on-device by default. Contributions
 that preserve that principle and make dictation faster, more reliable, or more
 pleasant are especially welcome.
 
+## Languages are the highest-leverage contribution
+
+VoiceType dictates in [33 languages](./docs/LANGUAGES.md) and we want every one
+of them to feel native, not translated. If you speak a language other than
+English, you can improve this project in ways the maintainer simply cannot —
+and both tracks are small, self-contained pull requests:
+
+| You can… | Effort | Start here |
+|---|---|---|
+| Translate the interface | One `.strings` file, **no Swift** | [LOCALIZATION.md § Track 1](./docs/LOCALIZATION.md) |
+| Correct an existing translation | A few lines | 15 of our 16 UI languages are machine-authored |
+| Write a cleanup language pack | One Swift file + tests | [LOCALIZATION.md § Track 2](./docs/LOCALIZATION.md) |
+| Review a machine-authored pack | Read one file | 14 of 16 packs have never had native-speaker eyes |
+| Add an eval battery | One JSON file, 10+ cases | Only English and Chinese have one |
+
+[docs/LANGUAGES.md](./docs/LANGUAGES.md) lists exactly which languages are
+missing what. You do not need to ask first for any of these — open the PR.
+
 ## Before you start
 
 - For a small documentation fix or focused bug fix, open a pull request.

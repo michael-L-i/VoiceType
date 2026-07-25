@@ -4,12 +4,16 @@
 
 # VoiceType
 
-### Speak anywhere, in your language — clean text instantly, all on-device.
+### Dictation in 33 languages. Clean text instantly. All on-device.
 
 A fast, private, open-source voice-dictation app for macOS. Hold a key, talk —
-in English, 中文, Español, 日本語, or 30+ other languages — and your words land
-as clean, punctuated text in whatever app you're using. Your audio never leaves
-your Mac — everything runs on-device.
+in English, 中文, Español, 日本語, العربية, हिन्दी, Tiếng Việt, or 26 more — and
+your words land as clean, punctuated text in whatever app you're using.
+
+Multilingual **end to end**: the speech model is matched to your language, the
+cleanup pass knows your language's punctuation and filler words, and the app's
+own interface ships in 16 languages. Every one of them runs **on-device** — your
+audio never leaves your Mac, in any language.
 
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
@@ -17,7 +21,8 @@ your Mac — everything runs on-device.
 &nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
-&nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
+&nbsp;[![Dictation languages](https://img.shields.io/badge/dictation-33%20languages-F2743E)](./docs/LANGUAGES.md)
+&nbsp;[![Interface languages](https://img.shields.io/badge/interface-16%20languages-F2743E)](./docs/LANGUAGES.md#interface-languages)
 &nbsp;[![License](https://img.shields.io/badge/license-MIT-111111)](./LICENSE)
 
 **English** ·
@@ -46,13 +51,13 @@ your Mac — everything runs on-device.
 
 ## Why VoiceType
 
-- 🔒 **Private by design.** Audio and transcripts stay on your Mac. No account, no telemetry, no cloud — there's nothing to opt out of.
-- ⚡ **Latency is the feature.** Native Swift with Apple's on-device speech model — time-to-text is what we optimize.
-- 🌍 **Speaks your language.** Dictate in 30+ languages — not just English. Cleanup understands each language's conventions (full-width 中文 punctuation, spoken 句号, language-aware fillers), the app picks an engine that actually supports your language, and the UI itself ships in 16 languages.
+- 🌍 **Multilingual end to end, not English-with-subtitles.** Dictate in [33 languages](./docs/LANGUAGES.md). VoiceType picks a speech model that actually supports your language, cleans up using *that* language's conventions — full-width 中文 punctuation, spoken 句号, language-aware fillers — and ships its own interface in 16 languages.
+- 🔒 **Private in every language.** Audio and transcripts stay on your Mac. No account, no telemetry, no cloud — there's no "send the hard languages to a server" path to opt out of.
+- ⚡ **Latency is the feature.** Native Swift with on-device speech models — time-to-text is what we optimize.
 - 🎙️ **Press-to-talk anywhere.** A global hotkey works in any app; the cleaned text is inserted right where your cursor is.
 - ✨ **Smart cleanup.** Punctuation, capitalization, and filler removal — without ever changing your words.
 - 📊 **Your voice, visualized.** A calm Home dashboard tracks your words, pace, and day streaks, with a full activity heatmap and a friendly, on-device usage summary — all computed on your Mac.
-- 🧩 **Pluggable engines.** Apple's built-in model by default, with an optional on-device upgrade — NVIDIA Parakeet — you can download and switch to, one at a time.
+- 🧩 **Pluggable engines.** Apple's built-in model by default, with optional on-device upgrades — NVIDIA Parakeet, NVIDIA Nemotron, OpenAI Whisper — you can download and switch between, one at a time.
 
 ## Download
 
@@ -73,10 +78,17 @@ Everything runs on-device. Apple's model is built into macOS and selected by
 default; you can download other local engines from the **Models** page in the
 sidebar and switch between them (one is active at a time).
 
-| Stage | Default (built-in) | Optional alternatives (on-device) |
+| Engine | Languages | Notes |
 | --- | --- | --- |
-| **Transcription** | **Apple Speech** — `SpeechTranscriber` on macOS 26+, on-device `SFSpeechRecognizer` on macOS 14–15 | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — downloaded on demand |
-| **Cleanup** | Built-in rules (instant, deterministic) | Apple Intelligence (`FoundationModels`, macOS 26+) — built into macOS, no download |
+| **Apple Speech** (default) | Varies by macOS | Built in, no download. `SpeechTranscriber` on macOS 26+, on-device `SFSpeechRecognizer` on macOS 14–15 |
+| **Parakeet TDT 0.6B V3** | **25** — European only | NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio). Fastest; no CJK |
+| **Nemotron 3.5 ASR 0.6B** | **40 locales** incl. CJK, Arabic, Hindi | NVIDIA, via FluidAudio. The multilingual workhorse |
+| **Whisper Base** | **99** | OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit). Broadest coverage |
+
+For cleanup, built-in rules (instant, deterministic) are the default; Apple
+Intelligence (`FoundationModels`, macOS 26+) is an optional upgrade built into
+macOS with nothing to download. See [**docs/LANGUAGES.md**](./docs/LANGUAGES.md)
+for the full per-language engine matrix.
 
 Downloadable models are fetched once on demand (no cloud at inference time — your
 audio still never leaves the Mac) and run as CoreML on the Apple Neural Engine.
@@ -90,26 +102,44 @@ run, and always degrades to plain text rather than failing.
 <a name="languages"></a>
 ## Languages
 
-VoiceType is multilingual end-to-end, not English-with-subtitles:
+Most dictation apps are built for English and translated afterwards. VoiceType
+treats every language as a first-class case — this is the thing we care most
+about getting right.
 
-- **Dictate in 30+ languages** — English, 中文, Español, Français, Deutsch,
-  日本語, 한국어, Português, Русский, Tiếng Việt, and more. You pick the
-  language; VoiceType never guesses.
+**33 languages** for dictation · **16** with hand-written cleanup rules ·
+**16** with a translated interface · **0** that need the cloud.
+
+Arabic · Bulgarian · 简体中文 · Croatian · Czech · Danish · Nederlands ·
+English · Estonian · Finnish · Français · Deutsch · Greek · हिन्दी · Hungarian ·
+Italiano · 日本語 · 한국어 · Latvian · Lithuanian · Maltese · Norsk · Polski ·
+Português · Romanian · Русский · Slovak · Slovenian · Español · Svenska ·
+Türkçe · Українська · Tiếng Việt
+
+What "multilingual" actually means here:
+
+- **You pick the language; VoiceType never guesses.** Auto-detection produces
+  confident nonsense when it's wrong, so it isn't offered.
 - **Engines are matched to your language.** Each speech model declares what it
   supports (Parakeet is European-only; Nemotron covers 40 locales including
-  Chinese; Whisper is broadly multilingual; Apple's list comes from macOS).
-  Models that can't handle your language gray out, and VoiceType switches to
-  one that can.
-- **Cleanup knows the language.** Each language ships a small, reviewable
+  Chinese; Whisper covers 99; Apple's list comes from macOS). Models that can't
+  handle your language gray out, and VoiceType switches to one that can.
+- **Cleanup knows the language.** 16 languages ship a small, reviewable
   "language pack": its filler words (嗯/呃, ähm, euh — never words that carry
   meaning), its punctuation conventions (full-width 。，？ for Chinese and
   Japanese, spoken 句号/読点 rendered as marks), and its question heuristics.
-- **The app itself is localized** into 16 languages, following your macOS
-  system language (per-app override in System Settings works too).
+  The rest get faithful transcription with neutral cleanup.
+- **The interface is localized** into 16 languages, following your macOS system
+  language — independent of your dictation language, so a Japanese interface can
+  dictate Portuguese.
+- **Curated, not padded.** We could list Whisper's 99 languages tomorrow; we
+  offer the ones an engine is genuinely good at, and a test enforces it.
+
+📖 **[Full language matrix, quality tiers, and known gaps →](./docs/LANGUAGES.md)**
 
 Your language missing, or a translation off? Adding a language is deliberately
 small — a UI translation needs no Swift at all — see
-[docs/LOCALIZATION.md](./docs/LOCALIZATION.md).
+[docs/LOCALIZATION.md](./docs/LOCALIZATION.md). The machine-authored packs
+especially need native-speaker eyes.
 
 <a name="privacy"></a>
 ## Privacy
@@ -176,6 +206,7 @@ VoiceType/
 ├── Tests/             # VoiceTypeKit unit tests
 ├── Scripts/           # build-app.sh · make-dmg.sh · make-icon.swift · release.sh
 ├── Resources/         # Info.plist · entitlements · AppIcon
+├── docs/              # LANGUAGES.md (coverage matrix) · LOCALIZATION.md · readme/
 ├── specs/             # the human's surface — product direction (agent doesn't edit)
 └── README.md
 ```
