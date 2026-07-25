@@ -37,8 +37,15 @@ public struct LanguagePack: Sendable {
     /// Question heuristics for the deterministic question-mark rule: words that
     /// open a direct question (English "what/is/can…") …
     public let questionPrefixWords: Set<String>
-    /// … or sentence-final particles that end one (Chinese 吗).
+    /// … or sentence-final particles that end one (Chinese 吗, Japanese
+    /// ですか). Matched with `hasSuffix`, so a particle may be several
+    /// characters long — Korean and Japanese mark questions with verb endings,
+    /// which a single-character probe could never see.
     public let questionSuffixParticles: Set<String>
+
+    /// The mark that ends a question in this orthography. Full-width for CJK,
+    /// and the extension point for Greek, which writes its question mark ";".
+    public let questionMark: String
 
     /// Function words that prove nothing about a sentence's content: the guard
     /// skips them when probing whether a dictation's opening survived, and the
@@ -74,6 +81,7 @@ public struct LanguagePack: Sendable {
                 spokenPunctuation: [String: String],
                 questionPrefixWords: Set<String>,
                 questionSuffixParticles: Set<String>,
+                questionMark: String = "?",
                 stopwords: Set<String> = [],
                 symbols: SpokenSymbolVocabulary? = nil,
                 capitalizedStandalonePronoun: String? = nil,
@@ -86,6 +94,7 @@ public struct LanguagePack: Sendable {
         self.spokenPunctuation = spokenPunctuation
         self.questionPrefixWords = questionPrefixWords
         self.questionSuffixParticles = questionSuffixParticles
+        self.questionMark = questionMark
         self.stopwords = stopwords
         self.symbols = symbols
         self.capitalizedStandalonePronoun = capitalizedStandalonePronoun

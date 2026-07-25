@@ -26,6 +26,7 @@ extension LanguagePack {
         ],
         questionPrefixWords: [],
         questionSuffixParticles: [],
+        questionMark: "？",
         prompt: .addendumOnly("""
         - The dictation is Japanese. Use full-width Japanese punctuation \
         （、。！？）and never insert spaces between Japanese characters.

@@ -45,6 +45,7 @@ extension LanguagePack {
         ],
         questionPrefixWords: [],
         questionSuffixParticles: ["吗"],
+        questionMark: "？",
         prompt: .addendumOnly("""
         - The dictation is Chinese. Use full-width Chinese punctuation \
         （，。？！：；）for Chinese text and never insert spaces between \

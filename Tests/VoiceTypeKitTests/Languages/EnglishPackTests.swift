@@ -47,3 +47,38 @@ struct EnglishPolishTests {
         #expect(out == "Did you ship it?")
     }
 }
+
+/// The question heuristic is shared machinery; these cover the pack-supplied
+/// pieces a new language will rely on.
+@Suite("Question heuristic — pack-supplied particles and marks")
+struct QuestionHeuristicTests {
+    @Test("a multi-character sentence-final particle is matched, longest first")
+    func multiCharacterParticle() {
+        let pack = LanguagePack(
+            code: "xx",
+            separatesWordsWithSpaces: true,
+            usesFullWidthPunctuation: false,
+            terminalPeriod: ".",
+            fillers: [],
+            spokenPunctuation: [:],
+            questionPrefixWords: [],
+            questionSuffixParticles: ["ka", "desuka"])
+        // Single-character probing could never have seen either of these.
+        #expect(CleanupPolish.ensureQuestionMark("kore wa nan desuka", pack: pack)
+            == "kore wa nan desuka?")
+        #expect(CleanupPolish.ensureQuestionMark("iku ka", pack: pack) == "iku ka?")
+        #expect(CleanupPolish.ensureQuestionMark("kore wa hon", pack: pack) == "kore wa hon")
+    }
+
+    @Test("the pack's own question mark is used, not a hardcoded one")
+    func packQuestionMark() {
+        #expect(CleanupPolish.ensureQuestionMark("你明天有空吗", pack: .chinese) == "你明天有空吗？")
+        #expect(CleanupPolish.ensureQuestionMark("did you ship it", pack: .english) == "did you ship it?")
+    }
+
+    @Test("output that already ends in punctuation is left alone")
+    func respectsExistingPunctuation() {
+        #expect(CleanupPolish.ensureQuestionMark("did you ship it.", pack: .english)
+            == "did you ship it.")
+    }
+}
