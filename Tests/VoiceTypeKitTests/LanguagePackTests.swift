@@ -107,14 +107,62 @@ struct LostScriptGuardTests {
 
     @Test("a dropped Han opener trips the guard; faithful and filler-skipped outputs pass")
     func hanOpening() {
-        #expect(CleanupGuard.droppedHanOpening(
+        #expect(CleanupGuard.droppedScriptOpening(
             raw: "请把 main.py 发给我", cleaned: "main.py 发给我。"))
-        #expect(!CleanupGuard.droppedHanOpening(
+        #expect(!CleanupGuard.droppedScriptOpening(
             raw: "请把 main.py 发给我", cleaned: "请把 main.py 发给我。"))
-        #expect(!CleanupGuard.droppedHanOpening(
+        #expect(!CleanupGuard.droppedScriptOpening(
             raw: "嗯嗯今天天气很好", cleaned: "今天天气很好。"))
-        #expect(!CleanupGuard.droppedHanOpening(
+        #expect(!CleanupGuard.droppedScriptOpening(
             raw: "ok cool", cleaned: "Ok cool."))
     }
 }
 
+
+/// The translation guard used to police Han only, so a Russian or Greek
+/// dictation silently rewritten into English sailed through.
+@Suite("Cleanup guard — translation out of any tracked script")
+struct DominantScriptGuardTests {
+    @Test("a majority-script dictation replaced by English trips, whatever the script")
+    func translationTrips() {
+        let cases: [(String, String)] = [
+            ("сегодня очень хорошая погода пойдём гулять в парк", "The weather is great today, let's walk in the park."),
+            ("σήμερα ο καιρός είναι πολύ ωραίος", "The weather is really nice today."),
+            ("오늘 날씨가 정말 좋으니까 공원에 산책하러 가자", "The weather is great today, let's go for a walk."),
+            ("今日はとてもいい天気ですね", "It's really nice weather today."),
+        ]
+        for (raw, cleaned) in cases {
+            #expect(CleanupGuard.lostDominantScript(raw: raw, cleaned: cleaned), "\(raw)")
+            #expect(CleanupGuard.looksUnfaithful(raw: raw, cleaned: cleaned), "\(raw)")
+        }
+    }
+
+    @Test("faithful cleanup in those same scripts passes")
+    func faithfulPasses() {
+        let cases: [(String, String)] = [
+            ("сегодня очень хорошая погода", "Сегодня очень хорошая погода."),
+            ("σήμερα ο καιρός είναι ωραίος", "Σήμερα ο καιρός είναι ωραίος."),
+            ("오늘 날씨가 좋다", "오늘 날씨가 좋다."),
+            ("今日はいい天気ですね", "今日はいい天気ですね。"),
+        ]
+        for (raw, cleaned) in cases {
+            #expect(!CleanupGuard.lostDominantScript(raw: raw, cleaned: cleaned), "\(raw)")
+        }
+    }
+
+    @Test("Japanese written in both kana and kanji counts as one script, not two")
+    func kanaAndKanjiAreOneScript() {
+        // A kanji-heavy sentence answered in kana is a style choice, not a
+        // translation, so it must not trip.
+        #expect(!CleanupGuard.lostDominantScript(raw: "明日会議があります",
+                                                 cleaned: "あした かいぎ が あります"))
+    }
+
+    @Test("Latin dictation with a borrowed word is never policed")
+    func latinNeverTrips() {
+        #expect(!CleanupGuard.lostDominantScript(raw: "the weather is great today",
+                                                 cleaned: "The weather is great today."))
+        #expect(!CleanupGuard.lostDominantScript(raw: "send it to 田中 tomorrow",
+                                                 cleaned: "Send it to 田中 tomorrow."))
+    }
+}
