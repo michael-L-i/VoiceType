@@ -18,6 +18,5 @@ extension LanguagePack {
             "habt", "kann", "kannst", "können", "könnt", "soll", "sollen",
             "wird", "werden", "darf", "muss", "müssen", "bist", "seid",
         ],
-        questionSuffixParticles: [],
-        promptAddendum: nil)
+        questionSuffixParticles: [])
 }

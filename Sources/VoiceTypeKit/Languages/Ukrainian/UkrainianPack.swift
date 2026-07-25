@@ -16,6 +16,5 @@ extension LanguagePack {
             "як", "який", "яка", "яке", "які", "скільки", "чий", "чия",
             "чиє", "чиї",
         ],
-        questionSuffixParticles: [],
-        promptAddendum: nil)
+        questionSuffixParticles: [])
 }

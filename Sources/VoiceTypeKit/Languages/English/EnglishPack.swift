@@ -32,7 +32,7 @@ extension LanguagePack {
         stopwords: LanguagePack.englishStopwords,
         symbols: .english,
         capitalizedStandalonePronoun: "i",
-        promptAddendum: nil)
+        prompt: .english)
 
     /// Function words too common to prove anything about whether the opening of
     /// a dictation survived into the output, and too common to be joined into a

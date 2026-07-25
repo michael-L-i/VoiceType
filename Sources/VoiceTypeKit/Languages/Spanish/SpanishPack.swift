@@ -19,8 +19,8 @@ extension LanguagePack {
             "cuántos", "cuántas", "dónde", "adónde", "cómo", "cuál", "cuáles",
         ],
         questionSuffixParticles: [],
-        promptAddendum: """
+        prompt: .addendumOnly("""
         - Spanish questions and exclamations use opening marks too: write \
         ¿…? and ¡…! around them.
-        """)
+        """))
 }

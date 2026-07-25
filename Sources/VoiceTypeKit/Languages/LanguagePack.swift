@@ -2,7 +2,7 @@ import Foundation
 
 /// Everything the deterministic cleanup path needs to know about one language:
 /// its never-content fillers, its spoken punctuation names, and its writing
-/// conventions. One Swift file per language (`LanguagePack+English.swift`, …) —
+/// conventions. One directory per language (`Languages/English/EnglishPack.swift`, …) —
 /// adding a language means adding a pack, registering it in `all`, and shipping
 /// tests plus eval cases with it. See docs/LOCALIZATION.md.
 ///
@@ -57,9 +57,10 @@ public struct LanguagePack: Sendable {
     /// almost no orthography has one.
     public let capitalizedStandalonePronoun: String?
 
-    /// Extra lines appended to the LLM cleanup instructions for this language.
-    /// Keep minimal — few-shot content leaks into output (see CleanupPrompt).
-    public let promptAddendum: String?
+    /// What this language contributes to the LLM cleanup instruction — its
+    /// hesitation sounds, capitalization rule, spoken-code triggers. See
+    /// `LanguagePromptGuidance`; `.none` means "generic instructions".
+    public let prompt: LanguagePromptGuidance
 
     /// Explicit rather than synthesized so a language can fill in only the
     /// fields it needs: everything after `questionSuffixParticles` defaults to
@@ -76,7 +77,7 @@ public struct LanguagePack: Sendable {
                 stopwords: Set<String> = [],
                 symbols: SpokenSymbolVocabulary? = nil,
                 capitalizedStandalonePronoun: String? = nil,
-                promptAddendum: String? = nil) {
+                prompt: LanguagePromptGuidance = .none) {
         self.code = code
         self.separatesWordsWithSpaces = separatesWordsWithSpaces
         self.usesFullWidthPunctuation = usesFullWidthPunctuation
@@ -88,7 +89,7 @@ public struct LanguagePack: Sendable {
         self.stopwords = stopwords
         self.symbols = symbols
         self.capitalizedStandalonePronoun = capitalizedStandalonePronoun
-        self.promptAddendum = promptAddendum
+        self.prompt = prompt
     }
 
     // MARK: - Registry
@@ -110,8 +111,7 @@ public struct LanguagePack: Sendable {
         fillers: [],
         spokenPunctuation: [:],
         questionPrefixWords: [],
-        questionSuffixParticles: [],
-        promptAddendum: nil)
+        questionSuffixParticles: [])
 
     /// The pack for a BCP-47 locale ("zh-CN", "en_US"), falling back to
     /// `.neutral` for languages nobody has contributed yet.

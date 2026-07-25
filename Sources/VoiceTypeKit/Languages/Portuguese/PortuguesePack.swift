@@ -16,6 +16,5 @@ extension LanguagePack {
             "quê", "quem", "quando", "onde", "aonde", "cadê", "qual", "quais",
             "quanto", "quanta", "quantos", "quantas", "como", "porque", "por",
         ],
-        questionSuffixParticles: [],
-        promptAddendum: nil)
+        questionSuffixParticles: [])
 }

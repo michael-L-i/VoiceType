@@ -15,6 +15,5 @@ extension LanguagePack {
             "co", "kto", "kiedy", "gdzie", "dlaczego", "czemu", "jak", "jaki",
             "jaka", "jakie", "który", "która", "które", "ile", "czy",
         ],
-        questionSuffixParticles: [],
-        promptAddendum: nil)
+        questionSuffixParticles: [])
 }
