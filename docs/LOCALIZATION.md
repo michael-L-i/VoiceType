@@ -4,6 +4,11 @@ VoiceType aims to be genuinely multilingual, not English-with-subtitles. There
 are two independent contribution tracks; do either or both. Chinese (zh) is the
 reference implementation for both — copy its shape.
 
+> **What's already supported, and what's missing:**
+> [LANGUAGES.md](./LANGUAGES.md) has the full matrix — 33 dictation languages,
+> which engine covers which, the cleanup quality tier of each, and an honest
+> list of gaps. Check it first to see what your language needs.
+
 ## Track 1 — Translate the UI (no Swift required)
 
 The UI follows the macOS system language (per-app override: System Settings →
@@ -32,6 +37,9 @@ Chinese doesn't need one, so there's no example yet.
 
 - `Sources/VoiceTypeKit/DictationLanguage.swift` — add your locale to `all` if
   it's missing (curated: at least one engine must be genuinely good at it).
+  `LanguageCoverageTests` enforces this — a locale no downloadable engine
+  supports fails the build, so check the matrix in [LANGUAGES.md](./LANGUAGES.md)
+  before adding one.
 - `Sources/VoiceTypeKit/EngineLanguages.swift` — the per-engine language sets
   are static model-card facts; they rarely change. Apple's list is queried
   from the OS at runtime, so there is usually nothing to do here.

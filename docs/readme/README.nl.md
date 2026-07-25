@@ -4,13 +4,17 @@
 
 # VoiceType
 
-### Spreek waar je maar wilt, in jouw taal — direct schone tekst, volledig op je apparaat.
+### Dicteren in 33 talen. Direct schone tekst. Volledig op je apparaat.
 
-Een snelle, privacyvriendelijke, open-source spraakdicteerapp voor macOS. Houd een
-toets ingedrukt, spreek — in het Engels, 中文, Español, 日本語 of ruim 30 andere
-talen — en je woorden verschijnen als schone tekst met leestekens in de app die
-je op dat moment gebruikt. Je audio verlaat je Mac nooit — alles draait op je
-apparaat.
+Een snelle, private, open-source dicteerapp voor macOS. Houd een toets ingedrukt,
+praat — in het Nederlands, English, 中文, Español, 日本語, العربية, हिन्दी,
+Tiếng Việt of 26 andere talen — en je woorden komen als schone tekst met
+leestekens terecht in de app die je op dat moment gebruikt.
+
+**Van begin tot eind meertalig**: het spraakmodel wordt op jouw taal afgestemd, de
+opschoning kent de leestekens en stopwoorden van jouw taal, en de interface van de
+app zelf is er in 16 talen. Dat draait allemaal **op je apparaat** — je audio
+verlaat je Mac nooit, in geen enkele taal.
 
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
@@ -18,7 +22,8 @@ apparaat.
 &nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
-&nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
+&nbsp;[![Dictation languages](https://img.shields.io/badge/dictation-33%20languages-F2743E)](../LANGUAGES.md)
+&nbsp;[![Interface languages](https://img.shields.io/badge/interface-16%20languages-F2743E)](../LANGUAGES.md#interface-languages)
 &nbsp;[![License](https://img.shields.io/badge/license-MIT-111111)](../../LICENSE)
 
 [English](../../README.md) ·
@@ -49,13 +54,13 @@ _Deze vertaling is met zorg gemaakt, maar de [Engelse README](../../README.md) i
 
 ## Waarom VoiceType
 
-- 🔒 **Privé door ontwerp.** Audio en transcripties blijven op je Mac. Geen account, geen telemetrie, geen cloud — er valt niets om je voor af te melden.
-- ⚡ **Lage latentie is dé feature.** Native Swift met Apple's spraakmodel op het apparaat — de tijd tot tekst is wat we optimaliseren.
-- 🌍 **Spreekt jouw taal.** Dicteer in ruim 30 talen — niet alleen Engels. De opschoning begrijpt de conventies van elke taal (volledige-breedte 中文-leestekens, uitgesproken 句号, taalbewuste stopwoordjes), de app kiest een engine die jouw taal echt ondersteunt, en de interface zelf is beschikbaar in 16 talen.
+- 🌍 **Van begin tot eind meertalig, geen Engels met ondertiteling.** Dicteer in [33 talen](../LANGUAGES.md). VoiceType kiest een spraakmodel dat jouw taal echt ondersteunt, schoont op volgens de conventies van *die* taal — leestekens op volle breedte in 中文, uitgesproken 句号, taalspecifieke stopwoorden — en levert zijn eigen interface in 16 talen.
+- 🔒 **Privé in elke taal.** Audio en transcripties blijven op je Mac. Geen account, geen telemetrie, geen cloud — er bestaat niet eens een route «moeilijke talen naar een server sturen» die je zou moeten uitzetten.
+- ⚡ **Latency is de functie.** Native Swift met spraakmodellen op het apparaat — we optimaliseren de tijd tot tekst.
 - 🎙️ **Druk-en-spreek, overal.** Een globale sneltoets werkt in elke app; de opgeschoonde tekst wordt precies daar ingevoegd waar je cursor staat.
 - ✨ **Slimme opschoning.** Leestekens, hoofdletters en het verwijderen van stopwoordjes — zonder ooit je woorden te veranderen.
 - 📊 **Je stem, in beeld.** Een rustig Home-dashboard houdt je woorden, tempo en dagreeksen bij, met een volledige activiteitsheatmap en een vriendelijke gebruikssamenvatting op het apparaat — allemaal berekend op je Mac.
-- 🧩 **Verwisselbare engines.** Standaard Apple's ingebouwde model, met een optionele upgrade op het apparaat — NVIDIA Parakeet — die je kunt downloaden en waarnaar je kunt wisselen, één tegelijk.
+- 🧩 **Uitwisselbare engines.** Standaard het ingebouwde model van Apple, met optionele lokale upgrades — NVIDIA Parakeet, NVIDIA Nemotron, OpenAI Whisper — die je kunt downloaden en waartussen je kunt wisselen (er is er telkens één actief).
 
 ## Downloaden en installeren
 
@@ -90,10 +95,17 @@ Alles draait op je apparaat. Apple's model is ingebouwd in macOS en standaard
 geselecteerd; je kunt andere lokale engines downloaden via de pagina **Models**
 in de navigatiekolom en ertussen wisselen (er is er één tegelijk actief).
 
-| Fase | Standaard (ingebouwd) | Optionele alternatieven (op het apparaat) |
+| Engine | Talen | Opmerkingen |
 | --- | --- | --- |
-| **Transcriptie** | Apple `Speech` | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — worden op verzoek gedownload |
-| **Opschoning** | Ingebouwde regels (direct, deterministisch) | Apple Intelligence (`FoundationModels`, macOS 26+) — ingebouwd in macOS, geen download |
+| **Apple Speech** (standaard) | Verschilt per macOS | Ingebouwd, geen download. `SpeechTranscriber` op macOS 26+, `SFSpeechRecognizer` op het apparaat op macOS 14–15 |
+| **Parakeet TDT 0.6B V3** | **25** — alleen Europees | NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio). Het snelst; geen CJK |
+| **Nemotron 3.5 ASR 0.6B** | **40 locales**, incl. CJK, Arabisch, Hindi | NVIDIA, via FluidAudio. Het meertalige werkpaard |
+| **Whisper Base** | **99** | OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit). De breedste dekking |
+
+Voor het opschonen zijn de ingebouwde regels (direct, deterministisch) de standaard;
+Apple Intelligence (`FoundationModels`, macOS 26+) is een optionele upgrade die in
+macOS zit en niets te downloaden heeft. Zie
+[**docs/LANGUAGES.md**](../LANGUAGES.md) voor de volledige taal-enginematrix.
 
 Downloadbare modellen worden eenmalig op verzoek opgehaald (geen cloud tijdens
 inferentie — je audio verlaat de Mac nog steeds nooit) en draaien als CoreML op
@@ -108,29 +120,45 @@ te falen.
 <a name="languages"></a>
 ## Talen
 
-VoiceType is van begin tot eind meertalig, geen Engels-met-ondertitels:
+De meeste dicteerapps worden voor het Engels gebouwd en daarna vertaald. VoiceType
+behandelt elke taal als een eersteklas geval — dit is waar we het meest om geven.
 
-- **Dicteer in ruim 30 talen** — Engels, 中文, Español, Français, Deutsch,
-  日本語, 한국어, Português, Русский, Tiếng Việt en meer. Jij kiest de taal;
-  VoiceType gokt nooit.
-- **Engines worden afgestemd op jouw taal.** Elk spraakmodel geeft aan wat het
-  ondersteunt (Parakeet is alleen Europees; Nemotron dekt 40 landinstellingen,
-  waaronder Chinees; Whisper is breed meertalig; Apple's lijst komt uit macOS).
-  Modellen die jouw taal niet aankunnen worden grijs weergegeven, en VoiceType
-  schakelt over naar een model dat het wél kan.
-- **De opschoning kent de taal.** Elke taal heeft een klein, controleerbaar
-  "taalpakket": de stopwoordjes (嗯/呃, ähm, euh — nooit woorden die betekenis
-  dragen), de leestekenconventies (volledige-breedte 。，？ voor Chinees en
-  Japans, uitgesproken 句号/読点 omgezet naar leestekens) en de
-  vraagheuristieken.
-- **De app zelf is gelokaliseerd** in 16 talen en volgt je macOS-systeemtaal
-  (een taalinstelling per app in Systeeminstellingen werkt ook).
+**33 talen** om te dicteren · **16** met handgeschreven opschoonregels ·
+**16** met een vertaalde interface · **0** die de cloud nodig hebben.
 
-Ontbreekt jouw taal, of klopt een vertaling niet? Een taal toevoegen is bewust
-klein gehouden — voor een UI-vertaling is helemaal geen Swift nodig — zie
-[docs/LOCALIZATION.md](../LOCALIZATION.md).
+Arabisch · Bulgaars · 简体中文 · Kroatisch · Tsjechisch · Deens · Nederlands ·
+English · Estisch · Fins · Français · Deutsch · Grieks · हिन्दी · Hongaars ·
+Italiano · 日本語 · 한국어 · Lets · Litouws · Maltees · Norsk · Polski ·
+Português · Roemeens · Русский · Slowaaks · Sloveens · Español · Svenska ·
+Türkçe · Українська · Tiếng Việt
 
-<a name="privacy"></a>
+Wat «meertalig» hier concreet betekent:
+
+- **Jij kiest de taal; VoiceType gokt nooit.** Automatische detectie levert
+  overtuigende onzin op als ze ernaast zit, dus die wordt niet aangeboden.
+- **Engines worden op je taal afgestemd.** Elk spraakmodel geeft aan wat het
+  ondersteunt (Parakeet is alleen Europees; Nemotron dekt 40 locales inclusief
+  Chinees; Whisper dekt er 99; de lijst van Apple komt uit macOS). Modellen die jouw
+  taal niet aankunnen worden grijs, en VoiceType schakelt over naar een model dat het
+  wel kan.
+- **De opschoning kent de taal.** 16 talen hebben een klein, controleerbaar
+  «taalpakket»: de stopwoorden (嗯/呃, ähm, euh — nooit woorden die betekenis dragen),
+  de leestekenconventies (。，？ op volle breedte voor Chinees en Japans, uitgesproken
+  句号/読点 omgezet naar tekens) en de vraagheuristiek. De rest krijgt een getrouwe
+  transcriptie met neutrale opschoning.
+- **De interface is gelokaliseerd** in 16 talen en volgt je macOS-systeemtaal —
+  los van je dicteertaal, dus een Japanse interface kan Portugees dicteren.
+- **Samengesteld, niet opgeblazen.** We zouden morgen de 99 talen van Whisper kunnen
+  opsommen; wij bieden de talen aan waar een engine echt goed in is, en een test
+  bewaakt dat.
+
+📖 **[Volledige taalmatrix, kwaliteitsniveaus en bekende hiaten →](../LANGUAGES.md)**
+
+Ontbreekt jouw taal, of klopt er iets niet aan een vertaling? Een taal toevoegen is
+bewust klein gehouden — een interfacevertaling vraagt helemaal geen Swift — zie
+[docs/LOCALIZATION.md](../LOCALIZATION.md). Vooral de machinaal gemaakte taalpakketten
+hebben de ogen van moedertaalsprekers nodig.
+
 ## Privacy
 
 Audio en transcripties blijven op je Mac, punt — er is geen cloudroute. Er wordt
@@ -197,6 +225,7 @@ VoiceType/
 ├── Tests/             # unittests voor VoiceTypeKit
 ├── Scripts/           # build-app.sh · make-dmg.sh · make-icon.swift · release.sh
 ├── Resources/         # Info.plist · entitlements · AppIcon
+├── docs/              # LANGUAGES.md (dekkingsmatrix) · LOCALIZATION.md · readme/
 ├── specs/             # het domein van de mens — productrichting (agent bewerkt dit niet)
 └── README.md
 ```

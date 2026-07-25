@@ -4,13 +4,17 @@
 
 # VoiceType
 
-### Nói ở bất cứ đâu, bằng ngôn ngữ của bạn — văn bản gọn gàng ngay tức thì, hoàn toàn trên thiết bị.
+### Đọc chính tả bằng 33 ngôn ngữ. Văn bản sạch ngay lập tức. Toàn bộ trên máy.
 
-Ứng dụng đọc chính tả bằng giọng nói mã nguồn mở, nhanh và riêng tư cho macOS.
-Giữ một phím rồi nói — bằng Tiếng Việt, English, 中文, Español, 日本語 hay hơn 30
-ngôn ngữ khác — lời nói của bạn sẽ xuất hiện thành văn bản sạch, có dấu câu trong
-bất kỳ ứng dụng nào đang dùng. Âm thanh không bao giờ rời khỏi Mac của bạn: mọi thứ
-đều chạy trên thiết bị.
+Một ứng dụng nhập liệu bằng giọng nói cho macOS: nhanh, riêng tư và mã nguồn mở.
+Giữ một phím rồi nói — bằng tiếng Việt, English, 中文, Español, 日本語, العربية,
+हिन्दी hoặc 26 ngôn ngữ khác — và lời bạn nói sẽ hiện ra dưới dạng văn bản sạch,
+có dấu câu, ngay trong ứng dụng bạn đang dùng.
+
+Đa ngôn ngữ **từ đầu đến cuối**: mô hình giọng nói được chọn theo ngôn ngữ của bạn,
+bước dọn dẹp hiểu quy ước dấu câu và từ đệm của ngôn ngữ đó, và bản thân giao diện
+ứng dụng có 16 ngôn ngữ. Tất cả đều chạy **trên máy** — âm thanh của bạn không bao
+giờ rời khỏi máy Mac, ở bất kỳ ngôn ngữ nào.
 
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
@@ -18,7 +22,8 @@ bất kỳ ứng dụng nào đang dùng. Âm thanh không bao giờ rời khỏ
 &nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
-&nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
+&nbsp;[![Dictation languages](https://img.shields.io/badge/dictation-33%20languages-F2743E)](../LANGUAGES.md)
+&nbsp;[![Interface languages](https://img.shields.io/badge/interface-16%20languages-F2743E)](../LANGUAGES.md#interface-languages)
 &nbsp;[![License](https://img.shields.io/badge/license-MIT-111111)](../../LICENSE)
 
 [English](../../README.md) · [简体中文](./README.zh-Hans.md) · [Deutsch](./README.de.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Nederlands](./README.nl.md) · [Polski](./README.pl.md) · [Português](./README.pt-BR.md) · [Русский](./README.ru.md) · [Svenska](./README.sv.md) · [Türkçe](./README.tr.md) · [Українська](./README.uk.md) · **Tiếng Việt**
@@ -33,13 +38,13 @@ _Bản dịch này được duy trì trong khả năng có thể; README tiếng
 
 ## Vì sao VoiceType
 
-- 🔒 **Riêng tư ngay từ thiết kế.** Âm thanh và bản chép lời ở lại trên Mac. Không tài khoản, không đo từ xa, không đám mây — không có gì phải tắt.
-- ⚡ **Độ trễ là tính năng.** Swift thuần với mô hình nhận dạng giọng nói trên thiết bị của Apple; chúng tôi tối ưu thời gian từ lời nói đến văn bản.
-- 🌍 **Nói ngôn ngữ của bạn.** Đọc chính tả bằng hơn 30 ngôn ngữ, không chỉ tiếng Anh. Bộ làm sạch hiểu quy ước từng ngôn ngữ (dấu câu toàn chiều rộng cho 中文, câu 句号 được nói ra, từ đệm theo ngôn ngữ); ứng dụng chọn đúng động cơ hỗ trợ ngôn ngữ của bạn và giao diện có 16 ngôn ngữ.
+- 🌍 **Đa ngôn ngữ từ đầu đến cuối, không phải tiếng Anh gắn phụ đề.** Đọc chính tả bằng [33 ngôn ngữ](../LANGUAGES.md). VoiceType chọn mô hình giọng nói thực sự hỗ trợ ngôn ngữ của bạn, dọn dẹp theo quy ước của *chính* ngôn ngữ đó — dấu câu toàn chiều rộng trong 中文, 句号 được đọc thành lời, từ đệm riêng của từng ngôn ngữ — và cung cấp giao diện bằng 16 ngôn ngữ.
+- 🔒 **Riêng tư ở mọi ngôn ngữ.** Âm thanh và bản ghi ở lại trên máy Mac của bạn. Không tài khoản, không đo từ xa, không đám mây — thậm chí không tồn tại đường đi «gửi những ngôn ngữ khó lên máy chủ» để mà tắt.
+- ⚡ **Độ trễ chính là tính năng.** Swift thuần cùng các mô hình giọng nói chạy trên máy — chúng tôi tối ưu thời gian từ lúc nói đến lúc ra chữ.
 - 🎙️ **Nhấn để nói ở mọi nơi.** Phím tắt toàn cục hoạt động trong mọi ứng dụng; văn bản đã làm sạch được chèn ngay vị trí con trỏ.
 - ✨ **Làm sạch thông minh.** Dấu câu, viết hoa và bỏ từ đệm — nhưng không bao giờ thay đổi lời của bạn.
 - 📊 **Trực quan hóa giọng nói.** Bảng điều khiển Home nhẹ nhàng theo dõi số từ, nhịp nói và chuỗi ngày của bạn, cùng bản đồ nhiệt hoạt động và tóm tắt sử dụng được tính hoàn toàn trên Mac.
-- 🧩 **Động cơ có thể thay thế.** Mô hình Apple tích hợp là mặc định; bạn có thể tải và bật lần lượt một bản nâng cấp cục bộ tùy chọn: NVIDIA Parakeet.
+- 🧩 **Bộ máy thay thế được.** Mặc định là mô hình tích hợp của Apple, cùng các bản nâng cấp cục bộ tùy chọn — NVIDIA Parakeet, NVIDIA Nemotron, OpenAI Whisper — bạn có thể tải về và chuyển đổi giữa chúng (mỗi lần một bộ máy).
 
 ## Tải xuống và cài đặt
 
@@ -59,10 +64,17 @@ Giữ **Option phải (⌥)** ở bất cứ đâu và bắt đầu nói. Một 
 
 Mọi thứ chạy trên thiết bị. Mô hình Apple có sẵn trong macOS và được chọn mặc định; bạn có thể tải các động cơ cục bộ khác ở trang **Models** trên thanh bên và chuyển đổi giữa chúng (mỗi lần chỉ có một động cơ hoạt động).
 
-| Giai đoạn | Mặc định (tích hợp) | Lựa chọn tùy chọn (trên thiết bị) |
+| Bộ máy | Ngôn ngữ | Ghi chú |
 | --- | --- | --- |
-| **Chép lời** | `Speech` của Apple | **Parakeet TDT 0.6B V3** (NVIDIA, qua [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, qua [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — tải theo yêu cầu |
-| **Làm sạch** | Quy tắc tích hợp (ngay tức thì, xác định) | Apple Intelligence (`FoundationModels`, macOS 26+) — có sẵn trong macOS, không cần tải |
+| **Apple Speech** (mặc định) | Tùy theo macOS | Tích hợp sẵn, không cần tải. `SpeechTranscriber` trên macOS 26+, `SFSpeechRecognizer` trên máy với macOS 14–15 |
+| **Parakeet TDT 0.6B V3** | **25** — chỉ ngôn ngữ châu Âu | NVIDIA, qua [FluidAudio](https://github.com/FluidInference/FluidAudio). Nhanh nhất; không có CJK |
+| **Nemotron 3.5 ASR 0.6B** | **40 miền địa phương**, gồm CJK, tiếng Ả Rập, tiếng Hindi | NVIDIA, qua FluidAudio. Trụ cột đa ngôn ngữ |
+| **Whisper Base** | **99** | OpenAI, qua [WhisperKit](https://github.com/argmaxinc/WhisperKit). Phạm vi rộng nhất |
+
+Với bước dọn dẹp, các quy tắc tích hợp (tức thì, tất định) là mặc định; Apple
+Intelligence (`FoundationModels`, macOS 26+) là bản nâng cấp tùy chọn đã nằm sẵn
+trong macOS, không phải tải gì thêm. Xem
+[**docs/LANGUAGES.md**](../LANGUAGES.md) để có bảng đối chiếu ngôn ngữ – bộ máy đầy đủ.
 
 Các mô hình có thể tải chỉ được lấy một lần khi cần; không có đám mây lúc suy luận nên âm thanh vẫn ở trên Mac. Chúng chạy bằng CoreML trên Apple Neural Engine. Nếu lựa chọn của bạn không chạy được, VoiceType tự động chuyển sang động cơ khả dụng và luôn trả về văn bản thô thay vì thất bại.
 
@@ -71,16 +83,48 @@ Các mô hình có thể tải chỉ được lấy một lần khi cần; khôn
 <a name="languages"></a>
 ## Ngôn ngữ
 
-VoiceType đa ngôn ngữ từ đầu đến cuối, không phải tiếng Anh có phụ đề:
+Phần lớn ứng dụng đọc chính tả được xây cho tiếng Anh rồi mới dịch sang ngôn ngữ
+khác. VoiceType coi mọi ngôn ngữ là công dân hạng nhất — đây là điều chúng tôi
+quan tâm nhất.
 
-- **Đọc chính tả bằng hơn 30 ngôn ngữ:** Tiếng Việt, English, 中文, Español, Français, Deutsch, 日本語, 한국어, Português, Русский và nhiều hơn nữa. Bạn chọn ngôn ngữ; VoiceType không bao giờ đoán.
-- **Động cơ được ghép với ngôn ngữ của bạn.** Mỗi mô hình giọng nói khai báo ngôn ngữ nó hỗ trợ (Parakeet chỉ hỗ trợ châu Âu; Nemotron có 40 miền địa phương gồm tiếng Trung; Whisper đa ngôn ngữ rộng rãi; danh sách Apple đến từ macOS). Mô hình không tương thích sẽ mờ đi và VoiceType chuyển sang mô hình phù hợp.
-- **Bộ làm sạch hiểu ngôn ngữ.** Mỗi ngôn ngữ có một “gói ngôn ngữ” nhỏ, có thể xem xét: từ đệm (ừm, ähm, 嗯/呃 — không bao giờ là từ mang nghĩa), quy ước dấu câu (。，？ toàn chiều rộng cho tiếng Trung và tiếng Nhật; 句号/読点 được nói sẽ thành dấu) và quy tắc nhận biết câu hỏi.
-- **Bản thân ứng dụng đã được bản địa hóa** sang 16 ngôn ngữ theo ngôn ngữ hệ thống macOS (ghi đè theo từng ứng dụng trong System Settings cũng hoạt động).
+**33 ngôn ngữ** để đọc chính tả · **16** có quy tắc dọn dẹp viết tay ·
+**16** có giao diện đã dịch · **0** cần đến đám mây.
 
-Thiếu ngôn ngữ của bạn hay có chỗ dịch chưa đúng? Thêm ngôn ngữ được chủ ý giữ đơn giản: bản dịch giao diện không cần Swift. Xem [docs/LOCALIZATION.md](../LOCALIZATION.md).
+Tiếng Ả Rập · Tiếng Bulgaria · 简体中文 · Tiếng Croatia · Tiếng Séc · Tiếng Đan Mạch ·
+Nederlands · English · Tiếng Estonia · Tiếng Phần Lan · Français · Deutsch ·
+Tiếng Hy Lạp · हिन्दी · Tiếng Hungary · Italiano · 日本語 · 한국어 · Tiếng Latvia ·
+Tiếng Litva · Tiếng Malta · Norsk · Polski · Português · Tiếng Romania · Русский ·
+Tiếng Slovakia · Tiếng Slovenia · Español · Svenska · Türkçe · Українська ·
+Tiếng Việt
 
-<a name="privacy"></a>
+«Đa ngôn ngữ» ở đây thực sự có nghĩa là:
+
+- **Bạn chọn ngôn ngữ; VoiceType không bao giờ đoán.** Nhận dạng tự động khi sai sẽ
+  tạo ra thứ vô nghĩa nhưng nghe rất thuyết phục, nên chúng tôi không cung cấp.
+- **Bộ máy được chọn khớp với ngôn ngữ của bạn.** Mỗi mô hình giọng nói khai báo
+  những gì nó hỗ trợ (Parakeet chỉ có ngôn ngữ châu Âu; Nemotron bao phủ 40 miền địa
+  phương gồm cả tiếng Trung; Whisper bao phủ 99; danh sách của Apple lấy từ macOS).
+  Mô hình không xử lý được ngôn ngữ của bạn sẽ bị làm mờ, và VoiceType chuyển sang
+  mô hình xử lý được.
+- **Bước dọn dẹp hiểu ngôn ngữ.** 16 ngôn ngữ đi kèm một «gói ngôn ngữ» nhỏ gọn, dễ
+  rà soát: các từ đệm (嗯/呃, ähm, euh — không bao giờ là từ mang nghĩa), quy ước dấu
+  câu (。，？ toàn chiều rộng cho tiếng Trung và tiếng Nhật; 句号/読点 đọc thành lời
+  được chuyển thành dấu) và quy tắc nhận biết câu hỏi. Các ngôn ngữ còn lại vẫn được
+  ghi lại trung thực với phần dọn dẹp trung tính.
+- **Giao diện được bản địa hóa** sang 16 ngôn ngữ và đi theo ngôn ngữ hệ thống macOS —
+  độc lập với ngôn ngữ đọc chính tả, nên giao diện tiếng Nhật vẫn có thể đọc chính tả
+  tiếng Bồ Đào Nha.
+- **Được tuyển chọn, không phải thổi phồng.** Chúng tôi có thể liệt kê 99 ngôn ngữ
+  của Whisper ngay ngày mai; nhưng chúng tôi chỉ cung cấp những ngôn ngữ mà một bộ
+  máy thực sự làm tốt, và có một bài kiểm thử bảo đảm điều đó.
+
+📖 **[Bảng ngôn ngữ đầy đủ, các mức chất lượng và những thiếu sót đã biết →](../LANGUAGES.md)**
+
+Ngôn ngữ của bạn còn thiếu, hay có chỗ dịch chưa đúng? Việc thêm một ngôn ngữ được
+giữ nhỏ gọn có chủ đích — dịch giao diện hoàn toàn không cần Swift — xem
+[docs/LOCALIZATION.md](../LOCALIZATION.md). Đặc biệt các gói do máy tạo rất cần con
+mắt của người bản ngữ.
+
 ## Quyền riêng tư
 
 Âm thanh và bản chép lời ở lại trên Mac của bạn, không có ngoại lệ — không hề có đường gửi lên đám mây. Không gì được ghi nhật ký ngoài thiết bị và âm thanh không bao giờ được ghi ra đĩa. Ngay cả tóm tắt sử dụng thân thiện cũng chỉ được tạo từ các số đếm tổng hợp, không phải nội dung bản chép lời. Đây là bất biến hiến định của dự án, không phải một cài đặt có thể thay đổi sau này.
@@ -124,6 +168,7 @@ VoiceType/
 ├── Tests/             # kiểm thử đơn vị VoiceTypeKit
 ├── Scripts/           # build-app.sh · make-dmg.sh · make-icon.swift · release.sh
 ├── Resources/         # Info.plist · entitlements · AppIcon
+├── docs/              # LANGUAGES.md (bảng phạm vi hỗ trợ) · LOCALIZATION.md · readme/
 ├── specs/             # bề mặt của con người: hướng sản phẩm (tác nhân không sửa)
 └── README.md
 ```

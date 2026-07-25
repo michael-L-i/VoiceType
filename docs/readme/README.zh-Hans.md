@@ -4,12 +4,15 @@
 
 # VoiceType
 
-### 随处开口说，用你的语言——即刻得到干净文本，全程本地运行。
+### 33 种语言的语音输入。即刻得到干净文本。全程本地运行。
 
-一款快速、私密、开源的 macOS 语音输入应用。按住一个按键说话——
-无论是 English、中文、Español、日本語，还是其他 30 多种语言——你的话语都会
-以干净、带标点的文本形式落入你正在使用的任何应用中。你的音频永远不会离开
-你的 Mac——一切都在本地设备上运行。
+一款快速、私密、开源的 macOS 语音输入应用。按住一个按键说话——无论是中文、
+English、Español、日本語、العربية、हिन्दी、Tiếng Việt，还是其余 26 种语言——
+你的话语都会以干净、带标点的文本形式落入你正在使用的任何应用中。
+
+**端到端的多语言**：语音模型会与你的语言匹配，文本清理懂得你所用语言的标点
+习惯和口头语，应用界面本身也提供 16 种语言。这一切都在**本地设备**上运行——
+无论使用哪种语言，你的音频都不会离开你的 Mac。
 
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
@@ -17,7 +20,8 @@
 &nbsp;[![Platform](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)](https://www.apple.com/macos/)
 &nbsp;[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://swift.org)
 &nbsp;[![Privacy](https://img.shields.io/badge/audio-stays%20on--device-2EA043)](#privacy)
-&nbsp;[![Languages](https://img.shields.io/badge/dictation-30%2B%20languages-F2743E)](#languages)
+&nbsp;[![Dictation languages](https://img.shields.io/badge/dictation-33%20languages-F2743E)](../LANGUAGES.md)
+&nbsp;[![Interface languages](https://img.shields.io/badge/interface-16%20languages-F2743E)](../LANGUAGES.md#interface-languages)
 &nbsp;[![License](https://img.shields.io/badge/license-MIT-111111)](../../LICENSE)
 
 [English](../../README.md) ·
@@ -48,13 +52,13 @@ _本翻译尽力保持更新，以英文版 README 为准；欢迎通过 [PR](..
 
 ## 为什么选择 VoiceType
 
-- 🔒 **隐私即设计。** 音频和转写文本都留在你的 Mac 上。没有账号，没有遥测，没有云端——根本没有需要你去关闭的选项。
-- ⚡ **低延迟就是核心功能。** 原生 Swift 加上 Apple 的本地语音模型——从说话到出字的时间就是我们优化的目标。
-- 🌍 **说你的语言。** 支持 30 多种语言听写——不只是英语。文本清理理解每种语言的书写习惯（中文的全角标点、口述的「句号」、按语言识别的口头语），应用会自动挑选真正支持你所用语言的引擎，界面本身也提供 16 种语言版本。
+- 🌍 **端到端的多语言，而非「英语加字幕」。** 支持 [33 种语言](../LANGUAGES.md)听写。VoiceType 会挑选真正支持你所用语言的语音模型，按照*该语言*的书写习惯进行清理——中文的全角标点、口述的「句号」、按语言识别的口头语——界面本身也提供 16 种语言。
+- 🔒 **每种语言都同样私密。** 音频和转写文本都留在你的 Mac 上。没有账号，没有遥测，没有云端——根本不存在「把难处理的语言发到服务器」这条路径，自然也无需关闭。
+- ⚡ **低延迟就是核心功能。** 原生 Swift 加上本地语音模型——从说话到出字的时间就是我们优化的目标。
 - 🎙️ **随处按键即说。** 全局快捷键在任何应用中都有效；清理后的文本会直接插入到光标所在位置。
 - ✨ **智能清理。** 添加标点、修正大小写、去除口头语——绝不改动你说的内容。
 - 📊 **可视化你的声音。** 简洁的主页仪表盘记录你的字数、语速和连续使用天数，配有完整的活动热力图和一份友好的本地生成使用摘要——全部在你的 Mac 上计算。
-- 🧩 **可插拔引擎。** 默认使用 Apple 内置模型，还可选择下载本地升级引擎——NVIDIA Parakeet——并随时切换（一次启用一个）。
+- 🧩 **可插拔引擎。** 默认使用 Apple 内置模型，还可选择下载本地升级引擎——NVIDIA Parakeet、NVIDIA Nemotron、OpenAI Whisper——并随时切换（一次启用一个）。
 
 ## 下载与安装
 
@@ -85,10 +89,16 @@ v0.1.0 版本需要手动替换一次。）_
 一切都在本地设备上运行。Apple 的模型内置于 macOS 并被默认选用；你也可以在
 侧边栏的 **「模型」** 页面下载其他本地引擎并在它们之间切换（一次只启用一个）。
 
-| 阶段 | 默认（内置） | 可选替代方案（本地运行） |
+| 引擎 | 语言数 | 说明 |
 | --- | --- | --- |
-| **转写** | Apple `Speech` | **Parakeet TDT 0.6B V3**（NVIDIA，经由 [FluidAudio](https://github.com/FluidInference/FluidAudio)）· **Whisper Base**（OpenAI，经由 [WhisperKit](https://github.com/argmaxinc/WhisperKit)）——按需下载 |
-| **清理** | 内置规则（即时、确定性） | Apple Intelligence（`FoundationModels`, macOS 26+）——内置于 macOS，无需下载 |
+| **Apple Speech**（默认） | 随 macOS 版本而异 | 系统内置，无需下载。macOS 26+ 使用 `SpeechTranscriber`，macOS 14–15 使用本地 `SFSpeechRecognizer` |
+| **Parakeet TDT 0.6B V3** | **25** — 仅欧洲语言 | NVIDIA，经由 [FluidAudio](https://github.com/FluidInference/FluidAudio)。速度最快；不支持中日韩 |
+| **Nemotron 3.5 ASR 0.6B** | **40 个语言区域**，含中日韩、阿拉伯语、印地语 | NVIDIA，经由 FluidAudio。多语言主力 |
+| **Whisper Base** | **99** | OpenAI，经由 [WhisperKit](https://github.com/argmaxinc/WhisperKit)。覆盖面最广 |
+
+清理环节默认使用内置规则（即时、确定性）；Apple Intelligence
+（`FoundationModels`，macOS 26+）是内置于 macOS 的可选升级，无需下载任何内容。
+完整的语言与引擎对照表见 [**docs/LANGUAGES.md**](../LANGUAGES.md)。
 
 可下载的模型只需按需获取一次（推理时不连接云端——你的音频依然
 不会离开 Mac），并以 CoreML 形式运行在 Apple 神经网络引擎上。
@@ -102,28 +112,41 @@ v0.1.0 版本需要手动替换一次。）_
 <a name="languages"></a>
 ## 语言
 
-VoiceType 是端到端的多语言应用，而不是「英语加字幕」：
+大多数语音输入应用都是为英语打造，之后再翻译成其他语言。VoiceType 把每一种语言
+都当作一等公民——这是我们最想做好的事。
 
-- **支持 30 多种语言听写**——English、中文、Español、Français、Deutsch、
-  日本語、한국어、Português、Русский、Tiếng Việt 等。语言由你来选择；
-  VoiceType 从不猜测。
-- **引擎与你的语言相匹配。** 每个语音模型都声明自己支持的语言
-  （Parakeet 仅支持欧洲语言；Nemotron 覆盖包括中文在内的 40 种
-  语言区域；Whisper 支持广泛的多语言；Apple 的支持列表来自 macOS）。
-  无法处理你所用语言的模型会显示为灰色，VoiceType 会自动切换到
-  能够处理的引擎。
-- **清理功能懂你的语言。** 每种语言都附带一个小巧、可审阅的
-  「语言包」：包括该语言的口头语（嗯/呃、ähm、euh——绝不误删有实际
-  含义的词）、标点习惯（中文和日文使用全角的 。，？，口述的
-  「句号」「読点」会渲染为相应符号），以及疑问句判断规则。
-- **应用本身已本地化** 为 16 种语言，跟随你的 macOS
-  系统语言（也支持在「系统设置」中为单个应用单独设置语言）。
+**33 种语言**可听写 · **16 种**配有手工编写的清理规则 · **16 种**界面已翻译 ·
+**0 种**需要云端。
 
-没有你的语言，或者某处翻译不准确？添加一种语言被刻意设计得很
-轻量——UI 翻译完全不需要写 Swift 代码——详见
-[docs/LOCALIZATION.md](../LOCALIZATION.md)。
+阿拉伯语 · 保加利亚语 · 简体中文 · 克罗地亚语 · 捷克语 · 丹麦语 · Nederlands ·
+English · 爱沙尼亚语 · 芬兰语 · Français · Deutsch · 希腊语 · हिन्दी · 匈牙利语 ·
+Italiano · 日本語 · 한국어 · 拉脱维亚语 · 立陶宛语 · 马耳他语 · Norsk · Polski ·
+Português · 罗马尼亚语 · Русский · 斯洛伐克语 · 斯洛文尼亚语 · Español · Svenska ·
+Türkçe · Українська · Tiếng Việt
 
-<a name="privacy"></a>
+这里的「多语言」具体意味着：
+
+- **语言由你来选；VoiceType 从不猜测。** 自动检测一旦判断错误，就会给出看似笃定的
+  胡话，因此我们不提供这一选项。
+- **引擎与你的语言相匹配。** 每个语音模型都声明自己支持的语言（Parakeet 仅支持欧洲
+  语言；Nemotron 覆盖包括中文在内的 40 个语言区域；Whisper 覆盖 99 种；Apple 的
+  支持列表来自 macOS）。无法处理你所用语言的模型会显示为灰色，VoiceType 会自动切换
+  到能够处理的引擎。
+- **清理功能懂你的语言。** 有 16 种语言附带一个小巧、可审阅的「语言包」：包括该语言
+  的口头语（嗯/呃、ähm、euh——绝不误删有实际含义的词）、标点习惯（中文和日文使用
+  全角的 。，？，口述的「句号」「読点」会渲染为相应符号），以及疑问句判断规则。
+  其余语言同样能得到忠实的转写和中性的清理。
+- **应用界面已本地化**为 16 种语言，跟随你的 macOS 系统语言——它与听写语言相互
+  独立，所以日语界面照样可以听写葡萄牙语。
+- **精选，而非凑数。** 我们明天就能把 Whisper 的 99 种语言列出来；但我们只提供引擎
+  真正擅长的语言，并用测试来保证这一点。
+
+📖 **[完整语言对照表、质量分级与已知缺口 →](../LANGUAGES.md)**
+
+没有你的语言，或者某处翻译不准确？添加一种语言被刻意设计得很轻量——UI 翻译完全
+不需要写 Swift 代码——详见 [docs/LOCALIZATION.md](../LOCALIZATION.md)。尤其是机器
+生成的语言包，非常需要母语者的审阅。
+
 ## 隐私
 
 音频和转写文本只留在你的 Mac 上，没有例外——根本不存在云端路径。
@@ -187,6 +210,7 @@ VoiceType/
 ├── Tests/             # VoiceTypeKit 单元测试
 ├── Scripts/           # build-app.sh · make-dmg.sh · make-icon.swift · release.sh
 ├── Resources/         # Info.plist · entitlements · AppIcon
+├── docs/              # LANGUAGES.md（覆盖对照表）· LOCALIZATION.md · readme/
 ├── specs/             # 人类的操作面——产品方向（智能体不编辑）
 └── README.md
 ```
