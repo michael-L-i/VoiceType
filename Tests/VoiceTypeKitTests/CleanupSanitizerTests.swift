@@ -57,4 +57,17 @@ struct CleanupSanitizerTests {
         let s = "it's a test"
         #expect(CleanupSanitizer.strip(s) == s)
     }
+
+    @Test("echoed transcript markers are stripped")
+    func markerEcho() {
+        let out = CleanupSanitizer.strip("我在用 VoiceType\n\n<<<TRANSCRIPT\nTRANSCRIPT>>>")
+        #expect(out == "我在用 VoiceType")
+    }
+
+    @Test("a model-added code fence is unwrapped; inline backticks survive")
+    func codeFence() {
+        #expect(CleanupSanitizer.strip("git status\n```") == "git status")
+        #expect(CleanupSanitizer.strip("```\ngit status\n```") == "git status")
+        #expect(CleanupSanitizer.strip("run `git status` now") == "run `git status` now")
+    }
 }
