@@ -60,7 +60,10 @@ public enum EngineLanguages {
         "et",
     ]
 
-    /// Whisper's multilingual tokenizer languages (99).
+    /// Whisper's multilingual tokenizer languages (99), plus "nb": the
+    /// tokenizer spells Norwegian "no", but the picker offers `nb-NO`, whose
+    /// primary subtag is "nb". Without the alias Whisper would gray out for
+    /// Norwegian even though it transcribes it.
     static let whisper: Set<String> = [
         "en", "zh", "de", "es", "ru", "ko", "fr", "ja", "pt", "tr", "pl", "ca",
         "nl", "ar", "sv", "it", "id", "hi", "fi", "vi", "he", "uk", "el", "ms",
@@ -71,5 +74,6 @@ public enum EngineLanguages {
         "tg", "sd", "gu", "am", "yi", "lo", "uz", "fo", "ht", "ps", "tk", "nn",
         "mt", "sa", "lb", "my", "bo", "tl", "mg", "as", "tt", "haw", "ln", "ha",
         "ba", "jw", "su",
+        "nb",
     ]
 }
