@@ -4,13 +4,17 @@
 
 # VoiceType
 
-### Mów gdziekolwiek, w swoim języku — czysty tekst natychmiast, w całości na urządzeniu.
+### Dyktowanie w 33 językach. Czysty tekst natychmiast. W całości na urządzeniu.
 
-Szybka, prywatna aplikacja open source do dyktowania głosowego na macOS.
-Przytrzymaj klawisz, mów — po angielsku, 中文, Español, 日本語 lub w ponad 30
-innych językach — a Twoje słowa trafią jako czysty, poprawnie interpunkcyjny
-tekst do dowolnej aplikacji, z której korzystasz. Twój dźwięk nigdy nie opuszcza
-Twojego Maca — wszystko działa na urządzeniu.
+Szybka, prywatna aplikacja do dyktowania głosowego dla macOS o otwartym kodzie.
+Przytrzymaj klawisz, mów — po polsku, English, 中文, Español, 日本語, العربية,
+हिन्दी, Tiếng Việt lub w 26 innych językach — a Twoje słowa trafią jako czysty,
+interpunkcyjnie poprawny tekst do aplikacji, której właśnie używasz.
+
+Wielojęzyczność **od początku do końca**: model mowy jest dobierany do Twojego
+języka, czyszczenie zna interpunkcję i wtrącenia Twojego języka, a sam interfejs
+aplikacji dostępny jest w 16 językach. Wszystko to działa **na urządzeniu** —
+Twoje audio nigdy nie opuszcza Maca, w żadnym języku.
 
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
@@ -50,13 +54,13 @@ _To tłumaczenie jest wykonane w miarę możliwości jak najlepiej; wersją wią
 
 ## Dlaczego VoiceType
 
-- 🔒 **Prywatność z założenia.** Dźwięk i transkrypcje pozostają na Twoim Macu. Bez konta, bez telemetrii, bez chmury — nie ma z czego rezygnować.
-- ⚡ **Niskie opóźnienie to nasza funkcja.** Natywny Swift z działającym na urządzeniu modelem mowy Apple — optymalizujemy czas od głosu do tekstu.
-- 🌍 **Mówi w Twoim języku.** Dyktuj w ponad 30 językach — nie tylko po angielsku. Czyszczenie tekstu rozumie konwencje każdego języka (pełnowymiarowa interpunkcja 中文, wypowiadane 句号, wypełniacze zależne od języka), aplikacja wybiera silnik, który naprawdę obsługuje Twój język, a sam interfejs jest dostępny w 16 językach.
+- 🌍 **Wielojęzyczna od początku do końca, a nie angielska z napisami.** Dyktuj w [33 językach](../LANGUAGES.md). VoiceType wybiera model mowy, który naprawdę obsługuje Twój język, czyści tekst zgodnie z konwencjami *tego* języka — pełnoszerokościowa interpunkcja w 中文, wypowiedziane 句号, wtrącenia charakterystyczne dla danego języka — a swój interfejs oferuje w 16 językach.
+- 🔒 **Prywatna w każdym języku.** Audio i transkrypcje zostają na Twoim Macu. Bez konta, bez telemetrii, bez chmury — nie ma nawet ścieżki „trudne języki wysyłamy na serwer”, którą trzeba by wyłączać.
+- ⚡ **Opóźnienie to funkcja.** Natywny Swift i modele mowy działające na urządzeniu — optymalizujemy czas do tekstu.
 - 🎙️ **Naciśnij i mów — wszędzie.** Globalny skrót klawiszowy działa w każdej aplikacji; oczyszczony tekst jest wstawiany dokładnie tam, gdzie znajduje się kursor.
 - ✨ **Inteligentne czyszczenie.** Interpunkcja, wielkie litery i usuwanie wypełniaczy — bez zmieniania Twoich słów.
 - 📊 **Twój głos w liczbach.** Spokojny pulpit Home śledzi Twoje słowa, tempo i serie dni, z pełną mapą cieplną aktywności i przyjaznym, tworzonym na urządzeniu podsumowaniem użycia — wszystko obliczane na Twoim Macu.
-- 🧩 **Wymienne silniki.** Domyślnie wbudowany model Apple, z opcjonalnym ulepszeniem działającym na urządzeniu — NVIDIA Parakeet — które możesz pobrać i na które możesz się przełączyć, po jednym naraz.
+- 🧩 **Wymienne silniki.** Domyślnie wbudowany model Apple, a do tego opcjonalne lokalne ulepszenia — NVIDIA Parakeet, NVIDIA Nemotron, OpenAI Whisper — które możesz pobrać i między którymi możesz się przełączać (jeden aktywny naraz).
 
 ## Pobieranie i instalacja
 
@@ -91,10 +95,17 @@ Wszystko działa na urządzeniu. Model Apple jest wbudowany w macOS i wybrany
 domyślnie; inne lokalne silniki możesz pobrać na stronie **Models** na pasku
 bocznym i przełączać się między nimi (aktywny jest jeden naraz).
 
-| Etap | Domyślnie (wbudowane) | Opcjonalne alternatywy (na urządzeniu) |
+| Silnik | Języki | Uwagi |
 | --- | --- | --- |
-| **Transkrypcja** | Apple `Speech` | **Parakeet TDT 0.6B V3** (NVIDIA, przez [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, przez [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — pobierane na żądanie |
-| **Czyszczenie** | Wbudowane reguły (natychmiastowe, deterministyczne) | Apple Intelligence (`FoundationModels`, macOS 26+) — wbudowane w macOS, bez pobierania |
+| **Apple Speech** (domyślny) | Zależnie od macOS | Wbudowany, bez pobierania. `SpeechTranscriber` w macOS 26+, `SFSpeechRecognizer` na urządzeniu w macOS 14–15 |
+| **Parakeet TDT 0.6B V3** | **25** — tylko europejskie | NVIDIA, przez [FluidAudio](https://github.com/FluidInference/FluidAudio). Najszybszy; bez CJK |
+| **Nemotron 3.5 ASR 0.6B** | **40 lokalizacji**, w tym CJK, arabski, hindi | NVIDIA, przez FluidAudio. Wielojęzyczny koń roboczy |
+| **Whisper Base** | **99** | OpenAI, przez [WhisperKit](https://github.com/argmaxinc/WhisperKit). Najszerszy zasięg |
+
+Do czyszczenia domyślnie służą wbudowane reguły (natychmiastowe, deterministyczne);
+Apple Intelligence (`FoundationModels`, macOS 26+) to opcjonalne ulepszenie wbudowane
+w macOS, którego nie trzeba pobierać. Pełną macierz języków i silników znajdziesz w
+[**docs/LANGUAGES.md**](../LANGUAGES.md).
 
 Pobierane modele są pobierane jednorazowo na żądanie (bez chmury w czasie
 inferencji — Twój dźwięk nadal nigdy nie opuszcza Maca) i działają jako CoreML
@@ -110,32 +121,45 @@ zwykłego tekstu.
 <a name="languages"></a>
 ## Języki
 
-VoiceType jest wielojęzyczny od początku do końca, a nie „angielski z
-napisami”:
+Większość aplikacji do dyktowania powstaje z myślą o angielskim, a tłumaczenia
+dochodzą później. VoiceType traktuje każdy język jako pełnoprawny przypadek — zależy
+nam na tym najbardziej.
 
-- **Dyktuj w ponad 30 językach** — English, 中文, Español, Français, Deutsch,
-  日本語, 한국어, Português, Русский, Tiếng Việt i innych. Ty wybierasz język;
-  VoiceType nigdy nie zgaduje.
-- **Silniki są dopasowane do Twojego języka.** Każdy model mowy deklaruje, co
-  obsługuje (Parakeet obsługuje tylko języki europejskie; Nemotron obejmuje 40
-  ustawień regionalnych, w tym chiński; Whisper jest szeroko wielojęzyczny;
-  lista Apple pochodzi z macOS). Modele, które nie radzą sobie z Twoim
-  językiem, są wyszarzone, a VoiceType przełącza się na taki, który sobie
-  poradzi.
-- **Czyszczenie zna język.** Każdy język ma mały, łatwy do przejrzenia „pakiet
-  językowy”: swoje wypełniacze (嗯/呃, ähm, euh — nigdy słowa niosące
-  znaczenie), swoje konwencje interpunkcyjne (pełnowymiarowe 。，？ dla
-  chińskiego i japońskiego, wypowiadane 句号/読点 zamieniane na znaki) oraz
-  heurystyki pytań.
-- **Sama aplikacja jest zlokalizowana** w 16 językach i podąża za językiem
-  systemowym macOS (działa też nadpisanie dla pojedynczej aplikacji w
-  Ustawieniach systemowych).
+**33 języki** dyktowania · **16** z ręcznie napisanymi regułami czyszczenia ·
+**16** z przetłumaczonym interfejsem · **0** wymagających chmury.
 
-Brakuje Twojego języka albo tłumaczenie kuleje? Dodanie języka jest celowo
-proste — tłumaczenie interfejsu nie wymaga ani linijki Swifta — zobacz
-[docs/LOCALIZATION.md](../LOCALIZATION.md).
+Arabski · Bułgarski · 简体中文 · Chorwacki · Czeski · Duński · Nederlands ·
+English · Estoński · Fiński · Français · Deutsch · Grecki · हिन्दी · Węgierski ·
+Italiano · 日本語 · 한국어 · Łotewski · Litewski · Maltański · Norsk · Polski ·
+Português · Rumuński · Русский · Słowacki · Słoweński · Español · Svenska ·
+Türkçe · Українська · Tiếng Việt
 
-<a name="privacy"></a>
+Co „wielojęzyczność” oznacza tutaj w praktyce:
+
+- **To Ty wybierasz język; VoiceType nigdy nie zgaduje.** Automatyczne wykrywanie,
+  gdy się myli, produkuje przekonujące bzdury — dlatego go nie oferujemy.
+- **Silniki są dobierane do Twojego języka.** Każdy model mowy deklaruje, co
+  obsługuje (Parakeet tylko europejskie; Nemotron 40 lokalizacji łącznie z chińskim;
+  Whisper 99; lista Apple pochodzi z macOS). Modele, które nie poradzą sobie z Twoim
+  językiem, są wyszarzane, a VoiceType przełącza się na taki, który sobie poradzi.
+- **Czyszczenie zna język.** 16 języków ma mały, łatwy do sprawdzenia „pakiet
+  językowy”: jego wtrącenia (嗯/呃, ähm, euh — nigdy słowa niosące znaczenie),
+  konwencje interpunkcyjne (pełnoszerokościowe 。，？ dla chińskiego i japońskiego,
+  wypowiedziane 句号/読点 zamieniane na znaki) oraz heurystyki pytań. Pozostałe
+  otrzymują wierną transkrypcję z neutralnym czyszczeniem.
+- **Interfejs jest zlokalizowany** w 16 językach i podąża za językiem systemu macOS —
+  niezależnie od języka dyktowania, więc japoński interfejs może dyktować po
+  portugalsku.
+- **Wyselekcjonowane, nie napompowane.** Moglibyśmy jutro wypisać 99 języków
+  Whispera; oferujemy te, w których silnik jest naprawdę dobry, a pilnuje tego test.
+
+📖 **[Pełna macierz języków, poziomy jakości i znane braki →](../LANGUAGES.md)**
+
+Brakuje Twojego języka albo tłumaczenie zgrzyta? Dodanie języka jest celowo drobne —
+tłumaczenie interfejsu nie wymaga ani linijki Swifta — zobacz
+[docs/LOCALIZATION.md](../LOCALIZATION.md). Zwłaszcza pakiety wygenerowane maszynowo
+potrzebują oka rodzimych użytkowników.
+
 ## Prywatność
 
 Dźwięk i transkrypcje pozostają na Twoim Macu, kropka — nie ma żadnej ścieżki
@@ -203,6 +227,7 @@ VoiceType/
 ├── Tests/             # testy jednostkowe VoiceTypeKit
 ├── Scripts/           # build-app.sh · make-dmg.sh · make-icon.swift · release.sh
 ├── Resources/         # Info.plist · uprawnienia (entitlements) · AppIcon
+├── docs/              # LANGUAGES.md (macierz pokrycia) · LOCALIZATION.md · readme/
 ├── specs/             # powierzchnia człowieka — kierunek produktu (agent nie edytuje)
 └── README.md
 ```
