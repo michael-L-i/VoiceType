@@ -46,28 +46,56 @@ Chinese doesn't need one, so there's no example yet.
 
 ### b. Write a language pack
 
-Copy `Sources/VoiceTypeKit/Languages/LanguagePack+Chinese.swift` to
-`LanguagePack+<YourLanguage>.swift`, fill it in, and register it in
-`LanguagePack.all` (`LanguagePack.swift`). The fields:
+Each language owns one directory. Copy
+`Sources/VoiceTypeKit/Languages/Chinese/` to `Languages/<YourLanguage>/`, fill
+it in, and register it in `LanguagePack.all` (`LanguagePack.swift`) — that
+registry line is the only shared file you touch.
+
+Every field after `questionSuffixParticles` has a default, so fill in what your
+language actually needs and leave the rest alone. Nothing falls back to
+English: a field you don't set means the engine skips that behavior or uses a
+language-neutral instruction.
+
+**Deterministic behavior**
 
 | Field | What it does |
 |---|---|
-| `fillers` | Removed deterministically. **House rule: never-content tokens only.** If a word can carry meaning ("like", 那个), it does NOT belong here — that's the LLM's job. |
+| `fillers` | Removed deterministically. **House rule: never-content tokens only.** If a word can carry meaning ("like", 那个, Danish "jo", Hungarian "hát"), it does NOT belong here — that's the LLM's job. |
 | `spokenPunctuation` | Spoken name → mark, replaced unconditionally (iOS-dictation style). Only include names unambiguous enough for that. |
-| `questionPrefixWords` / `questionSuffixParticles` | Deterministic question-mark heuristic (English probes the first word, Chinese the final particle). |
+| `questionPrefixWords` / `questionSuffixParticles` | Deterministic question-mark heuristic. Particles are matched with `hasSuffix`, so multi-character verb endings work. |
+| `questionMark` | The mark appended, e.g. `"？"` for CJK, `";"` for Greek. |
 | `separatesWordsWithSpaces` | `false` for CJK-style scripts; turns off word-boundary regexes and capitalization. |
 | `usesFullWidthPunctuation` / `terminalPeriod` | Writing conventions; full-width packs run `CJKPunctuation.normalize`. |
-| `promptAddendum` | A few extra lines for the LLM cleanup prompt. Keep it minimal — few-shot examples leak into output. |
+| `stopwords` | Function words the faithfulness guard skips when probing whether a dictation's opening survived, and that the symbol renderer refuses to join into identifiers. Leaving it empty only makes both checks more conservative. |
+| `symbols` | A `SpokenSymbolVocabulary` — your language's words for "dot", "underscore", "open paren", plus the file extensions and TLDs worth joining. Opting in enables `main.py`-style rendering in the zero-latency rules path. Omit it if your trigger words are everyday nouns (German "Punkt", Chinese 点); that ambiguity is what the LLM pass is for. |
+| `capitalizedStandalonePronoun` | Only for orthographies with a one-letter capitalized pronoun. English "i" → "I"; almost certainly nil for you. |
+
+**LLM prompt** — `prompt: LanguagePromptGuidance`
+
+The instruction frame stays English and shared: a small on-device model follows
+English instructions more reliably, and "don't summarize, don't answer the
+dictation, don't reformat into bullets" is the same job in every language. What
+differs is the substance, and that's what you supply.
+
+| Field | What it does |
+|---|---|
+| `fillerExamples` | Appended to the generic filler instruction. Your hesitation sounds, not English's. |
+| `capitalizationRule` | Replaces the generic rule wholesale — German capitalizes every noun, Turkish has a dotted/dotless I, Devanagari has no case. |
+| `codeRendering` | How your speakers dictate symbols and file names. Omitted entirely when nil, which is correct: teaching a German transcript to render the English word "dot" only produced false joins. |
+| `terminalGuidance` | Spoken flags and paths when dictating into a terminal. |
+| `usesFewShotExamples` | Off by default. Turn it on only once your eval battery shows examples help — the model has been observed echoing example content into its output. |
+| `addendum` | Free-form extra rules (full-width punctuation, ¿…?). Keep minimal; prompt content leaks. |
 
 Document your judgment calls (what you deliberately did NOT map, and why) in
-the file, the way the Chinese pack does.
+the file, the way the Chinese pack does. Reviewers read that comment first.
 
 ### c. Tests
 
-Add a suite to `Tests/VoiceTypeKitTests/LanguagePackTests.swift` (or a new
-file) covering: filler removal, spoken punctuation + idempotence, terminal
-punctuation, embedded English/identifiers surviving untouched, and the
-terminal app category staying command-safe. `swift test` must be green.
+Add `Tests/VoiceTypeKitTests/Languages/<YourLanguage>PackTests.swift` — your
+own file, never the shared one, so two languages in flight can't collide.
+Cover: filler removal, spoken punctuation + idempotence, terminal punctuation,
+embedded English/identifiers surviving untouched, and the terminal app category
+staying command-safe. `swift test` must be green.
 
 ### d. Eval cases
 
@@ -79,8 +107,12 @@ anti-summarization ramble, and one terminal-category command. Then run:
 
 ```sh
 swift run CleanupEval Scripts/cleanup-eval/cases.<code>.json --engine rules   # deterministic gates — must pass
-swift run CleanupEval Scripts/cleanup-eval/cases.<code>.json --engine model   # needs Apple Intelligence; report scores in the PR
 swift run CleanupEval Scripts/cleanup-eval/cases.json --engine rules          # English must stay at its baseline (35/38)
+swift run CleanupEval Scripts/cleanup-eval/cases.zh.json --engine rules       # Chinese must stay at 20/20
+
+# Optional, and not parallel-safe — it drives the single on-device model and
+# needs Apple Intelligence. Report scores in the PR if you run it.
+swift run CleanupEval Scripts/cleanup-eval/cases.<code>.json --engine model
 ```
 
 Note for the model run: eval reports the raw model output. In production a
@@ -89,6 +121,14 @@ by what the rules engine produces.
 
 ### House rules
 
+- **One language, three files**: `Languages/<Language>/<Language>Pack.swift`,
+  `Tests/VoiceTypeKitTests/Languages/<Language>PackTests.swift`,
+  `Scripts/cleanup-eval/cases.<code>.json`. The only shared line you touch is
+  the `LanguagePack.all` registry.
+- **No language special-cases in shared code.** If the engine needs to branch
+  on your language, that branch belongs in the pack as data or as a named
+  policy the engine already understands. `pack.code == "de"` in
+  `RuleBasedCleanup` will not be merged.
 - `VoiceTypeKit` stays pure: no resources, no dependencies, everything
   unit-testable.
 - Deterministic rules fail conservative: when a rule could corrupt legitimate
@@ -111,5 +151,18 @@ contributions you can make, and each is a small PR.
 
 - Insights headlines/bullets and the usage summary are generated English prose
   (`InsightsGenerator`, `SummaryPrompt`) — not yet localized.
-- `SpokenSymbols` (English spoken-symbol pipeline: "main dot pie" → main.py)
-  doesn't yet run over Latin-script runs embedded in CJK dictation.
+- Spoken-symbol rendering doesn't yet run over Latin-script runs embedded in
+  CJK dictation.
+- English is still the only language with a `symbols` vocabulary, a
+  `codeRendering` prompt section, or `terminalGuidance`. Adding yours is the
+  single biggest quality win available for a language today.
+- 18 of the 34 offered dictation locales have no pack at all and fall back to
+  `.neutral`, where "remove fillers" does nothing: ar, bg, cs, da, el, et, fi,
+  hi, hr, hu, lt, lv, mt, nb, ro, sk, sl, plus en-GB spelling. Arabic (RTL,
+  `؟ ،`) and Greek (`;` as question mark) need engine support beyond a pack.
+- The self-correction example in the shared prompt ("five, no six copies") is
+  still English; a language can override it via `addendum` until it's lifted
+  into `LanguagePromptGuidance`.
+- `RuleBasedCleanup.capitalizeSentences` uppercases with Swift's
+  locale-independent `uppercased()`, so Turkish `istanbul` becomes `Istanbul`
+  rather than `İstanbul`. Fixing it needs a casing policy on the pack.
