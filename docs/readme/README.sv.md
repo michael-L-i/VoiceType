@@ -4,12 +4,17 @@
 
 # VoiceType
 
-### Tala var som helst, på ditt språk — ren text direkt, allt på enheten.
+### Diktering på 33 språk. Ren text direkt. Allt på enheten.
 
-En snabb, privat röstdikteringsapp med öppen källkod för macOS. Håll ned en
-tangent, tala — på svenska, English, 中文, Español, 日本語 eller 30+ andra språk —
-och dina ord landar som ren, interpunkterad text i vilken app du än använder.
-Ditt ljud lämnar aldrig din Mac — allt körs på enheten.
+En snabb, privat dikteringsapp med öppen källkod för macOS. Håll ned en tangent och
+tala — på svenska, English, 中文, Español, 日本語, العربية, हिन्दी, Tiếng Việt eller
+26 andra språk — så landar dina ord som ren, interpunkterad text i den app du just
+använder.
+
+Flerspråkig **hela vägen**: talmodellen matchas mot ditt språk, upprensningen kan
+ditt språks interpunktion och utfyllnadsord, och appens eget gränssnitt finns på 16
+språk. Allt detta körs **på enheten** — ditt ljud lämnar aldrig din Mac, oavsett
+språk.
 
 [![Download](https://img.shields.io/badge/⬇%20Download-VoiceType.dmg-F2743E?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/michael-L-i/VoiceType/releases/latest/download/VoiceType.dmg)
 
@@ -51,13 +56,13 @@ _Den här översättningen underhålls efter bästa förmåga — den engelska R
 
 ## Varför VoiceType
 
-- 🔒 **Privat i grunden.** Ljud och transkript stannar på din Mac. Inget konto, ingen telemetri, inget moln — det finns inget att tacka nej till.
-- ⚡ **Låg latens är själva funktionen.** Native Swift med Apples talmodell på enheten — tid till text är det vi optimerar.
-- 🌍 **Talar ditt språk.** Diktera på 30+ språk — inte bara engelska. Uppstädningen förstår varje språks konventioner (fullbreddsinterpunktion för 中文, uttalade 句号, språkmedvetna utfyllnadsord), appen väljer en motor som faktiskt stöder ditt språk, och själva gränssnittet levereras på 16 språk.
+- 🌍 **Flerspråkig hela vägen, inte engelska med undertexter.** Diktera på [33 språk](../LANGUAGES.md). VoiceType väljer en talmodell som verkligen stöder ditt språk, rensar upp enligt *det* språkets konventioner — helbredds interpunktion i 中文, uttalat 句号, språkspecifika utfyllnadsord — och levererar sitt eget gränssnitt på 16 språk.
+- 🔒 **Privat på alla språk.** Ljud och transkriberingar stannar på din Mac. Inget konto, ingen telemetri, inget moln — det finns inte ens någon väg där «svåra språk skickas till en server» som du skulle behöva stänga av.
+- ⚡ **Latens är funktionen.** Native Swift med talmodeller på enheten — vi optimerar tiden till text.
 - 🎙️ **Tryck och tala var som helst.** Ett globalt kortkommando fungerar i alla appar; den uppstädade texten infogas precis där markören står.
 - ✨ **Smart uppstädning.** Interpunktion, versalisering och borttagning av utfyllnadsord — utan att någonsin ändra dina ord.
 - 📊 **Din röst, visualiserad.** En lugn hempanel följer dina ord, ditt tempo och dina dagssviter, med en fullständig aktivitetskarta och en vänlig användningssammanfattning på enheten — allt beräknat på din Mac.
-- 🧩 **Utbytbara motorer.** Apples inbyggda modell som standard, med en valfri uppgradering på enheten — NVIDIA Parakeet — som du kan hämta och byta till, en i taget.
+- 🧩 **Utbytbara motorer.** Apples inbyggda modell som standard, med valfria lokala uppgraderingar — NVIDIA Parakeet, NVIDIA Nemotron, OpenAI Whisper — som du kan ladda ned och växla mellan (en aktiv i taget).
 
 ## Hämta och installera
 
@@ -91,10 +96,17 @@ Allt körs på enheten. Apples modell är inbyggd i macOS och vald som standard;
 kan hämta andra lokala motorer från sidan **Modeller** i sidofältet och växla
 mellan dem (en är aktiv åt gången).
 
-| Steg | Standard (inbyggd) | Valfria alternativ (på enheten) |
+| Motor | Språk | Anmärkningar |
 | --- | --- | --- |
-| **Transkribering** | Apple `Speech` | **Parakeet TDT 0.6B V3** (NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio)) · **Whisper Base** (OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit)) — hämtas vid behov |
-| **Uppstädning** | Inbyggda regler (omedelbara, deterministiska) | Apple Intelligence (`FoundationModels`, macOS 26+) — inbyggd i macOS, ingen hämtning |
+| **Apple Speech** (standard) | Varierar med macOS | Inbyggd, ingen nedladdning. `SpeechTranscriber` på macOS 26+, `SFSpeechRecognizer` på enheten i macOS 14–15 |
+| **Parakeet TDT 0.6B V3** | **25** — endast europeiska | NVIDIA, via [FluidAudio](https://github.com/FluidInference/FluidAudio). Snabbast; ingen CJK |
+| **Nemotron 3.5 ASR 0.6B** | **40 lokaler** inkl. CJK, arabiska, hindi | NVIDIA, via FluidAudio. Det flerspråkiga arbetsredskapet |
+| **Whisper Base** | **99** | OpenAI, via [WhisperKit](https://github.com/argmaxinc/WhisperKit). Bredast täckning |
+
+För upprensning är de inbyggda reglerna (omedelbara, deterministiska) standard;
+Apple Intelligence (`FoundationModels`, macOS 26+) är en valfri uppgradering som
+finns inbyggd i macOS utan något att ladda ned. Se
+[**docs/LANGUAGES.md**](../LANGUAGES.md) för hela språk- och motormatrisen.
 
 Hämtningsbara modeller laddas ned en gång vid behov (inget moln vid inferens —
 ditt ljud lämnar fortfarande aldrig din Mac) och körs som CoreML på Apple Neural
@@ -109,29 +121,44 @@ att misslyckas.
 <a name="languages"></a>
 ## Språk
 
-VoiceType är flerspråkigt från början till slut, inte engelska-med-undertexter:
+De flesta dikteringsappar byggs för engelska och översätts efteråt. VoiceType
+behandlar varje språk som ett förstklassigt fall — det är det vi bryr oss mest om
+att få rätt.
 
-- **Diktera på 30+ språk** — English, 中文, Español, Français, Deutsch,
-  日本語, 한국어, Português, Русский, Tiếng Việt med flera. Du väljer språket;
-  VoiceType gissar aldrig.
-- **Motorer matchas mot ditt språk.** Varje talmodell deklarerar vad den stöder
-  (Parakeet är enbart europeisk; Nemotron täcker 40 språkversioner inklusive
-  kinesiska; Whisper är brett flerspråkig; Apples lista kommer från macOS).
-  Modeller som inte klarar ditt språk tonas ned, och VoiceType växlar till en
-  som kan.
-- **Uppstädningen kan språket.** Varje språk levereras med ett litet,
-  granskningsbart "språkpaket": dess utfyllnadsord (嗯/呃, ähm, euh — aldrig
-  ord som bär betydelse), dess interpunktionskonventioner (fullbredds 。，？
-  för kinesiska och japanska, uttalade 句号/読点 som återges som skiljetecken)
-  och dess frågeheuristik.
-- **Själva appen är lokaliserad** till 16 språk och följer ditt systemspråk i
-  macOS (åsidosättning per app i Systeminställningar fungerar också).
+**33 språk** för diktering · **16** med handskrivna upprensningsregler ·
+**16** med översatt gränssnitt · **0** som kräver molnet.
 
-Saknas ditt språk, eller haltar en översättning? Att lägga till ett språk är
-medvetet litet — en gränssnittsöversättning kräver ingen Swift alls — se
-[docs/LOCALIZATION.md](../LOCALIZATION.md).
+Arabiska · Bulgariska · 简体中文 · Kroatiska · Tjeckiska · Danska · Nederlands ·
+English · Estniska · Finska · Français · Deutsch · Grekiska · हिन्दी · Ungerska ·
+Italiano · 日本語 · 한국어 · Lettiska · Litauiska · Maltesiska · Norsk · Polski ·
+Português · Rumänska · Русский · Slovakiska · Slovenska · Español · Svenska ·
+Türkçe · Українська · Tiếng Việt
 
-<a name="privacy"></a>
+Vad «flerspråkig» faktiskt betyder här:
+
+- **Du väljer språket; VoiceType gissar aldrig.** Automatisk igenkänning producerar
+  självsäkert nonsens när den har fel, så den erbjuds inte.
+- **Motorerna matchas mot ditt språk.** Varje talmodell deklarerar vad den stöder
+  (Parakeet är enbart europeisk; Nemotron täcker 40 lokaler inklusive kinesiska;
+  Whisper täcker 99; Apples lista kommer från macOS). Modeller som inte klarar ditt
+  språk gråmarkeras, och VoiceType växlar till en som klarar det.
+- **Upprensningen kan språket.** 16 språk har ett litet, granskningsbart
+  «språkpaket»: dess utfyllnadsord (嗯/呃, ähm, euh — aldrig ord som bär betydelse),
+  dess interpunktionskonventioner (helbredds 。，？ för kinesiska och japanska, uttalat
+  句号/読点 återgivet som tecken) och dess frågeheuristik. Övriga får trogen
+  transkribering med neutral upprensning.
+- **Gränssnittet är lokaliserat** till 16 språk och följer ditt macOS-systemspråk —
+  oberoende av dikteringsspråket, så ett japanskt gränssnitt kan diktera portugisiska.
+- **Utvalda, inte uppblåsta.** Vi skulle kunna lista Whispers 99 språk i morgon; vi
+  erbjuder dem som en motor är genuint bra på, och ett test upprätthåller det.
+
+📖 **[Fullständig språkmatris, kvalitetsnivåer och kända luckor →](../LANGUAGES.md)**
+
+Saknas ditt språk, eller är en översättning fel? Att lägga till ett språk är medvetet
+litet — en gränssnittsöversättning kräver ingen Swift alls — se
+[docs/LOCALIZATION.md](../LOCALIZATION.md). Särskilt de maskinskrivna paketen behöver
+ögon från modersmålstalare.
+
 ## Integritet
 
 Ljud och transkript stannar på din Mac, punkt slut — det finns ingen molnväg.
@@ -197,6 +224,7 @@ VoiceType/
 ├── Tests/             # enhetstester för VoiceTypeKit
 ├── Scripts/           # build-app.sh · make-dmg.sh · make-icon.swift · release.sh
 ├── Resources/         # Info.plist · entitlements · AppIcon
+├── docs/              # LANGUAGES.md (täckningsmatris) · LOCALIZATION.md · readme/
 ├── specs/             # människans yta — produktriktning (agenten redigerar inte)
 └── README.md
 ```
