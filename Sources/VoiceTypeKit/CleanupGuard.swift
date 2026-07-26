@@ -14,36 +14,52 @@ import Foundation
 /// Non-space-delimited languages (Chinese, Japanese, Thai, …) mostly stay
 /// under `minimumContentWords` when split on whitespace, so the guard
 /// self-disables there rather than misfiring.
-public enum CleanupGuard {
+/// How aggressively the faithfulness guard judges one language. The defaults
+/// are calibrated on English; a language whose words carry more meaning each
+/// (Turkish, Korean, Finnish) compresses differently and can say so in its
+/// pack rather than living with English's numbers.
+public struct CleanupGuardPolicy: Sendable, Equatable {
     /// Below this many raw content words, ratios are noise — a legitimate
     /// self-correction ("I want two, no three" → "I want three") can halve a
     /// short utterance. The guard only evaluates above the floor.
-    public static let minimumContentWords = 8
+    public let minimumContentWords: Int
 
     /// Cleaned output must retain at least this fraction of the raw content
     /// words. Fillers plus self-corrections rarely remove more than ~40% of
     /// content; real summarization compresses below ~30%. 0.5 sits between
     /// the two with margin on both sides.
-    public static let minimumRetainedRatio = 0.5
-
-    /// Spoken names of symbols and rendering directives that legitimately
-    /// collapse into single characters or joined identifiers during cleanup.
-    static let spokenSymbols: Set<String> = [
-        "dot", "period", "comma", "dash", "hyphen", "underscore", "slash",
-        "backslash", "tilde", "colon", "semicolon", "equals", "plus", "minus",
-        "star", "asterisk", "percent", "ampersand", "pipe", "backtick",
-        "quote", "unquote", "open", "close", "paren", "parens", "parenthesis",
-        "bracket", "brackets", "brace", "braces", "angle", "camel", "case",
-        "capital", "uppercase", "lowercase", "newline", "tab", "hash",
-        "pound", "dollar", "caret", "at", "sign", "mark", "point", "space",
-    ]
+    public let minimumRetainedRatio: Double
 
     /// Cleaned output growing past this ratio of the raw word count (plus a
     /// small absolute slack) means the model added words that were never
     /// spoken. Cleanup only removes and re-punctuates; it has no legitimate
     /// reason to grow the text. Observed failure mode: the model regurgitating
     /// a few-shot example verbatim when the dictation resembles it.
-    public static let maximumGrowthRatio = 1.5
+    public let maximumGrowthRatio: Double
+
+    public init(minimumContentWords: Int = 8,
+                minimumRetainedRatio: Double = 0.5,
+                maximumGrowthRatio: Double = 1.5) {
+        self.minimumContentWords = minimumContentWords
+        self.minimumRetainedRatio = minimumRetainedRatio
+        self.maximumGrowthRatio = maximumGrowthRatio
+    }
+
+    public static let `default` = CleanupGuardPolicy()
+}
+
+public enum CleanupGuard {
+    /// The English-calibrated defaults, kept as named constants because the
+    /// eval harness and tests reason about them directly.
+    public static let minimumContentWords = CleanupGuardPolicy.default.minimumContentWords
+    public static let minimumRetainedRatio = CleanupGuardPolicy.default.minimumRetainedRatio
+    public static let maximumGrowthRatio = CleanupGuardPolicy.default.maximumGrowthRatio
+
+    /// Spoken names of symbols and rendering directives that legitimately
+    /// collapse into single characters or joined identifiers during cleanup.
+    /// A language names its own via `LanguagePack.spokenSymbolWords`; this is
+    /// the default every pack inherits.
+    static let spokenSymbols = LanguagePack.defaultSpokenSymbolWords
 
     /// The combined production check: true when the output is a summary (too
     /// short), a fabrication (too long), lost its opening, or switched into a
@@ -53,7 +69,7 @@ public enum CleanupGuard {
                                        locale: String = "en-US") -> Bool {
         let pack = LanguagePack.pack(for: locale)
         return looksLikeSummary(raw: raw, cleaned: cleaned, pack: pack)
-            || looksFabricated(raw: raw, cleaned: cleaned)
+            || looksFabricated(raw: raw, cleaned: cleaned, pack: pack)
             || droppedOpening(raw: raw, cleaned: cleaned, pack: pack)
             || introducedForeignScript(raw: raw, cleaned: cleaned)
             || lostDominantScript(raw: raw, cleaned: cleaned)
@@ -179,11 +195,13 @@ public enum CleanupGuard {
     public static func droppedOpening(raw: String, cleaned: String,
                                       pack: LanguagePack? = nil) -> Bool {
         let pack = pack ?? .english
-        guard contentWordCount(raw, pack: pack) >= minimumContentWords else { return false }
+        guard contentWordCount(raw, pack: pack) >= pack.guardPolicy.minimumContentWords else {
+            return false
+        }
         let probe = words(raw).prefix(8).filter { word in
             word.count >= 2
                 && !pack.fillers.contains(word)
-                && !spokenSymbols.contains(word)
+                && !pack.spokenSymbolWords.contains(word)
                 && !pack.stopwords.contains(word)
         }
         guard probe.count >= 2 else { return false }
@@ -205,11 +223,13 @@ public enum CleanupGuard {
     /// True when `cleaned` is suspiciously long relative to `raw` — i.e. the
     /// model invented content (e.g. echoed a prompt example) instead of
     /// cleaning what was spoken.
-    public static func looksFabricated(raw: String, cleaned: String) -> Bool {
+    public static func looksFabricated(raw: String, cleaned: String,
+                                       pack: LanguagePack? = nil) -> Bool {
+        let pack = pack ?? .english
         let rawCount = wordCount(raw)
         guard rawCount >= 3 else { return false }
         let cleanedCount = wordCount(cleaned)
-        return Double(cleanedCount) > maximumGrowthRatio * Double(rawCount) + 3
+        return Double(cleanedCount) > pack.guardPolicy.maximumGrowthRatio * Double(rawCount) + 3
     }
 
     /// True when `cleaned` is suspiciously short relative to `raw` — i.e. the
@@ -218,19 +238,19 @@ public enum CleanupGuard {
                                         pack: LanguagePack? = nil) -> Bool {
         let pack = pack ?? .english
         let rawContent = contentWordCount(raw, pack: pack)
-        guard rawContent >= minimumContentWords else { return false }
+        guard rawContent >= pack.guardPolicy.minimumContentWords else { return false }
         // Count the cleaned side generously (every word counts): its filler
         // and symbol words are already gone, and over-counting there only
         // makes the guard harder to trip.
         let cleanedWords = wordCount(cleaned)
-        return Double(cleanedWords) < minimumRetainedRatio * Double(rawContent)
+        return Double(cleanedWords) < pack.guardPolicy.minimumRetainedRatio * Double(rawContent)
     }
 
     /// Whitespace-split words minus fillers and spoken-symbol tokens.
     static func contentWordCount(_ text: String, pack: LanguagePack? = nil) -> Int {
         let pack = pack ?? .english
         return words(text).count { word in
-            !pack.fillers.contains(word) && !spokenSymbols.contains(word)
+            !pack.fillers.contains(word) && !pack.spokenSymbolWords.contains(word)
         }
     }
 

@@ -22,6 +22,11 @@ public enum CleanupPolish {
         out = out.replacingOccurrences(
             of: "_underscore_", with: "_", options: [.caseInsensitive])
 
+        // The pack's own rules run in this path too, at the same three stages
+        // and in the same order as in `RuleBasedCleanup` — a language's
+        // orthography must hold whichever engine produced the text.
+        out = pack.rules.applying(.early, to: out, context: context)
+
         // The model occasionally drifts into CJK punctuation ("。" for ".") even
         // when the words stay English — below the script guard's radar, since
         // punctuation isn't letters. Repair it unless the dictation language
@@ -33,9 +38,11 @@ public enum CleanupPolish {
             // on its output too, then normalize widths and spacing.
             out = RuleBasedCleanup.renderSpokenPunctuation(out, pack: pack)
             out = CJKPunctuation.normalize(out)
-        } else if !cjkPunctuationLanguages.contains(LanguageTag.code(for: locale)) {
+        } else if !pack.preservesFullWidthMarks {
             out = normalizeForeignPunctuation(out)
         }
+
+        out = pack.rules.applying(.afterPunctuation, to: out, context: context)
 
         // The remaining repairs are prose rules: skip them in a terminal,
         // where "git status" must never gain a capital or a "?".
@@ -50,16 +57,15 @@ public enum CleanupPolish {
             }
         }
         guard options.fixCapitalization, !isTerminal,
-              pack.separatesWordsWithSpaces else { return out }
-        if let pronoun = pack.capitalizedStandalonePronoun {
-            out = RuleBasedCleanup.capitalizeStandalonePronoun(out, pronoun: pronoun)
+              pack.separatesWordsWithSpaces else {
+            return pack.rules.applying(.final, to: out, context: context)
         }
-        return capitalizeFirstPlainWord(out)
+        if let pronoun = pack.capitalizedStandalonePronoun {
+            out = RuleBasedCleanup.capitalizeStandalonePronoun(out, pronoun: pronoun, pack: pack)
+        }
+        out = capitalizeFirstPlainWord(out, pack: pack)
+        return pack.rules.applying(.final, to: out, context: context)
     }
-
-    /// Languages whose orthography uses the full-width marks below — for them
-    /// the marks are correct output, never drift.
-    static let cjkPunctuationLanguages: Set<String> = ["zh", "ja", "ko", "yue"]
 
     /// Full-width / CJK punctuation → the ASCII the speaker's language expects.
     static let foreignPunctuation: [Character: String] = [
@@ -96,7 +102,8 @@ public enum CleanupPolish {
     /// Uppercase the first letter, but only when the leading token is a plain
     /// word. A leading identifier, path, or file name ("app.py is missing",
     /// "~/projects has moved") must stay exactly as rendered.
-    static func capitalizeFirstPlainWord(_ text: String) -> String {
+    static func capitalizeFirstPlainWord(_ text: String,
+                                         pack: LanguagePack = .english) -> String {
         guard let firstChar = text.first, firstChar.isLowercase else { return text }
         // Trailing punctuation ("yeah,") is fine; internal symbols ("app.py",
         // "get_user", "~/x") mean the token is not a plain word.
@@ -104,6 +111,6 @@ public enum CleanupPolish {
             .trimmingCharacters(in: .punctuationCharacters)
         guard !firstToken.isEmpty,
               firstToken.allSatisfy({ $0.isLetter || $0 == "'" }) else { return text }
-        return firstChar.uppercased() + text.dropFirst()
+        return pack.uppercased(String(firstChar)) + text.dropFirst()
     }
 }

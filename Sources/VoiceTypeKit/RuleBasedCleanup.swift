@@ -29,6 +29,10 @@ public struct RuleBasedCleanup: CleanupEngine {
         // contributed yet get `.neutral`, i.e. the safe passes only.
         let pack = LanguagePack.pack(for: locale)
 
+        // The pack's own rules run first, on raw transcriber output, before
+        // any shared pass has reshaped it.
+        text = pack.rules.applying(.early, to: text, context: context)
+
         if options.removeFillers && !pack.fillers.isEmpty {
             text = removeFillers(text, pack: pack)
         }
@@ -59,6 +63,11 @@ public struct RuleBasedCleanup: CleanupEngine {
             text = fixPunctuationSpacing(text)
         }
 
+        // After the shared spacing/width pass, so a language can restore a
+        // convention that pass would otherwise flatten (French writes a space
+        // before ; : ! ?, which `fixPunctuationSpacing` has just removed).
+        text = pack.rules.applying(.afterPunctuation, to: text, context: context)
+
         // In a terminal the text is likely a shell command: capitalizing the
         // first word ("Git status") or appending a period breaks it, while a
         // missing period on prose is merely cosmetic. Fail conservative.
@@ -68,9 +77,9 @@ public struct RuleBasedCleanup: CleanupEngine {
         // and a leading English fragment inside Chinese dictation must stay
         // exactly as spoken.
         if options.fixCapitalization && pack.separatesWordsWithSpaces {
-            if !isTerminal { text = capitalizeSentences(text) }
+            if !isTerminal { text = capitalizeSentences(text, pack: pack) }
             if let pronoun = pack.capitalizedStandalonePronoun {
-                text = capitalizeStandalonePronoun(text, pronoun: pronoun)
+                text = capitalizeStandalonePronoun(text, pronoun: pronoun, pack: pack)
             }
         }
 
@@ -81,6 +90,10 @@ public struct RuleBasedCleanup: CleanupEngine {
             text = CleanupPolish.ensureQuestionMark(text, pack: pack)
             text = ensureTerminalPunctuation(text, pack: pack)
         }
+
+        // Last word goes to the pack: rules that need to see the finished
+        // sentence (Spanish's opening ¿, matched to the ? just appended).
+        text = pack.rules.applying(.final, to: text, context: context)
 
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
@@ -163,13 +176,14 @@ public struct RuleBasedCleanup: CleanupEngine {
     /// apostrophes) at a sentence start gains a capital, and only punctuation
     /// that ends a word re-arms the rule — the dots inside "main.py" are
     /// neither a sentence end nor a capitalizable start.
-    private static func capitalizeSentences(_ text: String) -> String {
+    private static func capitalizeSentences(_ text: String, pack: LanguagePack) -> String {
         var out: [String] = []
         var capitalizeNext = true
         for word in text.split(separator: " ") {
             var w = String(word)
             if capitalizeNext, isPlainWord(w), let first = w.first, first.isLowercase {
-                w = first.uppercased() + w.dropFirst()
+                // The pack's casing, not Swift's: Turkish needs "İstanbul".
+                w = pack.uppercased(String(first)) + w.dropFirst()
             }
             capitalizeNext = w.hasSuffix(".") || w.hasSuffix("!") || w.hasSuffix("?")
             out.append(w)
@@ -191,11 +205,12 @@ public struct RuleBasedCleanup: CleanupEngine {
     /// Plain `\b` treats `-`, `.`, `/` as boundaries, which would corrupt
     /// identifiers ("michael-L-i" → "michael-L-I"), so the lookarounds also
     /// reject symbol neighbors. Apostrophes stay allowed ("i'll" → "I'll").
-    static func capitalizeStandalonePronoun(_ text: String, pronoun: String) -> String {
+    static func capitalizeStandalonePronoun(_ text: String, pronoun: String,
+                                            pack: LanguagePack = .english) -> String {
         let escaped = NSRegularExpression.escapedPattern(for: pronoun)
         return replace(text,
                        pattern: "(?<![\\w.\\-_/@~])\(escaped)(?![\\w.\\-_/@~])",
-                       template: NSRegularExpression.escapedTemplate(for: pronoun.uppercased()))
+                       template: NSRegularExpression.escapedTemplate(for: pack.uppercased(pronoun)))
     }
 
     // MARK: - Terminal punctuation
@@ -204,7 +219,7 @@ public struct RuleBasedCleanup: CleanupEngine {
     /// model routinely drops the terminal 。 in Chinese output.
     static func ensureTerminalPunctuation(_ text: String, pack: LanguagePack) -> String {
         guard let last = text.last else { return text }
-        if ".!?:,。！？：，…；;\n".contains(last) {
+        if pack.terminalMarks.contains(last) {
             return text
         }
         if pack.usesFullWidthPunctuation {

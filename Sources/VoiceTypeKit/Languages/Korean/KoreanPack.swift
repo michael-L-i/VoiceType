@@ -17,5 +17,11 @@ extension LanguagePack {
             "뭐", "무엇", "누가", "누구", "언제", "어디", "어디서", "왜",
             "어떻게", "몇",
         ],
-        questionSuffixParticles: [])
+        questionSuffixParticles: [],
+        // Korean spaces its words and takes Latin marks, so it is not a
+        // full-width language — but full-width marks appearing in Korean
+        // output are legitimate, not model drift, so the ASCII repair must
+        // leave them alone. This used to be a hardcoded language list in
+        // `CleanupPolish`.
+        preservesFullWidthMarks: true)
 }
