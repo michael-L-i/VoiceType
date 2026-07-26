@@ -41,7 +41,9 @@ enum TurkishSymbols {
             var rendered = SpokenSymbols.render(
                 normalized,
                 category: context.category,
-                vocabulary: vocabulary)
+                vocabulary: context.category == .terminal || context.category == .codeEditor
+                    ? technicalVocabulary
+                    : proseVocabulary)
 
             // A phrase left over was not in a renderer-approved shape.
             rendered = replace(rendered, "altçizgi", "alt çizgi")
@@ -52,9 +54,21 @@ enum TurkishSymbols {
             return rendered
         }
 
-    private static let vocabulary = SpokenSymbolVocabulary(
+    private static let technicalVocabulary = makeVocabulary(
+        underscore: ["altçizgi"])
+
+    // "Alt çizgi" is also an ordinary noun phrase. Outside code-oriented
+    // contexts the deterministic floor leaves it for the contextual model;
+    // file extensions, emails, bracket commands, and single-letter handles
+    // retain their independently guarded renderers.
+    private static let proseVocabulary = makeVocabulary(underscore: [])
+
+    private static func makeVocabulary(
+        underscore: Set<String>
+    ) -> SpokenSymbolVocabulary {
+        SpokenSymbolVocabulary(
         dot: ["nokta"],
-        underscore: ["altçizgi"],
+        underscore: underscore,
         dash: ["tire", "kısaçizgi"],
         slash: ["eğikçizgi", "bölü"],
         tilde: ["tilde"],
@@ -83,6 +97,7 @@ enum TurkishSymbols {
             "bak", "bakın", "git", "gel", "buluş", "görüş", "kal", "dur",
             "başla", "ulaş",
         ]))
+    }
 
     private static func replace(_ text: String,
                                 _ phrase: String,

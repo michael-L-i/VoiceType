@@ -77,6 +77,8 @@ enum TurkishOrthography {
     private static let abbreviationPeriod = "\u{F0001}"
     private static let lineBreak = "\u{F0002}"
     private static let paragraphBreak = "\u{F0003}"
+    private static let apostropheSuffix =
+        #"(?:y[aeıiuü]|[dt][ae]|[dt][ae]n|n?[ıiuü]n|n?[ıiuü]|yl[ae]|[dt][ıiuü]r|y?m[ıiuü]ş|ys[ae])"#
 
     static let questionParticleEndings: Set<String> = [
         " mı", " mi", " mu", " mü",
@@ -120,6 +122,14 @@ enum TurkishOrthography {
             runsInTerminal: true,
             pattern: #"(?<=\d),(?=\d)"#,
             template: decimalComma),
+        CleanupRule(
+            name: "expose sentence-initial Turkish apostrophe for casing",
+            stage: .early) { text, _ in
+                replace(
+                    text,
+                    pattern: #"^(\p{L}+)[’](?="# + apostropheSuffix + #"\b)"#,
+                    template: "$1'")
+            },
         CleanupRule(
             name: "protect Turkish abbreviation periods",
             stage: .early) { text, _ in
@@ -166,6 +176,19 @@ enum TurkishOrthography {
             stage: .afterPunctuation,
             pattern: #"([%‰₺])\s+(?=\d)"#,
             template: "$1"),
+        .regex(
+            name: "collapse idempotent Turkish spoken marks",
+            stage: .afterPunctuation,
+            pattern: #"([.,!?;:])\s+\1"#,
+            template: "$1"),
+        CleanupRule(
+            name: "restore sentence-initial Turkish apostrophe",
+            stage: .final) { text, _ in
+                replace(
+                    text,
+                    pattern: #"^(\p{L}+)'(?="# + apostropheSuffix + #"\b)"#,
+                    template: "$1’")
+            },
         CleanupRule(
             name: "restore Turkish abbreviation periods",
             stage: .final) { text, _ in
