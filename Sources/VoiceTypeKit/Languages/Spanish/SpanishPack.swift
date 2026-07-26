@@ -72,10 +72,7 @@ extension LanguagePack {
         // language's test file. Going through the rules hook keeps this change
         // inside `Languages/Spanish/`, and it earns something too: the renderer
         // then also repairs model output, which `pack.symbols` never reaches.
-        prompt: .addendumOnly("""
-        - Spanish questions and exclamations use opening marks too: write \
-        ¿…? and ¡…! around them.
-        """),
+        prompt: .spanish,
         rules: SpanishOrthography.rules,
         spokenSymbolWords: LanguagePack.spanishSpokenSymbolWords,
         modelLeadInPatterns: [
