@@ -1,0 +1,223 @@
+[
+  {
+    "id": "fr-fine-space-exclamation",
+    "transcript": "bonjour tout le monde!",
+    "locale": "fr-FR",
+    "exact": "Bonjour tout le monde !",
+    "note": "Espace fine insécable (U+202F) before ! — the shared Latin pass strips it, the pack's final rule puts it back."
+  },
+  {
+    "id": "fr-no-break-space-colon",
+    "transcript": "voici la liste: du pain, du lait",
+    "locale": "fr-FR",
+    "exact": "Voici la liste : du pain, du lait.",
+    "note": "The colon takes a full espace insécable (U+00A0), not the fine space."
+  },
+  {
+    "id": "fr-colon-spares-times-and-urls",
+    "transcript": "le rendez-vous est à 14:30 sur https://exemple.fr",
+    "locale": "fr-FR",
+    "exact": "Le rendez-vous est à 14:30 sur https://exemple.fr",
+    "note": "The colon rule only fires before whitespace, so times and URLs survive untouched."
+  },
+  {
+    "id": "fr-question-heuristic",
+    "transcript": "pourquoi tu ne réponds pas",
+    "locale": "fr-FR",
+    "exact": "Pourquoi tu ne réponds pas ?",
+    "note": "Interrogative opener gains ?, and the appended mark gets its fine space too."
+  },
+  {
+    "id": "fr-question-tag",
+    "transcript": "tu viens demain n'est-ce pas",
+    "locale": "fr-FR",
+    "exact": "Tu viens demain n’est-ce pas ?",
+    "note": "\"n'est-ce pas\" is the one French tag that is never anything but a question."
+  },
+  {
+    "id": "fr-filler-removed",
+    "transcript": "euh je pense que c'est une bonne idée",
+    "locale": "fr-FR",
+    "exact": "Je pense que c’est une bonne idée.",
+    "note": "\"euh\" is a non-lexical filled pause — always removable."
+  },
+  {
+    "id": "fr-ambiguous-markers-kept",
+    "transcript": "bah du coup on fait genre une pause voilà",
+    "locale": "fr-FR",
+    "mustContain": ["Bah", "du coup", "genre", "voilà"],
+    "note": "Ambiguity policy: French discourse markers hesitate AND mean something — the deterministic pass never touches them."
+  },
+  {
+    "id": "fr-spoken-question-mark",
+    "transcript": "tu viens demain point d'interrogation",
+    "locale": "fr-FR",
+    "exact": "Tu viens demain ?",
+    "note": "Spoken \"point d'interrogation\" renders the mark, spacing included."
+  },
+  {
+    "id": "fr-spoken-commas",
+    "transcript": "il faut du pain virgule du lait virgule des oeufs",
+    "locale": "fr-FR",
+    "exact": "Il faut du pain, du lait, des oeufs.",
+    "note": "Spoken \"virgule\" renders a comma between ordinary words."
+  },
+  {
+    "id": "fr-decimal-virgule-kept",
+    "transcript": "la valeur est trois virgule quatorze",
+    "locale": "fr-FR",
+    "exact": "La valeur est trois virgule quatorze.",
+    "note": "Number guard: a \"virgule\" between number words is a decimal point, not punctuation."
+  },
+  {
+    "id": "fr-noun-virgule-kept",
+    "transcript": "mets une virgule ici",
+    "locale": "fr-FR",
+    "exact": "Mets une virgule ici.",
+    "note": "Determiner guard: \"une virgule\" is the noun — the speaker is talking about the mark, not dictating it."
+  },
+  {
+    "id": "fr-guillemets",
+    "transcript": "il a dit \"bonjour\" hier",
+    "locale": "fr-FR",
+    "exact": "Il a dit « bonjour » hier.",
+    "note": "Straight quotes become guillemets with their espace insécable inside."
+  },
+  {
+    "id": "fr-spoken-guillemets",
+    "transcript": "il a dit ouvrez les guillemets bonjour fermez les guillemets",
+    "locale": "fr-FR",
+    "exact": "Il a dit « bonjour ».",
+    "note": "Spoken guillemets render as a spaced pair."
+  },
+  {
+    "id": "fr-typographic-apostrophe",
+    "transcript": "j'ai vu l' homme qui parlait",
+    "locale": "fr-FR",
+    "exact": "J’ai vu l’homme qui parlait.",
+    "note": "A split elision is closed up, then every elision apostrophe becomes U+2019."
+  },
+  {
+    "id": "fr-ordinal-abbreviation",
+    "transcript": "c'est la 2ème fois, et la 1ère était pire",
+    "locale": "fr-FR",
+    "exact": "C’est la 2e fois, et la 1re était pire.",
+    "note": "Académie française: ordinals abbreviate 1er / 1re / 2e — never 2ème or 1ère."
+  },
+  {
+    "id": "fr-etc-single-point",
+    "transcript": "il faut du pain du lait etc...",
+    "locale": "fr-FR",
+    "exact": "Il faut du pain du lait etc.",
+    "note": "\"etc.\" takes exactly one point."
+  },
+  {
+    "id": "fr-percent-no-break-space",
+    "transcript": "on a gagné 20% de temps",
+    "locale": "fr-FR",
+    "exact": "On a gagné 20 % de temps.",
+    "note": "A number and its unit are separated by an espace insécable."
+  },
+  {
+    "id": "fr-month-lowercase",
+    "transcript": "on se voit le 3 Mai prochain",
+    "locale": "fr-FR",
+    "exact": "On se voit le 3 mai prochain.",
+    "note": "Months are lowercase in French; the capital only ever comes from a sentence start."
+  },
+  {
+    "id": "fr-file-name",
+    "transcript": "ouvre main point py et regarde",
+    "locale": "fr-FR",
+    "exact": "Ouvre main.py et regarde.",
+    "note": "Spoken file name renders in the zero-latency path: \"point\" + a known extension."
+  },
+  {
+    "id": "fr-point-stays-prose",
+    "transcript": "je ne partage pas ton point de vue",
+    "locale": "fr-FR",
+    "exact": "Je ne partage pas ton point de vue.",
+    "note": "The prose guard: \"point\" as an everyday noun never joins."
+  },
+  {
+    "id": "fr-underscore-identifier",
+    "transcript": "renomme la variable max tiret bas retries",
+    "locale": "fr-FR",
+    "exact": "Renomme la variable max_retries",
+    "note": "\"tiret bas\" is never anything but an underscore; an identifier ending keeps its bare tail."
+  },
+  {
+    "id": "fr-spoken-parens",
+    "transcript": "le résultat ouvrez la parenthèse enfin presque fermez la parenthèse est bon",
+    "locale": "fr-FR",
+    "exact": "Le résultat (enfin presque) est bon.",
+    "note": "French says \"ouvrez LA parenthèse\" — the article the shared renderer can't see, handled as a pack rule. The space before ( is French prose convention."
+  },
+  {
+    "id": "fr-email",
+    "transcript": "écris à jean point dupont arobase gmail point com",
+    "locale": "fr-FR",
+    "exact": "Écris à jean.dupont@gmail.com",
+    "note": "Spoken e-mail with \"arobase\"; the accented capital É is produced by the pack's casing."
+  },
+  {
+    "id": "fr-new-paragraph",
+    "transcript": "premier sujet nouveau paragraphe deuxième sujet",
+    "locale": "fr-FR",
+    "exact": "Premier sujet\n\nDeuxième sujet.",
+    "note": "Spoken paragraph break, and the new line's opening word is capitalized."
+  },
+  {
+    "id": "fr-new-line-noun-kept",
+    "transcript": "ils ont lancé une nouvelle ligne de produits",
+    "locale": "fr-FR",
+    "exact": "Ils ont lancé une nouvelle ligne de produits.",
+    "note": "Determiner guard: \"une nouvelle ligne\" is a product line, not a command."
+  },
+  {
+    "id": "fr-line-number-kept",
+    "transcript": "corrige à la ligne 42 du fichier",
+    "locale": "fr-FR",
+    "exact": "Corrige à la ligne 42 du fichier.",
+    "note": "\"à la ligne\" refuses to become a line break in front of a number."
+  },
+  {
+    "id": "fr-code-editor-leaves-code-alone",
+    "transcript": "corrige la ligne timeout: 30 c'est urgent",
+    "locale": "fr-FR",
+    "category": "codeEditor",
+    "exact": "Corrige la ligne timeout: 30 c'est urgent.",
+    "note": "French typography sits out the code editor: no space before the colon, no typographic apostrophe — both would corrupt real code."
+  },
+  {
+    "id": "fr-terminal-command",
+    "transcript": "git status",
+    "locale": "fr-FR",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "Terminal category stays command-safe: no capital, no period, no French spacing."
+  },
+  {
+    "id": "fr-terminal-flags",
+    "transcript": "npm run build tiret tiret verbose",
+    "locale": "fr-FR",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "Spoken flags render in a terminal; typographic rules sit the category out."
+  },
+  {
+    "id": "fr-ramble-no-translation",
+    "transcript": "euh alors la réunion d'hier a surtout porté sur trois choses la première c'est que la sortie de la nouvelle version doit être repoussée d'une semaine parce que les tests ne sont pas terminés la deuxième c'est que la documentation doit être mise à jour avant la sortie et la troisième c'est qu'on doit recruter deux ingénieurs le trimestre prochain",
+    "locale": "fr-FR",
+    "mustContain": ["réunion", "version", "documentation", "ingénieurs", "trimestre"],
+    "mustNotContain": ["meeting", "release", "engineer", "quarter"],
+    "note": "Anti-translation and anti-summarization: a long French ramble stays French and keeps every clause."
+  },
+  {
+    "id": "fr-self-correction",
+    "transcript": "on se voit mardi non mercredi",
+    "locale": "fr-FR",
+    "mustContain": ["mercredi"],
+    "note": "Self-correction is model territory (the rules floor keeps both). Judge the model run manually."
+  }
+]
