@@ -182,7 +182,13 @@ enum KoreanCleanup {
         ) { text, context in
             // Do not rewrite string literals or syntax in a code editor.
             guard context.category != .codeEditor else { return text }
-            var out = replace(text, pattern: #"\s*·\s*"#, template: "·")
+            // CleanupPolish does not run the rules engine's ASCII spacing pass,
+            // so guarantee the same Korean attachment on model output too.
+            var out = replace(
+                text,
+                pattern: #"\s+([,.!?;:…])"#,
+                template: "$1")
+            out = replace(out, pattern: #"\s*·\s*"#, template: "·")
             out = replace(
                 out,
                 pattern: #"([\(\[\{“‘「『《〈"])\s+"#,
@@ -207,11 +213,13 @@ enum KoreanCleanup {
                 of: lowercaseLatinBoundary, with: "")
             out = replace(
                 out,
-                pattern: #"\s*\u{E002}\s*"#,
+                pattern: #"\s*"# + NSRegularExpression.escapedPattern(
+                    for: paragraphBreak) + #"\s*"#,
                 template: "\n\n")
             out = replace(
                 out,
-                pattern: #"\s*\u{E001}\s*"#,
+                pattern: #"\s*"# + NSRegularExpression.escapedPattern(
+                    for: lineBreak) + #"\s*"#,
                 template: "\n")
             return out
         },
