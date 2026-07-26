@@ -15,5 +15,6 @@ extension LanguagePack {
             "est-ce", "pourquoi", "comment", "quand", "où", "qui", "quel",
             "quelle", "quels", "quelles", "combien", "lequel", "laquelle",
         ],
-        questionSuffixParticles: [])
+        questionSuffixParticles: [],
+        prompt: .french)
 }
