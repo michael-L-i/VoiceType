@@ -79,6 +79,7 @@ extension LanguagePack {
         italianApostropheRule,
         italianEllipsisRule,
         italianLeadingLineBreakRule,
+    ] + italianSymbolRules + [
         italianDecimalCommaRule,
         italianInnerSpacingRule,
         italianDateCaseRule,
