@@ -41,6 +41,37 @@ struct JapanesePackPolicyTests {
     }
 }
 
+@Suite("Cleanup prompt — Japanese")
+struct JapanesePromptTests {
+    @Test("Japanese guidance replaces English-specific fallbacks")
+    func languageGuidance() {
+        let instructions = CleanupPrompt.instructions(
+            for: .default,
+            locale: "ja-JP")
+        #expect(instructions.contains("Japanese has no sentence capitalization"))
+        #expect(instructions.contains("「えーと」「えっと」「あのー」"))
+        #expect(instructions.contains("「いや」「違う」「じゃなくて」"))
+        #expect(instructions.contains("2026年7月26日"))
+        #expect(!instructions.contains("five, no six copies"))
+        #expect(!instructions.contains(#""um", "uh""#))
+    }
+
+    @Test("terminal prompt teaches Japanese shell dictation without few-shot leakage")
+    func terminalGuidance() {
+        let context = CleanupContext(
+            appBundleID: nil,
+            appName: nil,
+            category: .terminal)
+        let instructions = CleanupPrompt.instructions(
+            for: .default,
+            context: context,
+            locale: "ja-JP")
+        #expect(instructions.contains("「ハイフン ハイフン verbose」→ --verbose"))
+        #expect(instructions.contains("ギット→git"))
+        #expect(!instructions.contains("Examples (left = spoken"))
+    }
+}
+
 @Suite("Rule-based cleanup — Japanese")
 struct JapaneseRuleCleanupTests {
     private func clean(_ text: String, category: AppCategory = .general) -> String {
