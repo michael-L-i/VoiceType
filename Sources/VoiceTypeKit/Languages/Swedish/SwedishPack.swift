@@ -40,10 +40,13 @@ extension LanguagePack {
     ///   correct Swedish, but embedded English is so common in Swedish tech
     ///   dictation ("Apple's roadmap") that a blind rule would corrupt it.
     ///
-    /// `symbols` is nil only because `EnglishPackTests` currently asserts that
-    /// English is the sole opt-in; the Swedish vocabulary exists and is wired
-    /// in through `SwedishRules.spokenSymbols`, which runs in *both* cleanup
-    /// paths (the shared `symbols` field only runs in the rules floor).
+    /// `symbols` stays nil on purpose. Swedish drives the shared
+    /// `SpokenSymbols` pipeline from `SwedishRules.spokenSymbols` instead,
+    /// which is strictly better here: a rule runs in *both* cleanup paths (the
+    /// pack field only feeds the rules floor, never model output), and it can
+    /// see the app category, so `streck` can be a flag marker in a terminal
+    /// and an everyday noun in prose. It also keeps this pack clear of
+    /// `EnglishPackTests`, which asserts English is the only `symbols` opt-in.
     static let swedish = LanguagePack(
         code: "sv",
         separatesWordsWithSpaces: true,
