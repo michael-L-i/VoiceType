@@ -64,7 +64,7 @@ public enum CleanupPrompt {
             // hasn't gets the instruction without examples rather than
             // English's, which would be actively misleading.
             tasks.append("- Remove filler words and disfluencies\(pack.prompt.fillerExamples ?? "").")
-            tasks.append("- Resolve self-corrections: when the speaker changes their mind mid-sentence, keep only the corrected version — the one spoken LAST — and drop the earlier attempt: \"five, no six copies\" → \"six copies\", never \"five copies\".")
+            tasks.append("- " + (pack.prompt.selfCorrectionRule ?? Self.genericSelfCorrectionRule))
         }
 
         // No tasks enabled → verbatim passthrough, but the contract (full
@@ -100,6 +100,13 @@ public enum CleanupPrompt {
     static let genericCapitalizationRule =
         "Fix capitalization: start every sentence with a capital letter, and capitalize proper nouns (names, days, places)."
 
+    /// The self-correction instruction for a language that hasn't written its
+    /// own. Its example is English, which is the reason a language should
+    /// replace it: an English example inside a Turkish prompt teaches the
+    /// wrong words as much as the right rule.
+    static let genericSelfCorrectionRule =
+        "Resolve self-corrections: when the speaker changes their mind mid-sentence, keep only the corrected version — the one spoken LAST — and drop the earlier attempt: \"five, no six copies\" → \"six copies\", never \"five copies\"."
+
     /// The language pack's extra rules (full-width punctuation for Chinese,
     /// ¿…? for Spanish, which hesitations to drop).
     static func languageAddendum(for pack: LanguagePack) -> String {
@@ -116,20 +123,32 @@ public enum CleanupPrompt {
         return section + "\n"
     }
 
-    /// The few-shot examples, English-only by design: eval showed the model
-    /// echoing example content into output ("few-shot leakage"), and English
-    /// examples inside a non-English prompt invite both leakage and outright
-    /// translation. Non-English locales ship with zero examples until their
-    /// eval battery demands otherwise.
+    /// The pack's own few-shot examples. A language ships none until its eval
+    /// battery shows they earn their place: the model has been observed echoing
+    /// example content into output ("few-shot leakage"), and examples written
+    /// in another language invite both leakage and outright translation.
     static func examplesSection(for pack: LanguagePack, category: AppCategory) -> String {
-        guard pack.prompt.usesFewShotExamples else { return "" }
+        var examples = pack.prompt.fewShot
+        if category == .terminal { examples += pack.prompt.terminalFewShot }
+        guard !examples.isEmpty else { return "" }
         return """
 
         Examples (left = spoken, right = exactly what you output):
-        \(CleanupExamples.block(for: category))
+        \(CleanupExamples.render(examples))
 
         """
     }
+
+    /// The code-editor instruction for a language that hasn't written its own.
+    /// Unlike the filler and capitalization defaults this one is safely
+    /// language-neutral — it names no words, only a bias.
+    static let genericCodeEditorGuidance = """
+        The user is dictating into a code editor. When the words suggest code, \
+        lean toward the compact code rendering above — identifiers, file names, \
+        and symbols are more likely here than in ordinary writing. Prose \
+        (comments, commit messages, documentation) still reads as normal \
+        sentences.
+        """
 
     /// Extra guidance for app categories where the expected register differs
     /// from ordinary prose. Returned with surrounding newlines so it slots
@@ -141,15 +160,7 @@ public enum CleanupPrompt {
             guard let guidance = pack.prompt.terminalGuidance else { return "\n" }
             return "\n" + guidance + "\n"
         case .codeEditor:
-            return """
-
-            The user is dictating into a code editor. When the words suggest code, \
-            lean toward the compact code rendering above — identifiers, file names, \
-            and symbols are more likely here than in ordinary writing. Prose \
-            (comments, commit messages, documentation) still reads as normal \
-            sentences.
-
-            """
+            return "\n" + (pack.prompt.codeEditorGuidance ?? Self.genericCodeEditorGuidance) + "\n"
         case .messaging, .general:
             return "\n"
         }

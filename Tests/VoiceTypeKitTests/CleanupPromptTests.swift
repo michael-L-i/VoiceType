@@ -126,7 +126,24 @@ struct PackDrivenPromptTests {
     func fewShotIsOptIn() {
         #expect(instructions(locale: "en-US").contains("Examples (left = spoken"))
         for pack in LanguagePack.all where pack.code != "en" {
-            #expect(!pack.prompt.usesFewShotExamples, "\(pack.code)")
+            #expect(pack.prompt.fewShot.isEmpty, "\(pack.code)")
+            #expect(pack.prompt.terminalFewShot.isEmpty, "\(pack.code)")
         }
+    }
+
+    @Test("a pack's few-shot examples are its own, never another language's")
+    func fewShotComesFromThePack() {
+        // The seam that matters: a language shipping examples must see ITS
+        // examples in the prompt, not English's.
+        let pack = LanguagePack(
+            code: "xx", separatesWordsWithSpaces: true,
+            usesFullWidthPunctuation: false, terminalPeriod: ".",
+            fillers: [], spokenPunctuation: [:],
+            questionPrefixWords: [], questionSuffixParticles: [],
+            prompt: LanguagePromptGuidance(
+                fewShot: [CleanupExample(spoken: "zzz spoken", cleaned: "zzz cleaned")]))
+        let section = CleanupPrompt.examplesSection(for: pack, category: .general)
+        #expect(section.contains("zzz cleaned"))
+        #expect(!section.contains("app.py"))
     }
 }

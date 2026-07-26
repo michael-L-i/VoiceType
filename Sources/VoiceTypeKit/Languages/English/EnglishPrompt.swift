@@ -41,6 +41,7 @@ extension LanguagePromptGuidance {
         """,
         // English is the only language whose few-shot block has been through
         // the eval battery — see CleanupExamples and docs/LOCALIZATION.md.
-        usesFewShotExamples: true,
+        fewShot: CleanupExamples.fewShot,
+        terminalFewShot: CleanupExamples.terminalFewShot,
         addendum: nil)
 }

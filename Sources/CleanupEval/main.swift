@@ -232,7 +232,8 @@ struct CleanupEval {
                 to: CleanupPrompt.prompt(for: transcript),
                 options: GenerationOptions(temperature: 0.2))
             var cleaned = CleanupSanitizer.strip(
-                response.content.trimmingCharacters(in: .whitespacesAndNewlines))
+                response.content.trimmingCharacters(in: .whitespacesAndNewlines),
+                locale: locale)
             // Mirror the engine: polish only what the guard would ship.
             if !CleanupGuard.looksUnfaithful(raw: transcript, cleaned: cleaned) {
                 cleaned = CleanupPolish.apply(
