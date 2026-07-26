@@ -70,7 +70,7 @@ extension LanguagePack {
         ])
 }
 
-private enum TurkishOrthography {
+enum TurkishOrthography {
     // Private-use scalars hide Turkish decimal commas and abbreviation periods
     // from shared Latin passes that would otherwise split/capitalize them.
     private static let decimalComma = "\u{F0000}"
@@ -139,6 +139,7 @@ private enum TurkishOrthography {
                         of: "yeni satır", with: lineBreak,
                         options: [.caseInsensitive])
             },
+        TurkishSymbols.renderRule,
         .regex(
             name: "restore Turkish decimal commas",
             stage: .afterPunctuation,
