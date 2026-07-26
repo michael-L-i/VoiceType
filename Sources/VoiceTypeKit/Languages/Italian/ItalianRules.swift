@@ -178,6 +178,153 @@ extension LanguagePack {
         template: "$1",
         options: [.caseInsensitive])
 
+    // MARK: - Ellipsis
+
+    /// `...` → `…`, at `.early` so the shared Latin pass — which collapses a
+    /// run of `.!?` down to its first mark — can't silently turn the speaker's
+    /// suspension points into a full stop.
+    ///
+    /// Source: Treccani — the *puntini di sospensione* "devono essere sempre
+    /// tre", which is exactly what the single character guarantees.
+    static let italianEllipsisRule = CleanupRule.regex(
+        name: "puntini di sospensione",
+        stage: .early,
+        pattern: #"\.{3,}"#,
+        template: "…")
+
+    /// A line-break command at the very START of a dictation is dropped here,
+    /// early, rather than rendered at `.final`. The leading newline it would
+    /// produce is trimmed away by the engine anyway, and removing the words now
+    /// lets the sentence capitalizer see the real first word — otherwise
+    /// "nuovo paragrafo questo è…" ships as "questo è…", uncapitalized.
+    static let italianLeadingLineBreakRule = CleanupRule.regex(
+        name: "comando di andata a capo iniziale",
+        stage: .early,
+        pattern: #"^[ \t]*(?:nuovo\s+paragrafo|(?:vai\s+)?a\s+capo|nuova\s+riga)\b[ \t]*"#,
+        template: "",
+        options: [.caseInsensitive])
+
+    // MARK: - Numbers
+
+    /// The Italian decimal separator is the comma and the thousands separator
+    /// is the point (`3,14`, `1.000`) — the continental convention, binding in
+    /// Italy through the SI adoption (DPR 802/1982).
+    ///
+    /// Two jobs, both at `.afterPunctuation` because the shared Latin spacing
+    /// pass runs first and inserts a space after every comma:
+    /// - re-close a decimal it split apart (`3, 14` → `3,14`);
+    /// - render a spoken decimal comma (`3 virgola 14` → `3,14`), which is the
+    ///   one position where bare "virgola" cannot be the ordinary noun.
+    ///
+    /// The re-close carries one guard: a numeral followed by "e"/"o" is an
+    /// enumeration, not a decimal, so "il 5, 6 e 7 maggio" keeps its spacing.
+    /// The accented "è" is a different character from the conjunction "e", so
+    /// "3, 14 è il pi greco" is unaffected by that guard — which is the whole
+    /// reason it can be this simple.
+    static let italianDecimalCommaRule = CleanupRule(
+        name: "virgola decimale",
+        stage: .afterPunctuation) { text, _ in
+        var out = italianReplacing(text, pattern: #"(\d)[ \t]*\bvirgola\b[ \t]*(?=\d)"#,
+                                   template: "$1,", options: [.caseInsensitive])
+        out = italianReplacing(out,
+                               pattern: #"(?<=\d),[ \t]+(\d+)(?![ \t]*(?:,|\b(?:e|ed|o|od)\b))"#,
+                               template: ",$1")
+        return out
+    }
+
+    // MARK: - Typography
+
+    /// Italian quotation marks and brackets take no space on the inside:
+    /// `« testo »` → `«testo»`, `( testo )` → `(testo)`.
+    ///
+    /// Source: Treccani, *virgolette* — the caporali «…» are the Italian
+    /// default for direct speech and quotation, and unlike French they are set
+    /// tight against the quoted text.
+    ///
+    /// Only ever *removes* a space. A rule that inserted one would have to
+    /// decide whether `parse(x)` is prose, and it isn't.
+    static let italianInnerSpacingRule = CleanupRule(
+        name: "nessuno spazio dentro virgolette e parentesi",
+        stage: .afterPunctuation) { text, _ in
+        var out = italianReplacing(text, pattern: #"([«“(\[{])[ \t]+"#, template: "$1")
+        out = italianReplacing(out, pattern: #"[ \t]+([»”)\]}])"#, template: "$1")
+        return out
+    }
+
+    /// Italian writes the names of days and months **lowercase**; the capital
+    /// is an English habit the model imports.
+    ///
+    /// Source: Treccani, *giorni e mesi, nomi dei [prontuario]* — they take the
+    /// lowercase initial, the capital being reserved for named occasions ("il
+    /// Venerdì santo", "il Primo Maggio").
+    ///
+    /// Scope is deliberately narrow: only inside an unmistakable date, i.e.
+    /// right after a numeral or right before a four-digit year. That is the one
+    /// context where the name can be neither a named occasion nor a surname —
+    /// Aprile, Maggio, Gennaio and Agosto are all Italian family names, and
+    /// "Di Gennaio" must survive. Everything else is the prompt's job.
+    static let italianDateCaseRule = CleanupRule(
+        name: "mesi e giorni minuscoli nelle date",
+        stage: .afterPunctuation) { text, _ in
+        let names = italianCalendarNames.joined(separator: "|")
+        var out = italianLowercasingMatches(text, pattern: #"(?<=\d[ \t])(?:\#(names))\b"#)
+        out = italianLowercasingMatches(out, pattern: #"\b(?:\#(names))(?=[ \t]\d{4}\b)"#)
+        return out
+    }
+
+    static let italianCalendarNames: [String] = [
+        "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
+        "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre",
+        "lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato",
+        "domenica",
+    ]
+
+    // MARK: - Line breaks
+
+    /// The spoken line-break commands, at `.final` because every earlier stage
+    /// is followed by a whitespace collapse that would eat the newline, and
+    /// because the sentence capitalizer tokenizes on spaces only.
+    ///
+    /// `a capo` is guarded against its ordinary reading: "il responsabile a
+    /// capo del progetto" means "at the head of" and keeps its words. `nuova
+    /// riga` is guarded against "una nuova riga di prodotti".
+    static let italianLineBreakRule = CleanupRule(
+        name: "comandi di andata a capo",
+        stage: .final) { text, _ in
+        var out = italianReplacing(
+            text,
+            pattern: #"[ \t]*\bnuovo\s+paragrafo\b[ \t]*"#,
+            template: "\n\n", options: [.caseInsensitive])
+        out = italianReplacing(
+            out,
+            pattern: #"[ \t]*\b(?:vai\s+)?a\s+capo\b(?!\s+(?:di|del|dello|della|dei|degli|delle|d['’]))[ \t]*"#,
+            template: "\n", options: [.caseInsensitive])
+        out = italianReplacing(
+            out,
+            pattern: #"[ \t]*(?<!\b(?:una|la|questa|della|alla|ogni)[ \t])\bnuova\s+riga\b[ \t]*"#,
+            template: "\n", options: [.caseInsensitive])
+        return out
+    }
+
+    /// Final tidy: the rules above insert characters, and `CleanupPolish` — the
+    /// path that repairs *model* output — has no shared Latin spacing pass at
+    /// all, so Italian guarantees its own spacing whichever engine produced the
+    /// text. Newlines are preserved (only spaces and tabs are collapsed), so a
+    /// dictated "a capo" survives this.
+    static let italianFinalSpacingRule = CleanupRule(
+        name: "spaziatura finale",
+        stage: .final) { text, _ in
+        var out = italianReplacing(text, pattern: #"[ \t]+([,.;:!?…»”)\]}])"#, template: "$1")
+        out = italianReplacing(out, pattern: #"([«“(\[{])[ \t]+"#, template: "$1")
+        // One space after a mark that a word follows. Deliberately keyed on a
+        // *letter*, never a digit: `,` and `:` sit inside `3,14` and `15:30`,
+        // and `.` is excluded outright because it sits inside `main.py`.
+        out = italianReplacing(out, pattern: #"([,;!?…»”])(?=\p{L})"#, template: "$1 ")
+        out = italianReplacing(out, pattern: #"[ \t]{2,}"#, template: " ")
+        out = italianReplacing(out, pattern: #"[ \t]*\n[ \t]*"#, template: "\n")
+        return out
+    }
+
     // MARK: - Helpers
 
     /// A regex replacement that degrades to "no change" if the pattern doesn't

@@ -77,6 +77,13 @@ extension LanguagePack {
     static let italianRules: [CleanupRule] = [
         italianAccentRule,
         italianApostropheRule,
+        italianEllipsisRule,
+        italianLeadingLineBreakRule,
+        italianDecimalCommaRule,
+        italianInnerSpacingRule,
+        italianDateCaseRule,
+        italianLineBreakRule,
+        italianFinalSpacingRule,
     ]
 
     /// Function words that prove nothing about whether a dictation's opening
