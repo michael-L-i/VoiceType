@@ -198,8 +198,35 @@ public struct LanguagePack: Sendable {
 
     /// Every language with bespoke cleanup behavior. Order is irrelevant;
     /// lookup is by primary subtag.
+    ///
+    /// One entry per line, alphabetical by code: this array is the single
+    /// shared line every new language must touch, and one-per-line keeps two
+    /// contributors landing different languages from colliding on it.
     public static let all: [LanguagePack] = [
-        .english, .chinese, .german, .spanish, .french, .italian, .japanese, .korean, .dutch, .polish, .portuguese, .russian, .swedish, .turkish, .ukrainian, .vietnamese,
+        .chinese,
+        .czech,
+        .danish,
+        .dutch,
+        .english,
+        .finnish,
+        .french,
+        .german,
+        .hungarian,
+        .italian,
+        .japanese,
+        .korean,
+        .norwegian,
+        .polish,
+        .portuguese,
+        .romanian,
+        .russian,
+        .slovak,
+        .slovenian,
+        .spanish,
+        .swedish,
+        .turkish,
+        .ukrainian,
+        .vietnamese,
     ]
 
     /// Languages without a pack get neutral behavior: no fillers, no spoken
