@@ -33,11 +33,25 @@ public struct LanguagePromptGuidance: Sendable {
     /// flags and paths. Omitted when nil.
     public let terminalGuidance: String?
 
-    /// True when this language ships few-shot examples worth including.
-    /// Off by default: eval showed the model echoing example content into its
-    /// output, so a language only opts in once its own eval battery shows the
-    /// examples earn their place.
-    public let usesFewShotExamples: Bool
+    /// Extra guidance when the user is dictating into a code editor. Nil falls
+    /// back to a language-neutral instruction; a language whose speakers
+    /// dictate code differently replaces it wholesale.
+    public let codeEditorGuidance: String?
+
+    /// How this language states a self-correction ("five, no six copies" →
+    /// "six copies"). Nil falls back to the shared instruction, whose example
+    /// is English — a language should replace it with one of its own.
+    public let selfCorrectionRule: String?
+
+    /// This language's few-shot examples, in its own words. Empty by default:
+    /// eval showed the model echoing example content into its output, so a
+    /// language only ships examples once its own eval battery shows they earn
+    /// their place — and English examples inside a non-English prompt invite
+    /// both leakage and outright translation.
+    public let fewShot: [CleanupExample]
+
+    /// Extra pairs appended only for terminal dictation.
+    public let terminalFewShot: [CleanupExample]
 
     /// Free-form extra rules — full-width punctuation for Chinese, ¿…? for
     /// Spanish, which hesitations to drop. Keep minimal; prompt content leaks.
@@ -47,13 +61,19 @@ public struct LanguagePromptGuidance: Sendable {
                 capitalizationRule: String? = nil,
                 codeRendering: String? = nil,
                 terminalGuidance: String? = nil,
-                usesFewShotExamples: Bool = false,
+                codeEditorGuidance: String? = nil,
+                selfCorrectionRule: String? = nil,
+                fewShot: [CleanupExample] = [],
+                terminalFewShot: [CleanupExample] = [],
                 addendum: String? = nil) {
         self.fillerExamples = fillerExamples
         self.capitalizationRule = capitalizationRule
         self.codeRendering = codeRendering
         self.terminalGuidance = terminalGuidance
-        self.usesFewShotExamples = usesFewShotExamples
+        self.codeEditorGuidance = codeEditorGuidance
+        self.selfCorrectionRule = selfCorrectionRule
+        self.fewShot = fewShot
+        self.terminalFewShot = terminalFewShot
         self.addendum = addendum
     }
 

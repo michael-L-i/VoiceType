@@ -90,7 +90,7 @@ extension FoundationModelsCleanupEngine {
             let raw = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
             // Deterministic safety net: strip any "Sure, here's the transcript:"
             // lead-in or wrapping quotes the model added despite the instructions.
-            let cleaned = CleanupSanitizer.strip(raw)
+            let cleaned = CleanupSanitizer.strip(raw, locale: locale)
             // A blank result means the model declined or produced nothing usable;
             // treat as failure so the pipeline falls back rather than emitting "".
             guard !cleaned.isEmpty else {

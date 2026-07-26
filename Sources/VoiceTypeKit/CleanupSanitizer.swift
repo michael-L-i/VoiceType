@@ -14,11 +14,23 @@ import Foundation
 /// "Here is my plan: buy milk" is left untouched.
 public enum CleanupSanitizer {
     /// Strip any conversational wrapper the model added around the cleaned text.
-    public static func strip(_ text: String) -> String {
+    ///
+    /// The built-in patterns are English, because that is the language the
+    /// model answers in when it ignores its instructions. A model prompted in
+    /// another language can slip into that language instead ("Klar, hier ist
+    /// der bereinigte Text:"), so the pack contributes its own patterns via
+    /// `modelLeadInPatterns`.
+    public static func strip(_ text: String, locale: String = "en-US") -> String {
+        strip(text, pack: LanguagePack.pack(for: locale))
+    }
+
+    public static func strip(_ text: String, pack: LanguagePack) -> String {
         var s = text.trimmingCharacters(in: .whitespacesAndNewlines)
         s = removingMarkerEcho(s)
         s = removingCodeFence(s)
-        if let withoutLeadIn = removingLeadIn(s) { s = withoutLeadIn }
+        if let withoutLeadIn = removingLeadIn(s, extraPatterns: pack.modelLeadInPatterns) {
+            s = withoutLeadIn
+        }
         if let unquoted = removingWrappingQuotes(s) { s = unquoted }
         return s.trimmingCharacters(in: .whitespacesAndNewlines)
     }
@@ -65,8 +77,8 @@ public enum CleanupSanitizer {
         #"(?i)^\s*(?:here(?:['’]s| is| are| you go| it is)?\b|the\b)?[^\n:]{0,60}(?:transcript|dictation|cleaned(?:[- ]up)?|tidied|corrected)[^\n:]{0,30}:\s+"#,
     ]
 
-    static func removingLeadIn(_ s: String) -> String? {
-        for pattern in leadInPatterns {
+    static func removingLeadIn(_ s: String, extraPatterns: [String] = []) -> String? {
+        for pattern in leadInPatterns + extraPatterns {
             guard let re = try? NSRegularExpression(pattern: pattern) else { continue }
             let full = NSRange(s.startIndex..., in: s)
             guard let m = re.firstMatch(in: s, range: full),

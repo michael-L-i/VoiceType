@@ -69,6 +69,55 @@ public struct LanguagePack: Sendable {
     /// `LanguagePromptGuidance`; `.none` means "generic instructions".
     public let prompt: LanguagePromptGuidance
 
+    /// This language's own deterministic fixes, for the conventions the fields
+    /// above don't ask about — French's space before `;:!?`, Spanish's opening
+    /// `¿`, an engine quirk only this language sees. Run by both cleanup paths
+    /// at the stage each rule declares. See `CleanupRule`.
+    ///
+    /// This is the pack's escape hatch, and deliberately so: improving a
+    /// language should never require editing shared code, because that is
+    /// where languages collide with each other.
+    public let rules: [CleanupRule]
+
+    /// The locale whose casing conventions apply, for orthographies where
+    /// Swift's locale-independent `uppercased()` is wrong: Turkish maps `i` to
+    /// `İ`, not `I`. Nil means the locale-independent default, which is
+    /// correct for almost every language.
+    public let casingLocaleIdentifier: String?
+
+    /// True when full-width marks （，。？）are correct output for this
+    /// language, so `CleanupPolish` must not "repair" them into ASCII.
+    /// Defaults to `usesFullWidthPunctuation`, and is separate from it because
+    /// the two are not the same claim: Korean writes spaced words with Latin
+    /// punctuation yet still admits full-width marks, and the old shared code
+    /// had to hardcode a language list to say so.
+    public let preservesFullWidthMarks: Bool
+
+    /// Marks that already end a sentence, so `ensureTerminalPunctuation` leaves
+    /// the text alone. Defaults to the Latin + CJK set; a language whose
+    /// orthography ends sentences differently (Devanagari `।`, Arabic `؟`)
+    /// overrides it.
+    public let terminalMarks: Set<Character>
+
+    /// Words that name a symbol out loud and legitimately collapse into one
+    /// character during cleanup ("open paren" → `(`). The faithfulness guard
+    /// discounts them when counting content words, so a heavily-dictated
+    /// identifier doesn't read as a summary. Defaults to the English set,
+    /// which is what every language received before packs could say otherwise.
+    public let spokenSymbolWords: Set<String>
+
+    /// How aggressively the faithfulness guard judges this language. The
+    /// defaults are calibrated on English; agglutinative languages (Turkish,
+    /// Korean, Finnish) pack more meaning per word and may need different
+    /// ratios. See `CleanupGuardPolicy`.
+    public let guardPolicy: CleanupGuardPolicy
+
+    /// Extra regex patterns for `CleanupSanitizer`, matching a conversational
+    /// lead-in the model might emit *in this language* ("Klar, hier ist der
+    /// bereinigte Text:"). The shared English patterns always apply; these are
+    /// added to them.
+    public let modelLeadInPatterns: [String]
+
     /// Explicit rather than synthesized so a language can fill in only the
     /// fields it needs: everything after `questionSuffixParticles` defaults to
     /// "this language doesn't do that", and adding a new field here never
@@ -85,7 +134,14 @@ public struct LanguagePack: Sendable {
                 stopwords: Set<String> = [],
                 symbols: SpokenSymbolVocabulary? = nil,
                 capitalizedStandalonePronoun: String? = nil,
-                prompt: LanguagePromptGuidance = .none) {
+                prompt: LanguagePromptGuidance = .none,
+                rules: [CleanupRule] = [],
+                casingLocaleIdentifier: String? = nil,
+                preservesFullWidthMarks: Bool? = nil,
+                terminalMarks: Set<Character> = LanguagePack.defaultTerminalMarks,
+                spokenSymbolWords: Set<String> = LanguagePack.defaultSpokenSymbolWords,
+                guardPolicy: CleanupGuardPolicy = .default,
+                modelLeadInPatterns: [String] = []) {
         self.code = code
         self.separatesWordsWithSpaces = separatesWordsWithSpaces
         self.usesFullWidthPunctuation = usesFullWidthPunctuation
@@ -99,6 +155,43 @@ public struct LanguagePack: Sendable {
         self.symbols = symbols
         self.capitalizedStandalonePronoun = capitalizedStandalonePronoun
         self.prompt = prompt
+        self.rules = rules
+        self.casingLocaleIdentifier = casingLocaleIdentifier
+        self.preservesFullWidthMarks = preservesFullWidthMarks ?? usesFullWidthPunctuation
+        self.terminalMarks = terminalMarks
+        self.spokenSymbolWords = spokenSymbolWords
+        self.guardPolicy = guardPolicy
+        self.modelLeadInPatterns = modelLeadInPatterns
+    }
+
+    // MARK: - Defaults
+
+    /// Sentence-ending marks across the orthographies shipped so far, plus the
+    /// newline a spoken "new paragraph" leaves behind.
+    public static let defaultTerminalMarks: Set<Character> =
+        Set(".!?:,。！？：，…；;\n")
+
+    /// The English spoken-symbol names, which every language used before a
+    /// pack could name its own. Kept as the default so no language silently
+    /// changes behavior; a language overrides it with its own words.
+    public static let defaultSpokenSymbolWords: Set<String> = [
+        "dot", "period", "comma", "dash", "hyphen", "underscore", "slash",
+        "backslash", "tilde", "colon", "semicolon", "equals", "plus", "minus",
+        "star", "asterisk", "percent", "ampersand", "pipe", "backtick",
+        "quote", "unquote", "open", "close", "paren", "parens", "parenthesis",
+        "bracket", "brackets", "brace", "braces", "angle", "camel", "case",
+        "capital", "uppercase", "lowercase", "newline", "tab", "hash",
+        "pound", "dollar", "caret", "at", "sign", "mark", "point", "space",
+    ]
+
+    // MARK: - Casing
+
+    /// Uppercase one character the way this language does. Turkish is the
+    /// reason this exists: `"i".uppercased()` is `"I"` everywhere except
+    /// Turkish and Azerbaijani, where it must be `"İ"`.
+    public func uppercased(_ text: String) -> String {
+        guard let identifier = casingLocaleIdentifier else { return text.uppercased() }
+        return text.uppercased(with: Locale(identifier: identifier))
     }
 
     // MARK: - Registry

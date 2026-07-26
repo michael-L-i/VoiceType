@@ -80,6 +80,51 @@ struct PackIntegrityTests {
         }
     }
 
+    @Test("pack rules are named and uniquely named within a pack")
+    func ruleNames() {
+        for pack in LanguagePack.all {
+            var seen: Set<String> = []
+            for rule in pack.rules {
+                #expect(!rule.name.isEmpty, "\(pack.code) has an unnamed rule")
+                #expect(seen.insert(rule.name).inserted,
+                        "\(pack.code): duplicate rule name \(rule.name)")
+            }
+        }
+    }
+
+    @Test("no pack's rules corrupt a terminal command")
+    func rulesLeaveCommandsAlone() {
+        // Rules default to sitting out the terminal; one that opts in must
+        // still leave an ordinary command untouched.
+        for pack in LanguagePack.all {
+            let command = "git status"
+            let out = RuleBasedCleanup.process(command, options: .default,
+                                               context: CleanupContext(category: .terminal),
+                                               pack: pack)
+            #expect(out == command, "\(pack.code) rewrote a shell command to \(out)")
+        }
+    }
+
+    @Test("a pack's few-shot examples are non-empty pairs")
+    func fewShotHygiene() {
+        for pack in LanguagePack.all {
+            for example in pack.prompt.fewShot + pack.prompt.terminalFewShot {
+                #expect(!example.spoken.isEmpty, "\(pack.code)")
+                #expect(!example.cleaned.isEmpty, "\(pack.code)")
+            }
+        }
+    }
+
+    @Test("every pack's lead-in patterns compile")
+    func leadInPatternsCompile() {
+        for pack in LanguagePack.all {
+            for pattern in pack.modelLeadInPatterns {
+                #expect((try? NSRegularExpression(pattern: pattern)) != nil,
+                        "\(pack.code): \(pattern) does not compile")
+            }
+        }
+    }
+
     @Test("filler removal never touches an unrelated sentence in any pack's language")
     func fillerRemovalIsBounded() {
         // A pack's own fillers, dropped into a neutral carrier of another
