@@ -1,0 +1,202 @@
+[
+  {
+    "id": "pl-clause-comma-ze",
+    "transcript": "myślę że to dobry pomysł",
+    "locale": "pl-PL",
+    "exact": "Myślę, że to dobry pomysł.",
+    "note": "The obligatory comma before a subordinate clause — PWN interpunkcja, not a style choice."
+  },
+  {
+    "id": "pl-clause-comma-relative",
+    "transcript": "to jest dom w którym mieszkam",
+    "locale": "pl-PL",
+    "exact": "To jest dom, w którym mieszkam.",
+    "note": "A relative pronoun governed by a preposition takes the comma before the preposition."
+  },
+  {
+    "id": "pl-clause-comma-exceptions",
+    "transcript": "zrobię to dlatego że muszę",
+    "locale": "pl-PL",
+    "exact": "Zrobię to dlatego że muszę.",
+    "note": "Compound conjunction: the comma belongs before 'dlatego', which the rule doesn't attempt — so it inserts nothing rather than the wrong thing."
+  },
+  {
+    "id": "pl-clause-comma-double-conjunction",
+    "transcript": "powiedział że przyjdzie i że przyniesie wino",
+    "locale": "pl-PL",
+    "exact": "Powiedział, że przyjdzie i że przyniesie wino.",
+    "note": "Two conjunctions in a row take one comma, before the first."
+  },
+  {
+    "id": "pl-fillers",
+    "transcript": "yyy myślę że to zadziała ponieważ testy przeszły",
+    "locale": "pl-PL",
+    "exact": "Myślę, że to zadziała, ponieważ testy przeszły.",
+    "note": "Hesitation run removed; two clause commas inserted."
+  },
+  {
+    "id": "pl-fillers-elongated",
+    "transcript": "nie wiem eeee kiedy to zrobię",
+    "locale": "pl-PL",
+    "exact": "Nie wiem, kiedy to zrobię.",
+    "note": "An elongated hesitation the fixed filler list cannot spell; 'kiedy' opens an indirect question and takes a comma."
+  },
+  {
+    "id": "pl-ambiguous-kept",
+    "transcript": "no dobra zróbmy to jutro",
+    "locale": "pl-PL",
+    "exact": "No dobra zróbmy to jutro.",
+    "note": "'no' is the most common Polish discourse word and carries meaning — never a deterministic filler."
+  },
+  {
+    "id": "pl-yes-sounds-kept",
+    "transcript": "yhy zgadzam się z tobą",
+    "locale": "pl-PL",
+    "exact": "Yhy zgadzam się z tobą.",
+    "note": "'yhy'/'mhm'/'aha' mean YES. Removing them deletes the speaker's answer."
+  },
+  {
+    "id": "pl-spoken-comma-and-period",
+    "transcript": "kupimy chleb przecinek mleko i masło kropka",
+    "locale": "pl-PL",
+    "exact": "Kupimy chleb, mleko i masło.",
+    "note": "Spoken punctuation names render in positions where the noun reading is impossible."
+  },
+  {
+    "id": "pl-spoken-question-mark",
+    "transcript": "czy to działa znak zapytania",
+    "locale": "pl-PL",
+    "exact": "Czy to działa?",
+    "note": "'znak zapytania' only ever names the mark; no doubling with the question heuristic."
+  },
+  {
+    "id": "pl-spoken-mark-idempotent",
+    "transcript": "czy to działa? znak zapytania",
+    "locale": "pl-PL",
+    "exact": "Czy to działa?",
+    "note": "The engine already rendered the mark AND the speaker said it — the dictated mark wins once."
+  },
+  {
+    "id": "pl-kropka-is-a-word",
+    "transcript": "to jest moja decyzja i kropka",
+    "locale": "pl-PL",
+    "exact": "To jest moja decyzja i kropka.",
+    "note": "'i kropka' is the idiom 'and that's that'. 'kropka nad i' and 'czerwona kropka' are guarded the same way."
+  },
+  {
+    "id": "pl-przecinek-is-a-decimal",
+    "transcript": "trzy przecinek czternaście to liczba pi",
+    "locale": "pl-PL",
+    "exact": "Trzy przecinek czternaście to liczba pi.",
+    "note": "Every Polish speaker reads 3,14 as 'trzy przecinek czternaście' — the number wins over the mark."
+  },
+  {
+    "id": "pl-decimal-comma-survives",
+    "transcript": "mam 1,5 miliona powodów",
+    "locale": "pl-PL",
+    "exact": "Mam 1,5 miliona powodów.",
+    "note": "Polish writes decimals with a comma; the shared Latin spacing pass would otherwise split it into '1, 5'."
+  },
+  {
+    "id": "pl-quotes-and-dash",
+    "transcript": "powiedział \"zrobię to jutro\" - i wyszedł",
+    "locale": "pl-PL",
+    "exact": "Powiedział „zrobię to jutro” – i wyszedł.",
+    "note": "Polish quotation marks are „…”; a hyphen standing alone between words is a myślnik, set as a spaced półpauza."
+  },
+  {
+    "id": "pl-compound-hyphen-untouched",
+    "transcript": "to tekst polsko-niemiecki o e-mailach",
+    "locale": "pl-PL",
+    "exact": "To tekst polsko-niemiecki o e-mailach.",
+    "note": "A compound hyphen carries no spaces and must not become a dash."
+  },
+  {
+    "id": "pl-question-heuristic",
+    "transcript": "gdzie jest ten raport",
+    "locale": "pl-PL",
+    "exact": "Gdzie jest ten raport?",
+    "note": "An interrogative opener with no terminal mark gains a question mark."
+  },
+  {
+    "id": "pl-question-false-positive",
+    "transcript": "jak skończysz, to daj znać",
+    "locale": "pl-PL",
+    "exact": "Jak skończysz, to daj znać.",
+    "note": "The correlative 'Jak …, to …' frame opens with an interrogative word but is not a question."
+  },
+  {
+    "id": "pl-parenthetical",
+    "transcript": "co ciekawe wszystko już działa",
+    "locale": "pl-PL",
+    "exact": "Co ciekawe, wszystko już działa.",
+    "note": "A sentence-opening parenthetical is cut off by a comma — and stops the question heuristic firing on 'co'."
+  },
+  {
+    "id": "pl-file-name",
+    "transcript": "wyślij mi plik main kropka py",
+    "locale": "pl-PL",
+    "exact": "Wyślij mi plik main.py",
+    "note": "Spoken file name renders; no terminal period is glued onto it."
+  },
+  {
+    "id": "pl-identifier",
+    "transcript": "zmień max podkreślnik retries na dziesięć",
+    "locale": "pl-PL",
+    "exact": "Zmień max_retries na dziesięć.",
+    "note": "Polish connector, English identifier — the way Polish developers actually dictate."
+  },
+  {
+    "id": "pl-email",
+    "transcript": "napisz do mnie jan kropka kowalski małpa gmail kropka com",
+    "locale": "pl-PL",
+    "exact": "Napisz do mnie jan.kowalski@gmail.com",
+    "note": "'małpa' is Polish for @, rendered only inside the TLD-anchored address pattern."
+  },
+  {
+    "id": "pl-symbol-word-as-prose",
+    "transcript": "dodaj podkreślenie tutaj i zamów łącznik hydrauliczny",
+    "locale": "pl-PL",
+    "exact": "Dodaj podkreślenie tutaj i zamów łącznik hydrauliczny.",
+    "note": "Prose that merely mentions a symbol word is never joined into an identifier."
+  },
+  {
+    "id": "pl-embedded-english",
+    "transcript": "ta funkcja zwraca wartość typu string z pliku utils.ts",
+    "locale": "pl-PL",
+    "exact": "Ta funkcja zwraca wartość typu string z pliku utils.ts",
+    "note": "Embedded English and an already-rendered file name survive untouched."
+  },
+  {
+    "id": "pl-terminal-command",
+    "transcript": "git push myślnik myślnik force",
+    "locale": "pl-PL",
+    "category": "terminal",
+    "exact": "git push --force",
+    "note": "Terminal: spoken flags render, and no rule capitalizes, punctuates, or re-typesets a command."
+  },
+  {
+    "id": "pl-terminal-path",
+    "transcript": "cd tylda ukośnik projekty ukośnik voice",
+    "locale": "pl-PL",
+    "category": "terminal",
+    "exact": "cd ~/projekty/voice",
+    "note": "Spoken path in a terminal."
+  },
+  {
+    "id": "pl-ramble-no-summary",
+    "transcript": "yyy więc myślę że powinniśmy przesunąć premierę o tydzień eee bo onboarding wciąż ma ten błąd z paskiem postępu a marketing prosił o więcej czasu na kampanię mailingową i szczerze wolę wypuścić coś solidnego niż przepraszać za tydzień",
+    "locale": "pl-PL",
+    "mustContain": ["przesunąć premierę o tydzień", "paskiem postępu", "kampanię mailingową", "przepraszać za tydzień"],
+    "mustNotContain": ["yyy", " eee ", "1.", "\n"],
+    "note": "Anti-summarization and anti-restructuring: a 40-word ramble keeps every clause and stays flowing prose."
+  },
+  {
+    "id": "pl-diacritics-preserved",
+    "transcript": "zażółć gęślą jaźń i sprawdź czy wszystkie znaki są na miejscu",
+    "locale": "pl-PL",
+    "mustContain": ["ażółć gęślą jaźń"],
+    "mustNotContain": ["zazolc", "gesla"],
+    "note": "Polish diacritics are never normalized away."
+  }
+]
