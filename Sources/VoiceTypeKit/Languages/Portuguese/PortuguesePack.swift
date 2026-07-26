@@ -83,6 +83,7 @@ extension LanguagePack {
         questionSuffixParticles: [],
         stopwords: LanguagePack.portugueseStopwords,
         prompt: .portuguese,
+        rules: LanguagePack.portugueseSymbolRules,
         spokenSymbolWords: LanguagePack.portugueseSymbolWords,
         modelLeadInPatterns: [
             // "Claro, aqui está o texto limpo:", "Beleza! Segue a versão corrigida:"
