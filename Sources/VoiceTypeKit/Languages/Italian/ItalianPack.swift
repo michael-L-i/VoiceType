@@ -63,6 +63,7 @@ extension LanguagePack {
         ],
         questionSuffixParticles: [],
         stopwords: LanguagePack.italianStopwords,
+        prompt: .italian,
         rules: LanguagePack.italianRules,
         spokenSymbolWords: LanguagePack.italianSpokenSymbolWords,
         // Italian is not more compact than English — if anything the article +
