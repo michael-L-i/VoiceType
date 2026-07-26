@@ -199,9 +199,30 @@ extension LanguagePack {
     static let frenchRules: [CleanupRule] =
         [frenchElisionSpacingRule]
         + frenchSpokenPunctuationRules
-        + [frenchVirguleRule, frenchAbbreviationRule]
+        + [frenchVirguleRule, frenchAbbreviationRule, frenchSpokenSymbolRule]
         + frenchParagraphRules
         + frenchTypographyRules
+
+    /// Spoken file names, identifiers, e-mail addresses, flags and paths —
+    /// « ouvre main point py » → `main.py`.
+    ///
+    /// This is the pack's own rule rather than the `symbols` field, for two
+    /// reasons. The field's call site is inside `RuleBasedCleanup` only, so
+    /// model output would never get the same repair; running it here covers
+    /// both paths, the way every other rule in this pack does. And the ordering
+    /// matters: it must run *after* the phrase rules above, or "max tiret bas
+    /// retries" would be read as a dash ("max -bas retries") in a terminal
+    /// instead of as the underscore it is.
+    ///
+    /// The renderer's neighbour rules do the position guarding — a trigger only
+    /// fires when the tokens around it look like an identifier — and the words
+    /// they fire on are French's own; see `FrenchSymbols.swift` for the
+    /// vocabulary and for what was left out of it.
+    static let frenchSpokenSymbolRule = CleanupRule(
+        name: "fr spoken symbols", stage: .early, runsInTerminal: true
+    ) { text, context in
+        SpokenSymbols.render(text, category: context.category, vocabulary: .french)
+    }
 
     // MARK: Guards shared by the spoken-punctuation rules
 
