@@ -30,11 +30,16 @@ struct EnglishPackPolicyTests {
         #expect(LanguagePack.english.symbols?.fileExtensions.contains("swift") == true)
     }
 
-    @Test("no other pack claims symbol rendering or a standalone pronoun yet")
-    func englishIsTheOnlyOptIn() {
+    @Test("English's vocabulary is English's, never handed to another language")
+    func vocabularyIsNotShared() {
+        // The failure this guards against is a pack reaching for
+        // `SpokenSymbolVocabulary.english` because it is the only one that
+        // exists — which would teach a German transcript to render the English
+        // word "dot". A language opting in must bring its own trigger words.
         for pack in LanguagePack.all where pack.code != "en" {
-            #expect(pack.symbols == nil, "\(pack.code)")
-            #expect(pack.capitalizedStandalonePronoun == nil, "\(pack.code)")
+            guard let symbols = pack.symbols else { continue }
+            #expect(symbols.dot != LanguagePack.english.symbols?.dot,
+                    "\(pack.code) reuses English's spoken-symbol triggers")
         }
     }
 }
