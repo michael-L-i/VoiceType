@@ -82,6 +82,7 @@ extension LanguagePack {
         // would fire on "boné". The `.final` rule below does it properly.
         questionSuffixParticles: [],
         stopwords: LanguagePack.portugueseStopwords,
+        prompt: .portuguese,
         spokenSymbolWords: LanguagePack.portugueseSymbolWords,
         modelLeadInPatterns: [
             // "Claro, aqui está o texto limpo:", "Beleza! Segue a versão corrigida:"
