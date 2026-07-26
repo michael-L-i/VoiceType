@@ -6,7 +6,7 @@ extension LanguagePack {
     /// Ambiguity policy — what this pack deliberately does NOT touch:
     /// - 那个 / 就是 / 然后 / 对: real words at least as often as hesitations.
     ///   The deterministic pass never removes them; the LLM pass may, when
-    ///   context shows they carry no meaning (see `promptAddendum`).
+    ///   context shows they carry no meaning (see the pack's prompt addendum).
     /// - 点 ("dot"): far too ambiguous for a blind rule — o'clock (三点),
     ///   decimals (三点一四), and "a bit" (快点) all outnumber the tech-dictation
     ///   sense. Dictating "main 点 py" is left to the LLM path for now.
@@ -45,7 +45,8 @@ extension LanguagePack {
         ],
         questionPrefixWords: [],
         questionSuffixParticles: ["吗"],
-        promptAddendum: """
+        questionMark: "？",
+        prompt: .addendumOnly("""
         - The dictation is Chinese. Use full-width Chinese punctuation \
         （，。？！：；）for Chinese text and never insert spaces between \
         Chinese characters.
@@ -55,5 +56,5 @@ extension LanguagePack {
         clearly a hesitation carrying no meaning; when it points at something \
         (那个方案 = "that plan") or asserts (就是最好的), it is content — keep \
         it. When in doubt, keep it.
-        """)
+        """))
 }

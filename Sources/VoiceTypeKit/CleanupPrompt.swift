@@ -57,10 +57,13 @@ public enum CleanupPrompt {
             tasks.append("- Add or correct punctuation so it reads as clean sentences. A dictated question ends with a question mark.")
         }
         if options.fixCapitalization {
-            tasks.append("- Fix capitalization: start every sentence with a capital letter, always capitalize the pronoun \"I\", and capitalize proper nouns (names, days, places).")
+            tasks.append("- " + (pack.prompt.capitalizationRule ?? Self.genericCapitalizationRule))
         }
         if options.removeFillers {
-            tasks.append("- Remove filler words and disfluencies: \"um\", \"uh\", \"er\", \"hmm\", and throwaway \"you know\" / \"I mean\" / \"like\" / \"so\" when they carry no meaning.")
+            // The language supplies its own hesitation sounds; a language that
+            // hasn't gets the instruction without examples rather than
+            // English's, which would be actively misleading.
+            tasks.append("- Remove filler words and disfluencies\(pack.prompt.fillerExamples ?? "").")
             tasks.append("- Resolve self-corrections: when the speaker changes their mind mid-sentence, keep only the corrected version — the one spoken LAST — and drop the earlier attempt: \"five, no six copies\" → \"six copies\", never \"five copies\".")
         }
 
@@ -79,24 +82,7 @@ public enum CleanupPrompt {
         Clean up the delivery:
         \(tasks.joined(separator: "\n"))
 
-        When the surrounding words make it clear the speaker is dictating code — a \
-        file name, a symbol, an identifier, or a username/handle — render it \
-        compactly instead of as separate words, and leave ordinary prose alone:
-        - File names → paths: "app dot pie" → app.py. Pick the extension from \
-        context (.py, .js, .ts, .rs, .go, .swift); resolve homophones like "pie" → .py.
-        - Spoken symbols → characters: "dot" → ., "underscore" → _, "dash"/"hyphen" \
-        → -, "open paren"/"close paren" → ( ), "open bracket"/"close bracket" → \
-        [ ], "equals" → =, "comma" → ,.
-        - Identifiers & handles join up: "get underscore user data" → \
-        get_user_data, "camel case parse request" → parseRequest, "michael dash L \
-        dash I" → michael-L-i (join with hyphens; keep handles lowercase unless a \
-        letter is spoken on its own).
-        - The trigger word is consumed, never kept: "max underscore retries" → \
-        max_retries, never max_underscore_retries. And never join words the \
-        speaker did not mark: "the session token" stays three separate words.
-        - But a trigger word inside ordinary prose stays prose: "the dot product" \
-        is NOT "the.product".
-        \(categoryGuidance(for: context.category))\(languageAddendum(for: pack))
+        \(codeRenderingSection(for: pack))\(categoryGuidance(for: context.category, pack: pack))\(languageAddendum(for: pack))
         Stay faithful — keep the speaker's own words in the order spoken. You MAY \
         remove fillers, resolve self-corrections, fix punctuation/capitalization, \
         and render code as above; you must NEVER reorder content, swap in synonyms, \
@@ -108,12 +94,26 @@ public enum CleanupPrompt {
         """
     }
 
+    /// The capitalization instruction for a language that hasn't written its
+    /// own. Deliberately says less than English's — a rule this prompt cannot
+    /// state correctly for an unknown orthography is better left unstated.
+    static let genericCapitalizationRule =
+        "Fix capitalization: start every sentence with a capital letter, and capitalize proper nouns (names, days, places)."
+
     /// The language pack's extra rules (full-width punctuation for Chinese,
-    /// language-specific fillers). English contributes nothing — its rules are
-    /// the prompt's defaults.
+    /// ¿…? for Spanish, which hesitations to drop).
     static func languageAddendum(for pack: LanguagePack) -> String {
-        guard let addendum = pack.promptAddendum else { return "" }
+        guard let addendum = pack.prompt.addendum else { return "" }
         return addendum + "\n"
+    }
+
+    /// The spoken-code rendering rules, which are entirely language-specific:
+    /// the trigger words are words. A language that hasn't contributed them
+    /// gets no section at all — teaching a German speaker's transcript to
+    /// render the English word "dot" only produced false joins.
+    static func codeRenderingSection(for pack: LanguagePack) -> String {
+        guard let section = pack.prompt.codeRendering else { return "" }
+        return section + "\n"
     }
 
     /// The few-shot examples, English-only by design: eval showed the model
@@ -122,7 +122,7 @@ public enum CleanupPrompt {
     /// translation. Non-English locales ship with zero examples until their
     /// eval battery demands otherwise.
     static func examplesSection(for pack: LanguagePack, category: AppCategory) -> String {
-        guard pack.code == "en" else { return "" }
+        guard pack.prompt.usesFewShotExamples else { return "" }
         return """
 
         Examples (left = spoken, right = exactly what you output):
@@ -135,22 +135,11 @@ public enum CleanupPrompt {
     /// from ordinary prose. Returned with surrounding newlines so it slots
     /// between the code-rendering rules and the faithfulness paragraph;
     /// categories with no special handling contribute nothing.
-    static func categoryGuidance(for category: AppCategory) -> String {
+    static func categoryGuidance(for category: AppCategory, pack: LanguagePack) -> String {
         switch category {
         case .terminal:
-            return """
-
-            The user is dictating into a terminal, so expect shell commands, flags, \
-            paths, and git/tmux vocabulary alongside ordinary sentences:
-            - Render spoken flags and paths: "dash dash verbose" → --verbose, "dash \
-            v" → -v, "tilde slash projects" → ~/projects, "dot slash build" → ./build.
-            - Command lines stay exactly as commands are spelled: lowercase (git \
-            status, ls, tmux attach), never capitalize the first word of a command, \
-            and never add a trailing period to a command.
-            - A dictated sentence that is clearly prose (a commit message, a chat \
-            reply) still gets normal punctuation and capitalization.
-
-            """
+            guard let guidance = pack.prompt.terminalGuidance else { return "\n" }
+            return "\n" + guidance + "\n"
         case .codeEditor:
             return """
 

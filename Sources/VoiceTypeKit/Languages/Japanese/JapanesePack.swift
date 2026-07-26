@@ -26,12 +26,13 @@ extension LanguagePack {
         ],
         questionPrefixWords: [],
         questionSuffixParticles: [],
-        promptAddendum: """
+        questionMark: "？",
+        prompt: .addendumOnly("""
         - The dictation is Japanese. Use full-width Japanese punctuation \
         （、。！？）and never insert spaces between Japanese characters.
         - Keep embedded English words, file names, and identifiers in ASCII, \
         with ASCII punctuation inside them.
         - Always drop drawn-out hesitations like えーと・えっと・あのー; keep \
         every content word exactly as spoken.
-        """)
+        """))
 }

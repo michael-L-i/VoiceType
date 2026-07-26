@@ -48,11 +48,22 @@ struct PackIntegrityTests {
         }
     }
 
-    @Test("question suffix particles are single characters (the heuristic probes the last character)")
+    @Test("question suffix particles are non-empty and lowercase (matched with hasSuffix)")
     func suffixParticles() {
         for pack in LanguagePack.all {
             for particle in pack.questionSuffixParticles {
-                #expect(particle.count == 1, "\(pack.code): \(particle)")
+                #expect(!particle.isEmpty, "\(pack.code)")
+                #expect(particle == particle.lowercased(), "\(pack.code): \(particle)")
+            }
+        }
+    }
+
+    @Test("the question mark is a single mark, full-width exactly for full-width packs")
+    func questionMarks() {
+        for pack in LanguagePack.all {
+            #expect(!pack.questionMark.isEmpty, "\(pack.code)")
+            if pack.usesFullWidthPunctuation {
+                #expect(pack.questionMark == "？", "\(pack.code)")
             }
         }
     }

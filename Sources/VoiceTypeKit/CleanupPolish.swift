@@ -51,8 +51,8 @@ public enum CleanupPolish {
         }
         guard options.fixCapitalization, !isTerminal,
               pack.separatesWordsWithSpaces else { return out }
-        if pack.code == "en" {
-            out = RuleBasedCleanup.capitalizeStandaloneI(out)
+        if let pronoun = pack.capitalizedStandalonePronoun {
+            out = RuleBasedCleanup.capitalizeStandalonePronoun(out, pronoun: pronoun)
         }
         return capitalizeFirstPlainWord(out)
     }
@@ -77,15 +77,20 @@ public enum CleanupPolish {
     /// "what/is/can…") or a sentence-final particle (Chinese …吗). Fires only
     /// when the model left NO terminal punctuation at all — if it chose "." or
     /// anything else, we respect that choice.
-    static func ensureQuestionMark(_ text: String, pack: LanguagePack = .english) -> String {
+    static func ensureQuestionMark(_ text: String, pack: LanguagePack? = nil) -> String {
+        let pack = pack ?? .english
         guard let last = text.last, last.isLetter || last.isNumber else { return text }
-        if pack.questionSuffixParticles.contains(String(last)) {
-            return text + "？"
+        // Longest particle first: a language can list both か and ですか
+        // without the shorter one shadowing the longer.
+        let lowered = text.lowercased()
+        for particle in pack.questionSuffixParticles.sorted(by: { $0.count > $1.count })
+        where lowered.hasSuffix(particle.lowercased()) {
+            return text + pack.questionMark
         }
         guard !pack.questionPrefixWords.isEmpty else { return text }
         let first = text.prefix(while: { !$0.isWhitespace }).lowercased()
         guard pack.questionPrefixWords.contains(first) else { return text }
-        return text + "?"
+        return text + pack.questionMark
     }
 
     /// Uppercase the first letter, but only when the leading token is a plain

@@ -15,6 +15,5 @@ extension LanguagePack {
             "vilket", "vilka", "är", "kan", "ska", "har", "gör", "finns",
             "vill", "får", "blir",
         ],
-        questionSuffixParticles: [],
-        promptAddendum: nil)
+        questionSuffixParticles: [])
 }

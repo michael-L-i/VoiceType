@@ -100,7 +100,7 @@ extension FoundationModelsCleanupEngine {
             // fabricated content (too long — e.g. echoed a prompt example),
             // fail so the pipeline degrades to the rule-based floor rather
             // than shipping words the user never said.
-            guard !CleanupGuard.looksUnfaithful(raw: text, cleaned: cleaned) else {
+            guard !CleanupGuard.looksUnfaithful(raw: text, cleaned: cleaned, locale: locale) else {
                 throw CleanupError.failed("Model output length is unfaithful to the input.")
             }
             // Deterministic touch-ups the model is unreliable at (leading

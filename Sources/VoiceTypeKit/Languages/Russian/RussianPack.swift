@@ -16,6 +16,5 @@ extension LanguagePack {
             "зачем", "как", "какой", "какая", "какое", "какие", "сколько",
             "чей", "чья", "чьё", "чьи",
         ],
-        questionSuffixParticles: [],
-        promptAddendum: nil)
+        questionSuffixParticles: [])
 }

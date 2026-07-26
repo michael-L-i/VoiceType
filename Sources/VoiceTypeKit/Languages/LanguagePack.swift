@@ -2,7 +2,7 @@ import Foundation
 
 /// Everything the deterministic cleanup path needs to know about one language:
 /// its never-content fillers, its spoken punctuation names, and its writing
-/// conventions. One Swift file per language (`LanguagePack+English.swift`, …) —
+/// conventions. One directory per language (`Languages/English/EnglishPack.swift`, …) —
 /// adding a language means adding a pack, registering it in `all`, and shipping
 /// tests plus eval cases with it. See docs/LOCALIZATION.md.
 ///
@@ -37,12 +37,69 @@ public struct LanguagePack: Sendable {
     /// Question heuristics for the deterministic question-mark rule: words that
     /// open a direct question (English "what/is/can…") …
     public let questionPrefixWords: Set<String>
-    /// … or sentence-final particles that end one (Chinese 吗).
+    /// … or sentence-final particles that end one (Chinese 吗, Japanese
+    /// ですか). Matched with `hasSuffix`, so a particle may be several
+    /// characters long — Korean and Japanese mark questions with verb endings,
+    /// which a single-character probe could never see.
     public let questionSuffixParticles: Set<String>
 
-    /// Extra lines appended to the LLM cleanup instructions for this language.
-    /// Keep minimal — few-shot content leaks into output (see CleanupPrompt).
-    public let promptAddendum: String?
+    /// The mark that ends a question in this orthography. Full-width for CJK,
+    /// and the extension point for Greek, which writes its question mark ";".
+    public let questionMark: String
+
+    /// Function words that prove nothing about a sentence's content: the guard
+    /// skips them when probing whether a dictation's opening survived, and the
+    /// spoken-symbol renderer refuses to join them into identifiers. Empty is
+    /// safe — it only makes both checks more conservative.
+    public let stopwords: Set<String>
+
+    /// The words this language uses to speak a symbol out loud. Non-nil opts
+    /// the language into the `SpokenSymbols` token pipeline ("main dot pie" →
+    /// main.py); nil skips it entirely, which is what every language except
+    /// English does today.
+    public let symbols: SpokenSymbolVocabulary?
+
+    /// A one-letter pronoun written capitalized even mid-sentence — English
+    /// "i" → "I". Nil for every other language, which is the common case:
+    /// almost no orthography has one.
+    public let capitalizedStandalonePronoun: String?
+
+    /// What this language contributes to the LLM cleanup instruction — its
+    /// hesitation sounds, capitalization rule, spoken-code triggers. See
+    /// `LanguagePromptGuidance`; `.none` means "generic instructions".
+    public let prompt: LanguagePromptGuidance
+
+    /// Explicit rather than synthesized so a language can fill in only the
+    /// fields it needs: everything after `questionSuffixParticles` defaults to
+    /// "this language doesn't do that", and adding a new field here never
+    /// touches the 16 existing packs.
+    public init(code: String,
+                separatesWordsWithSpaces: Bool,
+                usesFullWidthPunctuation: Bool,
+                terminalPeriod: String,
+                fillers: Set<String>,
+                spokenPunctuation: [String: String],
+                questionPrefixWords: Set<String>,
+                questionSuffixParticles: Set<String>,
+                questionMark: String = "?",
+                stopwords: Set<String> = [],
+                symbols: SpokenSymbolVocabulary? = nil,
+                capitalizedStandalonePronoun: String? = nil,
+                prompt: LanguagePromptGuidance = .none) {
+        self.code = code
+        self.separatesWordsWithSpaces = separatesWordsWithSpaces
+        self.usesFullWidthPunctuation = usesFullWidthPunctuation
+        self.terminalPeriod = terminalPeriod
+        self.fillers = fillers
+        self.spokenPunctuation = spokenPunctuation
+        self.questionPrefixWords = questionPrefixWords
+        self.questionSuffixParticles = questionSuffixParticles
+        self.questionMark = questionMark
+        self.stopwords = stopwords
+        self.symbols = symbols
+        self.capitalizedStandalonePronoun = capitalizedStandalonePronoun
+        self.prompt = prompt
+    }
 
     // MARK: - Registry
 
@@ -63,8 +120,7 @@ public struct LanguagePack: Sendable {
         fillers: [],
         spokenPunctuation: [:],
         questionPrefixWords: [],
-        questionSuffixParticles: [],
-        promptAddendum: nil)
+        questionSuffixParticles: [])
 
     /// The pack for a BCP-47 locale ("zh-CN", "en_US"), falling back to
     /// `.neutral` for languages nobody has contributed yet.

@@ -49,29 +49,38 @@ public enum CleanupGuard {
     /// short), a fabrication (too long), lost its opening, or switched into a
     /// script the speaker never used. Either way the engine must discard it
     /// and fall back to the deterministic floor.
-    public static func looksUnfaithful(raw: String, cleaned: String) -> Bool {
-        looksLikeSummary(raw: raw, cleaned: cleaned)
+    public static func looksUnfaithful(raw: String, cleaned: String,
+                                       locale: String = "en-US") -> Bool {
+        let pack = LanguagePack.pack(for: locale)
+        return looksLikeSummary(raw: raw, cleaned: cleaned, pack: pack)
             || looksFabricated(raw: raw, cleaned: cleaned)
-            || droppedOpening(raw: raw, cleaned: cleaned)
+            || droppedOpening(raw: raw, cleaned: cleaned, pack: pack)
             || introducedForeignScript(raw: raw, cleaned: cleaned)
             || lostDominantScript(raw: raw, cleaned: cleaned)
-            || droppedHanOpening(raw: raw, cleaned: cleaned)
+            || droppedScriptOpening(raw: raw, cleaned: cleaned, pack: pack)
     }
 
-    /// CJK counterpart of `droppedOpening`, which is blind there (whitespace
-    /// tokenization yields no words to probe). The observed zh failure mode is
-    /// the model discarding a short imperative opener — "请把 main.py 发给我"
-    /// → "main.py 发给我". Probe: the first Han bigram (after skipping the
-    /// pack's unambiguous fillers) must survive somewhere in the output.
+    /// Counterpart of `droppedOpening` for languages written without spaces,
+    /// where whitespace tokenization yields no words to probe. The observed zh
+    /// failure mode is the model discarding a short imperative opener — "请把
+    /// main.py 发给我" → "main.py 发给我". Probe: the first bigram of the
+    /// language's own script (after skipping the pack's unambiguous fillers)
+    /// must survive somewhere in the output.
+    ///
     /// Tripping on a legitimately-removed hesitation opener is fine — the
     /// fallback is the rules floor, which fails conservative by keeping it.
-    public static func droppedHanOpening(raw: String, cleaned: String) -> Bool {
-        let hanOnly = raw.filter { ch in
-            ch.unicodeScalars.first.map(CJKPunctuation.isHan) == true
+    public static func droppedScriptOpening(raw: String, cleaned: String,
+                                            pack: LanguagePack? = nil) -> Bool {
+        let pack = pack ?? .chinese
+        guard !pack.separatesWordsWithSpaces else { return false }
+        let scriptOnly = raw.filter { ch in
+            ch.unicodeScalars.first.map(CJKPunctuation.isCJKLetter) == true
         }
-        guard hanOnly.count >= 4 else { return false }
-        let fillers: Set<Character> = ["嗯", "呃"]
-        let bigram = String(hanOnly.drop(while: { fillers.contains($0) }).prefix(2))
+        guard scriptOnly.count >= 4 else { return false }
+        // The pack's fillers are whole tokens; for a script without spaces a
+        // hesitation is one or two characters, so match on characters.
+        let fillerCharacters = Set(pack.fillers.joined())
+        let bigram = String(scriptOnly.drop(while: { fillerCharacters.contains($0) }).prefix(2))
         guard bigram.count == 2 else { return false }
         return !cleaned.contains(bigram)
     }
@@ -102,21 +111,41 @@ public enum CleanupGuard {
         return !introduced.isEmpty
     }
 
-    /// True when the raw dictation is majority-Han but the cleaned output has
-    /// no Han at all — the model translated instead of cleaning. The
-    /// foreign-script check above can't see this direction: Latin is
-    /// deliberately untracked there (code and brand names inside CJK dictation
-    /// are normal), so zh→English translation slips past it.
+    /// True when the raw dictation is dominated by one non-Latin script but the
+    /// cleaned output contains none of it — the model translated instead of
+    /// cleaning. `introducedForeignScript` cannot see this direction: Latin is
+    /// deliberately untracked there (code and brand names inside non-Latin
+    /// dictation are normal), so any →English translation slips past it.
+    ///
+    /// Generalized from a Han-only check: Russian, Ukrainian, Greek, Japanese,
+    /// Korean, Arabic and Hindi dictation can all be silently Englished, and
+    /// each failed exactly the same way Chinese did.
     public static func lostDominantScript(raw: String, cleaned: String) -> Bool {
         guard !cleaned.isEmpty else { return false }
-        var rawHan = 0
+        var counts: [String: Int] = [:]
         var rawLetters = 0
         for scalar in raw.unicodeScalars where scalar.properties.isAlphabetic {
             rawLetters += 1
-            if CJKPunctuation.isHan(scalar) { rawHan += 1 }
+            if let script = script(of: scalar) { counts[script, default: 0] += 1 }
         }
-        guard rawLetters > 0, rawHan * 2 > rawLetters else { return false }
-        return !cleaned.unicodeScalars.contains { CJKPunctuation.isHan($0) }
+        guard rawLetters > 0 else { return false }
+        // Kana and Han both write Japanese; a kana-only reply to Han dictation
+        // is not a translation, so CJK letters count as one script here.
+        let cjk = (counts["han"] ?? 0) + (counts["kana"] ?? 0)
+        var tallies = counts
+        if cjk > 0 { tallies["cjk"] = cjk; tallies["han"] = nil; tallies["kana"] = nil }
+        guard let (dominant, count) = tallies.max(by: { $0.value < $1.value }),
+              count * 2 > rawLetters else { return false }
+        let survivors = dominant == "cjk"
+            ? scripts(in: cleaned).intersection(["han", "kana"])
+            : scripts(in: cleaned).intersection([dominant])
+        return survivors.isEmpty
+    }
+
+    /// The tracked script a scalar belongs to, or nil for Latin and anything
+    /// else we deliberately don't police.
+    private static func script(of scalar: Unicode.Scalar) -> String? {
+        foreignScripts.first { $0.ranges.contains { $0.contains(scalar.value) } }?.script
     }
 
     private static func scripts(in text: String) -> Set<String> {
@@ -129,21 +158,6 @@ public enum CleanupGuard {
         }
         return found
     }
-
-    /// Function words too common to prove anything about whether the opening
-    /// of the dictation survived into the output.
-    static let openerStopwords: Set<String> = [
-        "the", "a", "an", "and", "or", "but", "so", "to", "of", "in", "on",
-        "at", "for", "with", "about", "from",
-        "i", "we", "you", "he", "she", "they", "it", "me", "my", "your", "our", "us",
-        "is", "are", "was", "were", "be", "been", "am",
-        "do", "does", "did", "have", "has", "had",
-        "there", "here", "this", "that", "these", "those",
-        "okay", "ok", "yeah", "yes", "well", "just", "like", "really",
-        // Self-correction markers: legitimately removed along with the words
-        // they retract, so they prove nothing about the opening.
-        "no", "not", "wait", "actually", "sorry",
-    ]
 
     /// True when the start of the dictation vanished from the output. The
     /// observed failure mode: the model treats a declarative opener ("we have
@@ -162,13 +176,15 @@ public enum CleanupGuard {
     /// - Joined code tokens are split for matching (utils.ts → utils, ts), and
     ///   single spoken letters ("t", "s") are not probed, so legitimate code
     ///   rendering near the opening never reads as a drop.
-    public static func droppedOpening(raw: String, cleaned: String) -> Bool {
-        guard contentWordCount(raw) >= minimumContentWords else { return false }
+    public static func droppedOpening(raw: String, cleaned: String,
+                                      pack: LanguagePack? = nil) -> Bool {
+        let pack = pack ?? .english
+        guard contentWordCount(raw, pack: pack) >= minimumContentWords else { return false }
         let probe = words(raw).prefix(8).filter { word in
             word.count >= 2
-                && !LanguagePack.english.fillers.contains(word)
+                && !pack.fillers.contains(word)
                 && !spokenSymbols.contains(word)
-                && !openerStopwords.contains(word)
+                && !pack.stopwords.contains(word)
         }
         guard probe.count >= 2 else { return false }
         var opening = Set<String>()
@@ -198,8 +214,10 @@ public enum CleanupGuard {
 
     /// True when `cleaned` is suspiciously short relative to `raw` — i.e. the
     /// model likely summarized instead of cleaning.
-    public static func looksLikeSummary(raw: String, cleaned: String) -> Bool {
-        let rawContent = contentWordCount(raw)
+    public static func looksLikeSummary(raw: String, cleaned: String,
+                                        pack: LanguagePack? = nil) -> Bool {
+        let pack = pack ?? .english
+        let rawContent = contentWordCount(raw, pack: pack)
         guard rawContent >= minimumContentWords else { return false }
         // Count the cleaned side generously (every word counts): its filler
         // and symbol words are already gone, and over-counting there only
@@ -209,9 +227,10 @@ public enum CleanupGuard {
     }
 
     /// Whitespace-split words minus fillers and spoken-symbol tokens.
-    static func contentWordCount(_ text: String) -> Int {
-        words(text).count { word in
-            !LanguagePack.english.fillers.contains(word) && !spokenSymbols.contains(word)
+    static func contentWordCount(_ text: String, pack: LanguagePack? = nil) -> Int {
+        let pack = pack ?? .english
+        return words(text).count { word in
+            !pack.fillers.contains(word) && !spokenSymbols.contains(word)
         }
     }
 

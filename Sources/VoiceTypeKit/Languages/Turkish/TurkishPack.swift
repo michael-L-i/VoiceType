@@ -17,6 +17,5 @@ extension LanguagePack {
             "ne", "neden", "niye", "niçin", "kim", "nerede", "nereye",
             "nereden", "nasıl", "hangi", "kaç",
         ],
-        questionSuffixParticles: [],
-        promptAddendum: nil)
+        questionSuffixParticles: [])
 }

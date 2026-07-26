@@ -16,6 +16,5 @@ extension LanguagePack {
             "mag", "moet", "moeten", "zal", "zullen", "ben", "bent", "wil",
             "willen", "ga", "gaat", "gaan",
         ],
-        questionSuffixParticles: [],
-        promptAddendum: nil)
+        questionSuffixParticles: [])
 }

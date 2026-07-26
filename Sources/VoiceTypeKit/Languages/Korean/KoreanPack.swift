@@ -17,6 +17,5 @@ extension LanguagePack {
             "뭐", "무엇", "누가", "누구", "언제", "어디", "어디서", "왜",
             "어떻게", "몇",
         ],
-        questionSuffixParticles: [],
-        promptAddendum: nil)
+        questionSuffixParticles: [])
 }

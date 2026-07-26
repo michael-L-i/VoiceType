@@ -76,3 +76,57 @@ struct CleanupPromptTests {
         #expect(prompt.contains("<<<TRANSCRIPT\nhello world\nTRANSCRIPT>>>"))
     }
 }
+
+/// The prompt's language-specific substance comes from the pack, never from
+/// English. These are the regressions that matter when a new language lands.
+@Suite("Cleanup prompt — pack-driven language rules")
+struct PackDrivenPromptTests {
+    private func instructions(locale: String, category: AppCategory = .general) -> String {
+        CleanupPrompt.instructions(
+            for: .default,
+            context: CleanupContext(appBundleID: nil, appName: nil, category: category),
+            locale: locale)
+    }
+
+    @Test("English still states its own fillers, pronoun rule, and code triggers")
+    func englishKeepsItsRules() {
+        let out = instructions(locale: "en-US")
+        #expect(out.contains("\"um\", \"uh\""))
+        #expect(out.contains("always capitalize the pronoun \"I\""))
+        #expect(out.contains("\"app dot pie\" → app.py"))
+    }
+
+    @Test("a language with no guidance never receives English's rules")
+    func silentLanguageGetsGenericRules() {
+        let out = instructions(locale: "de-DE")
+        #expect(!out.contains("\"um\", \"uh\""))
+        #expect(!out.contains("pronoun \"I\""))
+        #expect(!out.contains("app dot pie"))
+        // Generic instructions still stand in for the omitted specifics.
+        #expect(out.contains("Remove filler words and disfluencies."))
+        #expect(out.contains("capitalize proper nouns"))
+        #expect(out.contains("The dictation is in German."))
+    }
+
+    @Test("a language's own addendum is still appended")
+    func addendumSurvives() {
+        #expect(instructions(locale: "zh-CN").contains("full-width Chinese punctuation"))
+        #expect(instructions(locale: "es-ES").contains("¿…?"))
+    }
+
+    @Test("terminal guidance is English's until another language writes its own")
+    func terminalGuidanceIsPerLanguage() {
+        #expect(instructions(locale: "en-US", category: .terminal)
+            .contains("\"dash dash verbose\" → --verbose"))
+        #expect(!instructions(locale: "de-DE", category: .terminal)
+            .contains("dash dash verbose"))
+    }
+
+    @Test("few-shot examples stay English-only until a battery justifies more")
+    func fewShotIsOptIn() {
+        #expect(instructions(locale: "en-US").contains("Examples (left = spoken"))
+        for pack in LanguagePack.all where pack.code != "en" {
+            #expect(!pack.prompt.usesFewShotExamples, "\(pack.code)")
+        }
+    }
+}

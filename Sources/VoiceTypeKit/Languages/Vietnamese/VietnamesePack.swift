@@ -13,6 +13,5 @@ extension LanguagePack {
         fillers: ["ừm", "ờm", "hmm"],
         spokenPunctuation: [:],
         questionPrefixWords: ["ai", "sao"],
-        questionSuffixParticles: [],
-        promptAddendum: nil)
+        questionSuffixParticles: [])
 }
