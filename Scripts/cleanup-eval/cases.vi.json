@@ -1,0 +1,182 @@
+[
+  {
+    "id": "vi-filler-leading",
+    "transcript": "ừm, chúng ta bắt đầu",
+    "locale": "vi-VN",
+    "exact": "Chúng ta bắt đầu.",
+    "note": "Only the hesitation-length sound ừm is removed, together with its comma."
+  },
+  {
+    "id": "vi-ambiguous-acknowledgement-kept",
+    "transcript": "ừ, tôi đồng ý",
+    "locale": "vi-VN",
+    "exact": "Ừ, tôi đồng ý.",
+    "note": "Ừ is an acknowledgement here, not a deterministic filler."
+  },
+  {
+    "id": "vi-ambiguous-question-word-statement",
+    "transcript": "ai cũng đồng ý",
+    "locale": "vi-VN",
+    "exact": "Ai cũng đồng ý.",
+    "note": "Ai cũng means everyone; a blind ai question-prefix rule would corrupt this statement."
+  },
+  {
+    "id": "vi-spoken-period",
+    "transcript": "hôm nay trời đẹp dấu chấm",
+    "locale": "vi-VN",
+    "exact": "Hôm nay trời đẹp.",
+    "note": "The explicit Vietnamese voice-input command dấu chấm renders a period."
+  },
+  {
+    "id": "vi-spoken-comma",
+    "transcript": "xin chào dấu phẩy bạn khỏe không dấu hỏi",
+    "locale": "vi-VN",
+    "exact": "Xin chào, bạn khỏe không?",
+    "note": "Explicit comma and question-mark commands render with ASCII Vietnamese spacing."
+  },
+  {
+    "id": "vi-spoken-colon",
+    "transcript": "lưu ý dấu hai chấm kiểm tra lại",
+    "locale": "vi-VN",
+    "exact": "Lưu ý: kiểm tra lại.",
+    "note": "An explicit colon command keeps no preceding space and one following space."
+  },
+  {
+    "id": "vi-spoken-idempotent",
+    "transcript": "tốt. dấu chấm",
+    "locale": "vi-VN",
+    "exact": "Tốt.",
+    "note": "An ASR-rendered period adjacent to the spoken command does not double."
+  },
+  {
+    "id": "vi-smart-quotes",
+    "transcript": "từ được chọn là mở ngoặc kép nhanh đóng ngoặc kép",
+    "locale": "vi-VN",
+    "exact": "Từ được chọn là “nhanh”.",
+    "note": "Paired Vietnamese quotation commands render typographic quotes without inner spaces."
+  },
+  {
+    "id": "vi-spoken-newline",
+    "transcript": "mục một xuống dòng mục hai",
+    "locale": "vi-VN",
+    "exact": "Mục một\nMục hai.",
+    "note": "The explicit line-break command survives shared whitespace cleanup."
+  },
+  {
+    "id": "vi-decimal-comma",
+    "transcript": "nhiệt độ là 37,5 độ",
+    "locale": "vi-VN",
+    "exact": "Nhiệt độ là 37,5 độ.",
+    "note": "A compact Vietnamese decimal comma is protected from the sentence-comma spacing pass."
+  },
+  {
+    "id": "vi-percent-spacing",
+    "transcript": "tỷ lệ là 75 %",
+    "locale": "vi-VN",
+    "exact": "Tỷ lệ là 75%.",
+    "note": "Vietnamese CLDR percent formatting attaches the percent sign to the number."
+  },
+  {
+    "id": "vi-currency-spacing",
+    "transcript": "giá là 100.000 ₫",
+    "locale": "vi-VN",
+    "exact": "Giá là 100.000\u00a0₫.",
+    "note": "The đồng sign follows the amount with a non-breaking space."
+  },
+  {
+    "id": "vi-file-name",
+    "transcript": "mở main chấm py",
+    "locale": "vi-VN",
+    "exact": "Mở main.py",
+    "note": "Bare chấm renders only because py is a known file extension; the file tail stays unpunctuated."
+  },
+  {
+    "id": "vi-snake-identifier",
+    "transcript": "đặt max gạch dưới retries thành năm",
+    "locale": "vi-VN",
+    "exact": "Đặt max_retries thành năm.",
+    "note": "Explicit gạch dưới joins identifier parts and is consumed."
+  },
+  {
+    "id": "vi-spoken-email",
+    "transcript": "gửi tới an chấm nguyen a còng gmail chấm com",
+    "locale": "vi-VN",
+    "exact": "Gửi tới an.nguyen@gmail.com",
+    "note": "A TLD-anchored address renders compactly without treating ordinary uses of a còng as email."
+  },
+  {
+    "id": "vi-prose-cham-guard",
+    "transcript": "tôi chấm bài vào buổi sáng",
+    "locale": "vi-VN",
+    "exact": "Tôi chấm bài vào buổi sáng.",
+    "note": "Chấm means grade/mark here and must remain a word."
+  },
+  {
+    "id": "vi-prose-underscore-guard",
+    "transcript": "hãy gạch dưới từ quan trọng",
+    "locale": "vi-VN",
+    "exact": "Hãy gạch dưới từ quan trọng.",
+    "note": "Function-word guards keep the prose instruction gạch dưới from becoming an identifier."
+  },
+  {
+    "id": "vi-embedded-technical-text",
+    "transcript": "API parseRequest dùng config.json",
+    "locale": "vi-VN",
+    "exact": "API parseRequest dùng config.json",
+    "note": "Existing abbreviations, camelCase, and file names preserve exact ASCII casing and punctuation."
+  },
+  {
+    "id": "vi-terminal-short-flag",
+    "transcript": "git commit gạch ngang m sửa lỗi đăng nhập",
+    "locale": "vi-VN",
+    "category": "terminal",
+    "exact": "git commit -m sửa lỗi đăng nhập",
+    "note": "Terminal-only flag rendering keeps the command lowercase and unpunctuated."
+  },
+  {
+    "id": "vi-terminal-long-flag",
+    "transcript": "npm run build gạch ngang gạch ngang verbose",
+    "locale": "vi-VN",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "Repeated gạch ngang renders a long shell flag."
+  },
+  {
+    "id": "vi-terminal-path",
+    "transcript": "cd dấu ngã gạch chéo projects gạch chéo voice",
+    "locale": "vi-VN",
+    "category": "terminal",
+    "exact": "cd ~/projects/voice",
+    "note": "Vietnamese tilde and slash names render a terminal path."
+  },
+  {
+    "id": "vi-terminal-punctuation-safety",
+    "transcript": "echo dấu chấm",
+    "locale": "vi-VN",
+    "category": "terminal",
+    "exact": "echo dấu chấm",
+    "note": "Prose punctuation rendering sits out terminal dictation when it is not safe shell syntax."
+  },
+  {
+    "id": "vi-contextual-question",
+    "transcript": "bạn gửi xong chưa",
+    "locale": "vi-VN",
+    "mustContain": ["gửi xong chưa"],
+    "note": "Chưa needs whole-utterance context: rules preserve it conservatively; the model prompt should recognize this question and add ?."
+  },
+  {
+    "id": "vi-self-correction",
+    "transcript": "đặt năm bản, à không, sáu bản cho cuộc họp",
+    "locale": "vi-VN",
+    "mustContain": ["sáu bản", "cuộc họp"],
+    "note": "Self-correction is model territory: keep only sáu bản in the model path; the deterministic floor preserves every spoken content word."
+  },
+  {
+    "id": "vi-long-ramble-no-translation",
+    "transcript": "ừm cuộc họp sáng nay có ba việc cần xử lý đầu tiên nhóm thiết kế phải cập nhật bản mẫu trước thứ tư tiếp theo đội kỹ thuật cần sửa lỗi đăng nhập vì người dùng mới vẫn không vào được và cuối cùng chúng ta phải gửi kế hoạch phát hành cho đối tác trước cuối tuần",
+    "locale": "vi-VN",
+    "mustContain": ["uộc họp sáng nay", "cập nhật bản mẫu", "sửa lỗi đăng nhập", "kế hoạch phát hành", "trước cuối tuần"],
+    "mustNotContain": ["meeting", "design", "login bug", "release plan"],
+    "note": "Long anti-translation/anti-summarization ramble: remove only ừm and retain every Vietnamese clause in order."
+  }
+]
