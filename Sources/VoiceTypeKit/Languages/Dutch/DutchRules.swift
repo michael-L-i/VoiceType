@@ -96,6 +96,173 @@ enum DutchOrthography {
         return out
     }
 
+    // MARK: - Spoken identifier symbols
+
+    /// The file extensions and top-level domains that make a spoken "punt"
+    /// unambiguous. Single letters (c, h) are left out: "op dat punt c" is
+    /// nonsense, but the extension set is the only guard this join has, so it
+    /// stays narrow.
+    static let extensions: Set<String> = [
+        "py", "js", "ts", "jsx", "tsx", "rs", "go", "swift", "json", "yaml",
+        "yml", "toml", "md", "txt", "html", "css", "sh", "sql", "csv", "log",
+        "env", "lock", "java", "rb", "php", "xml", "cpp", "hpp",
+        "nl", "be", "com", "net", "org", "io", "dev", "eu", "app", "ai",
+    ]
+
+    /// True when a token can be part of a dictated identifier: word-like, and
+    /// not a Dutch function word. "de underscore van het bestand" must stay
+    /// four words, not become "de_van het bestand".
+    private static func isJoinable(_ token: String) -> Bool {
+        !token.isEmpty
+            && token.allSatisfy { $0.isLetter || $0.isNumber || "._-@".contains($0) }
+            && !LanguagePack.dutchStopwords.contains(token.lowercased())
+    }
+
+    private static func isWordy(_ token: String) -> Bool {
+        !token.isEmpty
+            && token.allSatisfy { $0.isLetter || $0.isNumber || "._-/~@".contains($0) }
+    }
+
+    private static func splitTrailingPunctuation(_ token: String) -> (core: String, suffix: String) {
+        var core = token
+        var suffix = ""
+        while let last = core.last, ".,!?;:".contains(last) {
+            suffix = String(last) + suffix
+            core.removeLast()
+        }
+        return (core, suffix)
+    }
+
+    /// Join the two symbol words that are *only* symbol names in Dutch —
+    /// "apenstaartje" (@, the one every Dutch speaker uses for an e-mail
+    /// address) and "underscore" (the loanword; the Dutch verb is
+    /// "onderstrepen", so the noun never appears as prose here) — plus "punt"
+    /// in the single position where it cannot be prose: between a joinable
+    /// word and a known extension or TLD.
+    static func renderSpokenIdentifiers(_ text: String) -> String {
+        var tokens = text.split(separator: " ").map(String.init)
+        tokens = join(tokens, trigger: "apenstaartje", separator: "@")
+        tokens = join(tokens, trigger: "underscore", separator: "_")
+        tokens = joinExtensions(tokens)
+        return tokens.joined(separator: " ")
+    }
+
+    private static func join(_ tokens: [String], trigger: String, separator: String) -> [String] {
+        var out: [String] = []
+        var i = 0
+        while i < tokens.count {
+            if tokens[i].lowercased() == trigger,
+               let left = out.last, isJoinable(left), i + 1 < tokens.count {
+                let (core, suffix) = splitTrailingPunctuation(tokens[i + 1])
+                if isJoinable(core) {
+                    out[out.count - 1] = left + separator + core + suffix
+                    i += 2
+                    continue
+                }
+            }
+            out.append(tokens[i])
+            i += 1
+        }
+        return out
+    }
+
+    private static func joinExtensions(_ tokens: [String]) -> [String] {
+        var out: [String] = []
+        var i = 0
+        while i < tokens.count {
+            if tokens[i].lowercased() == "punt",
+               let left = out.last, isJoinable(left), i + 1 < tokens.count {
+                let (core, suffix) = splitTrailingPunctuation(tokens[i + 1])
+                if extensions.contains(core.lowercased()) {
+                    out[out.count - 1] = left + "." + core.lowercased() + suffix
+                    i += 2
+                    continue
+                }
+            }
+            out.append(tokens[i])
+            i += 1
+        }
+        return out
+    }
+
+    // MARK: - Terminal flags and paths
+
+    /// A private sentinel standing for the two-word "schuine streep" while the
+    /// token pass runs; anything left over is expanded back, so a phrase that
+    /// never became a path survives intact.
+    private static let slashToken = "\u{0001}slash"
+
+    /// Terminal-only. A Dutch speaker dictating a shell command says "streepje
+    /// streepje verbose" for `--verbose` and "tilde schuine streep projecten"
+    /// for `~/projecten`. Outside a terminal "streepje" is an ordinary word
+    /// ("een streepje zetten"), which is why this runs nowhere else.
+    static func renderTerminalSymbols(_ text: String) -> String {
+        var tokens: [String] = []
+        let raw = text.split(separator: " ").map(String.init)
+        var i = 0
+        while i < raw.count {
+            if raw[i].lowercased() == "schuine", i + 1 < raw.count,
+               raw[i + 1].lowercased() == "streep" {
+                tokens.append(slashToken)
+                i += 2
+                continue
+            }
+            tokens.append(raw[i])
+            i += 1
+        }
+        tokens = renderPaths(tokens)
+        tokens = renderFlags(tokens)
+        return tokens
+            .joined(separator: " ")
+            .replacingOccurrences(of: slashToken, with: "schuine streep")
+    }
+
+    private static func renderPaths(_ tokens: [String]) -> [String] {
+        var out: [String] = []
+        var i = 0
+        while i < tokens.count {
+            let t = tokens[i].lowercased()
+            let isTilde = t == "tilde"
+            if isTilde || t == "punt", i + 2 < tokens.count,
+               tokens[i + 1] == slashToken, isWordy(tokens[i + 2]) {
+                out.append((isTilde ? "~/" : "./") + tokens[i + 2])
+                i += 3
+                continue
+            }
+            if tokens[i] == slashToken, i + 1 < tokens.count, isWordy(tokens[i + 1]),
+               let left = out.last, isWordy(left) {
+                out[out.count - 1] = left + "/" + tokens[i + 1]
+                i += 2
+                continue
+            }
+            out.append(tokens[i])
+            i += 1
+        }
+        return out
+    }
+
+    private static func renderFlags(_ tokens: [String]) -> [String] {
+        var out: [String] = []
+        var i = 0
+        while i < tokens.count {
+            if tokens[i].lowercased() == "streepje", i + 1 < tokens.count {
+                if tokens[i + 1].lowercased() == "streepje", i + 2 < tokens.count,
+                   isWordy(tokens[i + 2]) {
+                    out.append("--" + tokens[i + 2])
+                    i += 3
+                    continue
+                }
+                if isWordy(tokens[i + 1]) {
+                    out.append("-" + tokens[i + 1])
+                    i += 2
+                    continue
+                }
+            }
+            out.append(tokens[i])
+            i += 1
+        }
+        return out
+    }
 }
 
 extension LanguagePack {
@@ -120,6 +287,20 @@ extension LanguagePack {
             stage: .early,
             pattern: "(?<=\\d),(?=\\d)",
             template: String(DutchOrthography.decimalComma)),
+
+        // "jan apenstaartje voorbeeld punt nl" → jan@voorbeeld.nl,
+        // "max underscore retries" → max_retries.
+        CleanupRule(name: "spoken identifier symbols", stage: .early) { text, _ in
+            DutchOrthography.renderSpokenIdentifiers(text)
+        },
+
+        // Terminal only, and gated again inside: "streepje streepje verbose"
+        // → --verbose, "tilde schuine streep projecten" → ~/projecten.
+        CleanupRule(name: "spoken shell flags and paths",
+                    stage: .early, runsInTerminal: true) { text, context in
+            guard context.category == .terminal else { return text }
+            return DutchOrthography.renderTerminalSymbols(text)
+        },
 
         // --- .afterPunctuation: after spacing normalization ---------------
 
