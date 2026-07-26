@@ -21,13 +21,20 @@ public struct RuleBasedCleanup: CleanupEngine {
     public static func process(_ input: String, options: CleanupOptions,
                                context: CleanupContext = .general,
                                locale: String = "en-US") -> String {
-        var text = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return "" }
-
         // Everything language-specific — fillers, spoken punctuation, writing
         // conventions — comes from the language pack. Languages nobody has
         // contributed yet get `.neutral`, i.e. the safe passes only.
-        let pack = LanguagePack.pack(for: locale)
+        process(input, options: options, context: context,
+                pack: LanguagePack.pack(for: locale))
+    }
+
+    /// The pack-taking form. Internal so a test (or a pack author's own test)
+    /// can exercise a pack that isn't registered yet.
+    static func process(_ input: String, options: CleanupOptions,
+                        context: CleanupContext = .general,
+                        pack: LanguagePack) -> String {
+        var text = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return "" }
 
         // The pack's own rules run first, on raw transcriber output, before
         // any shared pass has reshaped it.

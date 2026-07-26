@@ -14,8 +14,17 @@ public enum CleanupPolish {
                              options: CleanupOptions,
                              context: CleanupContext = .general,
                              locale: String = "en-US") -> String {
+        apply(text, options: options, context: context,
+              pack: LanguagePack.pack(for: locale))
+    }
+
+    /// The pack-taking form. Internal so a test can exercise a pack that isn't
+    /// registered yet — the same seam `RuleBasedCleanup.process` offers.
+    static func apply(_ text: String,
+                      options: CleanupOptions,
+                      context: CleanupContext = .general,
+                      pack: LanguagePack) -> String {
         var out = text
-        let pack = LanguagePack.pack(for: locale)
         // The model sometimes keeps the spoken joiner inside an identifier:
         // "max_underscore_retries" → "max_retries". Underscores only ever come
         // from explicit dictation, so this replacement cannot touch prose.
