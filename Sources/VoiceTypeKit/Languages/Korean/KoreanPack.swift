@@ -45,7 +45,7 @@ extension LanguagePack {
             "었나요", "았나요", "했나요",
         ],
         stopwords: KoreanCleanup.stopwords,
-        prompt: .none,
+        prompt: .korean,
         rules: KoreanCleanup.rules,
         // Modern horizontal Korean uses ASCII-width sentence punctuation, but
         // full-width CJK marks are also legitimate Korean typography. Preserve
