@@ -103,6 +103,7 @@ extension LanguagePack {
         symbols: nil,
         // German's "ich" is lowercase, unlike English "I".
         capitalizedStandalonePronoun: nil,
+        prompt: .german,
         rules: GermanRules.all,
         spokenSymbolWords: LanguagePack.germanSpokenSymbolWords,
         // Compounding means German packs more meaning into fewer words than
