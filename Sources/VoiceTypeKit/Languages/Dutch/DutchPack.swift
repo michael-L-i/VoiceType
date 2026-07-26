@@ -74,6 +74,11 @@ extension LanguagePack {
         // "he" as a suffix would fire on every word ending in -he ("cache").
         questionSuffixParticles: ["hè", "niet waar", "of niet"],
         stopwords: LanguagePack.dutchStopwords,
+        rules: LanguagePack.dutchRules,
+        // An abbreviation's period doubles as the sentence period in Dutch, so
+        // text ending in a masked abbreviation dot must not gain a second one.
+        // See `DutchRules`.
+        terminalMarks: LanguagePack.defaultTerminalMarks.union([DutchOrthography.abbreviationDot]),
         spokenSymbolWords: LanguagePack.dutchSpokenSymbolWords,
         // Dutch packs about as much meaning per word as English, so the
         // English-calibrated guard ratios transfer unchanged.
