@@ -69,6 +69,45 @@ language-neutral instruction.
 | `stopwords` | Function words the faithfulness guard skips when probing whether a dictation's opening survived, and that the symbol renderer refuses to join into identifiers. Leaving it empty only makes both checks more conservative. |
 | `symbols` | A `SpokenSymbolVocabulary` — your language's words for "dot", "underscore", "open paren", plus the file extensions and TLDs worth joining. Opting in enables `main.py`-style rendering in the zero-latency rules path. Omit it if your trigger words are everyday nouns (German "Punkt", Chinese 点); that ambiguity is what the LLM pass is for. |
 | `capitalizedStandalonePronoun` | Only for orthographies with a one-letter capitalized pronoun. English "i" → "I"; almost certainly nil for you. |
+| `casingLocaleIdentifier` | The locale whose casing applies. Set it if `uppercased()` is wrong for you — Turkish needs `"tr_TR"` so `i` becomes `İ`. |
+| `terminalMarks` | Characters that already end a sentence, so no period is appended. Override if your orthography ends sentences with something else (`।`, `؟`). |
+| `preservesFullWidthMarks` | True when full-width marks （，。？）are correct output for you, so the ASCII repair leaves them alone. Defaults to `usesFullWidthPunctuation`; Korean sets it explicitly. |
+| `spokenSymbolWords` | Words that name a symbol out loud, discounted by the faithfulness guard when counting content. Defaults to the English set — replace it with yours. |
+| `guardPolicy` | How aggressively the faithfulness guard judges you. Defaults are English-calibrated; languages that pack more meaning per word (Turkish, Korean, Finnish) may need different ratios. |
+| `modelLeadInPatterns` | Regexes matching a conversational lead-in the model might emit *in your language* ("Klar, hier ist der bereinigte Text:"). Added to the shared English ones. |
+
+**`rules` — your language's own deterministic fixes**
+
+The fields above answer a fixed set of questions. Everything else your
+language needs goes in `rules: [CleanupRule]`, declared in your own pack:
+
+```swift
+CleanupRule.regex(
+    name: "narrow no-break space before high punctuation",
+    stage: .afterPunctuation,
+    pattern: "(?<=\\S)([;:!?])",
+    template: "\u{202F}$1")
+```
+
+A rule is a named, pure `String -> String` fix that runs at one of three
+stages — `.early` (raw text, before any shared pass), `.afterPunctuation`
+(after spacing and width normalization), `.final` (after capitalization and
+terminal punctuation). **Both cleanup paths run all three in the same order**,
+so your orthography holds whether the text came from the deterministic floor
+or from the model.
+
+Two things to know:
+
+- Rules **sit out terminal dictation** unless you pass `runsInTerminal: true`.
+  In a terminal the text is usually a shell command, where a "correction" is
+  corruption.
+- Pick the stage by what would otherwise undo you. The shared Latin pass
+  strips whitespace before `; : ! ?`, so French restores it at
+  `.afterPunctuation` — declaring it `.early` would just get it deleted.
+
+This is the pack's escape hatch, and deliberately so: **improving a language
+must never require editing shared code**, because that is where languages
+collide with each other.
 
 **LLM prompt** — `prompt: LanguagePromptGuidance`
 
@@ -83,7 +122,9 @@ differs is the substance, and that's what you supply.
 | `capitalizationRule` | Replaces the generic rule wholesale — German capitalizes every noun, Turkish has a dotted/dotless I, Devanagari has no case. |
 | `codeRendering` | How your speakers dictate symbols and file names. Omitted entirely when nil, which is correct: teaching a German transcript to render the English word "dot" only produced false joins. |
 | `terminalGuidance` | Spoken flags and paths when dictating into a terminal. |
-| `usesFewShotExamples` | Off by default. Turn it on only once your eval battery shows examples help — the model has been observed echoing example content into its output. |
+| `codeEditorGuidance` | Register when dictating into a code editor. Nil gets a language-neutral instruction. |
+| `selfCorrectionRule` | How a speaker of your language changes their mind mid-sentence. Nil falls back to a rule whose example is English — replace it. |
+| `fewShot` / `terminalFewShot` | Your own `(spoken, cleaned)` pairs. Empty by default: ship them only once your eval battery shows they help, because the model has been observed echoing example content into its output. Never English's pairs — they invite both leakage and outright translation. |
 | `addendum` | Free-form extra rules (full-width punctuation, ¿…?). Keep minimal; prompt content leaks. |
 
 Document your judgment calls (what you deliberately did NOT map, and why) in
@@ -126,9 +167,15 @@ by what the rules engine produces.
   `Scripts/cleanup-eval/cases.<code>.json`. The only shared line you touch is
   the `LanguagePack.all` registry.
 - **No language special-cases in shared code.** If the engine needs to branch
-  on your language, that branch belongs in the pack as data or as a named
-  policy the engine already understands. `pack.code == "de"` in
-  `RuleBasedCleanup` will not be merged.
+  on your language, that branch belongs in the pack — as data, as a named
+  policy the engine already understands, or as a `CleanupRule`.
+  `pack.code == "de"` in `RuleBasedCleanup` will not be merged. In practice
+  your whole diff should be three paths nobody else touches:
+  `Sources/VoiceTypeKit/Languages/<Language>/`,
+  `Tests/VoiceTypeKitTests/Languages/<Language>PackTests.swift`, and
+  `Scripts/cleanup-eval/cases.<code>.json`. If you believe your language needs
+  something the pack genuinely cannot express, say so in the PR rather than
+  editing shared code.
 - `VoiceTypeKit` stays pure: no resources, no dependencies, everything
   unit-testable.
 - Deterministic rules fail conservative: when a rule could corrupt legitimate
@@ -160,9 +207,13 @@ contributions you can make, and each is a small PR.
   `.neutral`, where "remove fillers" does nothing: ar, bg, cs, da, el, et, fi,
   hi, hr, hu, lt, lv, mt, nb, ro, sk, sl, plus en-GB spelling. Arabic (RTL,
   `؟ ،`) and Greek (`;` as question mark) need engine support beyond a pack.
-- The self-correction example in the shared prompt ("five, no six copies") is
-  still English; a language can override it via `addendum` until it's lifted
-  into `LanguagePromptGuidance`.
-- `RuleBasedCleanup.capitalizeSentences` uppercases with Swift's
-  locale-independent `uppercased()`, so Turkish `istanbul` becomes `Istanbul`
-  rather than `İstanbul`. Fixing it needs a casing policy on the pack.
+- The shared prompt's *fallback* self-correction example is still English
+  ("five, no six copies"). A pack that sets `selfCorrectionRule` never sees
+  it; one that doesn't, does.
+- Latin-script languages all have empty `spokenPunctuation`, because "Punkt" /
+  "point" / "punto" are everyday nouns and the table replaces
+  unconditionally. A `CleanupRule` that renders them only in unambiguous
+  positions is the way in — nobody has written one yet.
+- Cleanup engines are not gated by language: the Apple on-device model runs
+  for locales Apple Intelligence doesn't support, and only the faithfulness
+  guard catches the fallout. `EngineResolver.resolveCleanup` takes no locale.
