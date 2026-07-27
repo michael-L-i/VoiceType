@@ -1,0 +1,166 @@
+[
+  {
+    "id": "ro-fillers-central-vowels",
+    "transcript": "ăăă, cred că îîî putem începe",
+    "locale": "ro-RO",
+    "exact": "Cred că putem începe.",
+    "note": "Only non-lexical Romanian central-vowel hesitation sounds are removed."
+  },
+  {
+    "id": "ro-ambiguous-discourse-markers",
+    "transcript": "păi deci acesta este un gen de exemplu și mhm înseamnă că sunt de acord",
+    "locale": "ro-RO",
+    "mustContain": ["Păi", "deci", "gen", "mhm"],
+    "note": "Meaningful discourse markers and acknowledgements are never deterministic fillers."
+  },
+  {
+    "id": "ro-cedilla-normalization",
+    "transcript": "Ştiinţa foloseşte măsurători",
+    "locale": "ro-RO",
+    "exact": "Știința folosește măsurători.",
+    "note": "Legacy cedilla ş/ţ normalize to Romanian comma-below ș/ț."
+  },
+  {
+    "id": "ro-spoken-question-mark",
+    "transcript": "unde mergem semnul întrebării",
+    "locale": "ro-RO",
+    "exact": "Unde mergem?",
+    "note": "The explicit spoken name semnul întrebării renders as a question mark."
+  },
+  {
+    "id": "ro-spoken-semicolon",
+    "transcript": "unu punct și virgulă doi",
+    "locale": "ro-RO",
+    "exact": "Unu; doi.",
+    "note": "The unambiguous multi-word punctuation name renders with Romanian spacing."
+  },
+  {
+    "id": "ro-spoken-ellipsis",
+    "transcript": "mai așteaptă puncte de suspensie",
+    "locale": "ro-RO",
+    "exact": "Mai așteaptă…",
+    "note": "Spoken ellipsis renders as the typographic mark attached to the preceding word."
+  },
+  {
+    "id": "ro-spoken-question-idempotent",
+    "transcript": "unde mergem? semnul întrebării",
+    "locale": "ro-RO",
+    "exact": "Unde mergem?",
+    "note": "A punctuation mark already emitted by the recognizer does not double."
+  },
+  {
+    "id": "ro-question-opener",
+    "transcript": "câte exemplare trimitem",
+    "locale": "ro-RO",
+    "exact": "Câte exemplare trimitem?",
+    "note": "An unambiguous Romanian interrogative opener gains a question mark."
+  },
+  {
+    "id": "ro-ambiguous-ce-exclamation",
+    "transcript": "ce frumos este aici",
+    "locale": "ro-RO",
+    "exact": "Ce frumos este aici.",
+    "note": "Ce can open an exclamation, so it is deliberately excluded from the blind question heuristic."
+  },
+  {
+    "id": "ro-decimal-and-currency",
+    "transcript": "costă 1.234,56 RON",
+    "locale": "ro-RO",
+    "exact": "Costă 1.234,56\u00a0RON.",
+    "note": "Decimal comma survives shared spacing; the amount and currency code stay together."
+  },
+  {
+    "id": "ro-date-and-time",
+    "transcript": "ne vedem pe 31.12.2026 la 14:30",
+    "locale": "ro-RO",
+    "exact": "Ne vedem pe 31.12.2026 la 14:30.",
+    "note": "Romanian day-month-year dates and 24-hour times survive unchanged."
+  },
+  {
+    "id": "ro-abbreviation-capitalization",
+    "transcript": "consultați nr. trei și str. principală",
+    "locale": "ro-RO",
+    "exact": "Consultați nr. trei și str. principală.",
+    "note": "Periods in common abbreviations do not falsely capitalize the following word."
+  },
+  {
+    "id": "ro-clitic-hyphens",
+    "transcript": "s a întors și n a mai plecat dintr un motiv",
+    "locale": "ro-RO",
+    "exact": "S-a întors și n-a mai plecat dintr-un motiv.",
+    "note": "Unambiguously spaced clitics and compounds regain Romanian hyphens."
+  },
+  {
+    "id": "ro-year-apostrophe",
+    "transcript": "anii '90 au schimbat multe",
+    "locale": "ro-RO",
+    "exact": "Anii ’90 au schimbat multe.",
+    "note": "An abbreviated calendar year uses the typographic apostrophe."
+  },
+  {
+    "id": "ro-spoken-file-name",
+    "transcript": "trimite main punct pai",
+    "locale": "ro-RO",
+    "exact": "Trimite main.py",
+    "note": "Punct renders only beside a known extension; the file name remains bare."
+  },
+  {
+    "id": "ro-spoken-identifier",
+    "transcript": "variabila max underscore retries este setată",
+    "locale": "ro-RO",
+    "exact": "Variabila max_retries este setată.",
+    "note": "The explicit English loanword underscore joins a dictated identifier."
+  },
+  {
+    "id": "ro-spoken-email",
+    "transcript": "scrie la ion arond exemplu punct ro",
+    "locale": "ro-RO",
+    "exact": "Scrie la ion@exemplu.ro",
+    "note": "Romanian arond plus a known TLD anchors safe email rendering."
+  },
+  {
+    "id": "ro-ambiguous-punct-kept",
+    "transcript": "acesta este un punct important",
+    "locale": "ro-RO",
+    "exact": "Acesta este un punct important.",
+    "note": "Bare punct is an ordinary noun here and must remain prose."
+  },
+  {
+    "id": "ro-embedded-technical-text",
+    "transcript": "config.json rămâne neschimbat și folosim APIClient",
+    "locale": "ro-RO",
+    "exact": "config.json rămâne neschimbat și folosim APIClient.",
+    "note": "Embedded file names and identifiers preserve ASCII spelling and exact casing."
+  },
+  {
+    "id": "ro-terminal-flags",
+    "transcript": "git log minus minus oneline",
+    "locale": "ro-RO",
+    "category": "terminal",
+    "exact": "git log --oneline",
+    "note": "Terminal dictation renders a long flag without capitalization or trailing punctuation."
+  },
+  {
+    "id": "ro-terminal-file-and-flag",
+    "transcript": "python app punct pai minus v",
+    "locale": "ro-RO",
+    "category": "terminal",
+    "exact": "python app.py -v",
+    "note": "Romanian symbol vocabulary safely renders a file extension and short shell flag."
+  },
+  {
+    "id": "ro-ramble-faithfulness",
+    "transcript": "ăăă astăzi vreau să păstrăm toate detaliile despre lansare pentru că echipa de testare nu a terminat verificările apoi trebuie să actualizăm documentația iar după aceea discutăm cu departamentul juridic și abia la final stabilim data exactă",
+    "locale": "ro-RO",
+    "mustContain": ["Astăzi", "lansare", "testare", "documentația", "juridic", "data exactă"],
+    "mustNotContain": ["today", "release", "testing", "documentation", "legal"],
+    "note": "Long anti-translation and anti-summarization ramble keeps every Romanian clause; only the leading pure hesitation may disappear."
+  },
+  {
+    "id": "ro-self-correction-model-territory",
+    "transcript": "ședința este marți nu de fapt miercuri după-amiază",
+    "locale": "ro-RO",
+    "mustContain": ["marți", "miercuri", "după-amiază"],
+    "note": "Rules conservatively retain both attempts; the model prompt should resolve the explicit correction to miercuri without losing the time."
+  }
+]
