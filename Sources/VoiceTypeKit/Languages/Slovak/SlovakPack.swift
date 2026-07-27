@@ -44,7 +44,7 @@ extension LanguagePack {
         // English. The Slovak-owned rule below invokes the same conservative
         // renderer, and unlike the field it also repairs model output.
         symbols: nil,
-        prompt: .none,
+        prompt: .slovak,
         rules: slovakRules,
         spokenSymbolWords: SlovakSymbols.spokenWords,
         modelLeadInPatterns: [
