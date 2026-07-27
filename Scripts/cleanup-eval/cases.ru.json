@@ -1,0 +1,238 @@
+[
+  {
+    "id": "ru-filler-leading",
+    "transcript": "ээ сегодня встречаемся в семь",
+    "locale": "ru-RU",
+    "exact": "Сегодня встречаемся в семь.",
+    "note": "A visibly lengthened hesitation vowel is removed without leaving a gap."
+  },
+  {
+    "id": "ru-filler-mid",
+    "transcript": "я думаю, э-э, надо подождать",
+    "locale": "ru-RU",
+    "exact": "Я думаю, надо подождать.",
+    "note": "A comma-wrapped pure hesitation is removed cleanly."
+  },
+  {
+    "id": "ru-ambiguous-fillers-kept",
+    "transcript": "ну вот это типа данных",
+    "locale": "ru-RU",
+    "exact": "Ну вот это типа данных.",
+    "note": "ну/вот are discourse-capable and типа is lexical here; rules must keep all three."
+  },
+  {
+    "id": "ru-letter-name-em-kept",
+    "transcript": "эм это имя латинской буквы",
+    "locale": "ru-RU",
+    "exact": "Эм это имя латинской буквы.",
+    "note": "эм can be the dictated name of Latin M, so it is never a blind filler."
+  },
+  {
+    "id": "ru-spoken-comma-question",
+    "transcript": "привет запятая как дела вопросительный знак",
+    "locale": "ru-RU",
+    "exact": "Привет, как дела?",
+    "note": "Conventional spoken punctuation commands render with Russian spacing."
+  },
+  {
+    "id": "ru-spoken-high-punctuation",
+    "transcript": "первое точка с запятой второе двоеточие третье",
+    "locale": "ru-RU",
+    "exact": "Первое; второе: третье.",
+    "note": "Unambiguous semicolon and colon commands render deterministically."
+  },
+  {
+    "id": "ru-spoken-newline",
+    "transcript": "первая строка новая строка вторая строка",
+    "locale": "ru-RU",
+    "exact": "Первая строка\nвторая строка.",
+    "note": "The established новая строка command inserts a real line break."
+  },
+  {
+    "id": "ru-spoken-idempotent",
+    "transcript": "готово! восклицательный знак",
+    "locale": "ru-RU",
+    "exact": "Готово!",
+    "note": "An ASR-rendered mark plus its literal command never doubles."
+  },
+  {
+    "id": "ru-point-prose-kept",
+    "transcript": "точка доступа недоступна",
+    "locale": "ru-RU",
+    "exact": "Точка доступа недоступна.",
+    "note": "точка is an ordinary noun here and is excluded from unconditional punctuation."
+  },
+  {
+    "id": "ru-question-opener",
+    "transcript": "почему сборка упала",
+    "locale": "ru-RU",
+    "exact": "Почему сборка упала?",
+    "note": "A clear interrogative-word opener gains a question mark."
+  },
+  {
+    "id": "ru-decimal-comma",
+    "transcript": "значение равно 3,14",
+    "locale": "ru-RU",
+    "exact": "Значение равно 3,14.",
+    "note": "The Russian decimal comma is protected from the shared comma-spacing pass."
+  },
+  {
+    "id": "ru-version-dots",
+    "transcript": "версия 2.4.1 готова",
+    "locale": "ru-RU",
+    "exact": "Версия 2.4.1 готова.",
+    "note": "Version dots remain dots; the pack never blindly converts digit-dot-digit."
+  },
+  {
+    "id": "ru-ellipsis",
+    "transcript": "я пока не знаю...",
+    "locale": "ru-RU",
+    "exact": "Я пока не знаю...",
+    "note": "A three-dot Russian ellipsis survives shared repeated-mark collapse."
+  },
+  {
+    "id": "ru-question-ellipsis",
+    "transcript": "и что теперь?..",
+    "locale": "ru-RU",
+    "exact": "И что теперь?..",
+    "note": "Russian ?.. punctuation is preserved exactly."
+  },
+  {
+    "id": "ru-abbreviation-spacing",
+    "transcript": "это т.е. рабочий вариант",
+    "locale": "ru-RU",
+    "exact": "Это т. е. рабочий вариант.",
+    "note": "Multipart abbreviations use spaces and do not trigger false sentence capitalization."
+  },
+  {
+    "id": "ru-guillemets",
+    "transcript": "\"готово.\"",
+    "locale": "ru-RU",
+    "exact": "«Готово».",
+    "note": "Straight quotes become Russian guillemets and the full stop moves outside."
+  },
+  {
+    "id": "ru-quoted-question",
+    "transcript": "\"готово?\"",
+    "locale": "ru-RU",
+    "exact": "«Готово?»",
+    "note": "A question mark belonging to quoted words remains inside with no extra period."
+  },
+  {
+    "id": "ru-number-grouping",
+    "transcript": "бюджет 1 000 000 рублей",
+    "locale": "ru-RU",
+    "exact": "Бюджет 1 000 000 рублей.",
+    "note": "Existing three-digit groups are joined by nonbreaking spaces."
+  },
+  {
+    "id": "ru-currency-spacing",
+    "transcript": "это стоит 100₽",
+    "locale": "ru-RU",
+    "exact": "Это стоит 100 ₽.",
+    "note": "The ruble sign follows the value with a nonbreaking space."
+  },
+  {
+    "id": "ru-units-spacing",
+    "transcript": "температура 20°С и влажность 80%",
+    "locale": "ru-RU",
+    "exact": "Температура 20 °С и влажность 80 %.",
+    "note": "Measurement and percent symbols follow their values with nonbreaking spaces."
+  },
+  {
+    "id": "ru-date-preserved",
+    "transcript": "встреча назначена на 26.07.2026",
+    "locale": "ru-RU",
+    "exact": "Встреча назначена на 26.07.2026",
+    "note": "The standard day.month.year form is preserved; identifier safety leaves the numeric tail bare."
+  },
+  {
+    "id": "ru-apostrophe-preserved",
+    "transcript": "это книга О’Брайена",
+    "locale": "ru-RU",
+    "exact": "Это книга О’Брайена.",
+    "note": "A legitimate apostrophe in a foreign surname survives unchanged."
+  },
+  {
+    "id": "ru-file-extension",
+    "transcript": "открой config точка json",
+    "locale": "ru-RU",
+    "exact": "Открой config.json",
+    "note": "точка renders only because a recognized extension anchors the technical pattern."
+  },
+  {
+    "id": "ru-file-homophone",
+    "transcript": "main точка пай",
+    "locale": "ru-RU",
+    "exact": "main.py",
+    "note": "A common Russian rendering of the .py extension joins in a file-name context."
+  },
+  {
+    "id": "ru-snake-identifier",
+    "transcript": "max нижнее подчеркивание retries",
+    "locale": "ru-RU",
+    "exact": "max_retries",
+    "note": "The compound Russian underscore name is consumed and joins only marked identifier parts."
+  },
+  {
+    "id": "ru-spoken-email",
+    "transcript": "ivan собака gmail точка com",
+    "locale": "ru-RU",
+    "exact": "ivan@gmail.com",
+    "note": "собака renders only inside a TLD-anchored ASCII email pattern."
+  },
+  {
+    "id": "ru-mixed-tech",
+    "transcript": "метод parseRequest читает config.json и возвращает UserID",
+    "locale": "ru-RU",
+    "exact": "Метод parseRequest читает config.json и возвращает UserID.",
+    "note": "Embedded Latin identifiers and file names retain script and case."
+  },
+  {
+    "id": "ru-terminal-flag",
+    "transcript": "git checkout дефис b",
+    "locale": "ru-RU",
+    "category": "terminal",
+    "exact": "git checkout -b",
+    "note": "A Russian spoken hyphen renders a shell flag without capitalization or a period."
+  },
+  {
+    "id": "ru-terminal-long-flag",
+    "transcript": "ls дефис дефис all",
+    "locale": "ru-RU",
+    "category": "terminal",
+    "exact": "ls --all",
+    "note": "Repeated Russian flag markers render a long option."
+  },
+  {
+    "id": "ru-terminal-path",
+    "transcript": "cd тильда слэш projects слэш VoiceType",
+    "locale": "ru-RU",
+    "category": "terminal",
+    "exact": "cd ~/projects/VoiceType",
+    "note": "Russian path vocabulary renders only under the terminal bias."
+  },
+  {
+    "id": "ru-terminal-punctuation-words-safe",
+    "transcript": "echo вопросительный знак",
+    "locale": "ru-RU",
+    "category": "terminal",
+    "exact": "echo вопросительный знак",
+    "note": "Prose punctuation commands sit out terminal dictation."
+  },
+  {
+    "id": "ru-ramble-no-translation",
+    "transcript": "ээ я хотел подробно объяснить почему выпуск переносится сначала нам нужно закончить тестирование затем обновить документацию и только после этого можно отправлять сборку пользователям поэтому пожалуйста не сокращай это сообщение и сохрани все причины в том же порядке",
+    "locale": "ru-RU",
+    "mustContain": ["выпуск", "тестирование", "документацию", "сборку", "пользователям", "причины"],
+    "mustNotContain": ["release", "testing", "documentation", "build", "users"],
+    "note": "Long anti-translation/anti-summary coverage: every Russian clause and its order must survive."
+  },
+  {
+    "id": "ru-self-correction-model-territory",
+    "transcript": "встреча будет во вторник нет в среду утром",
+    "locale": "ru-RU",
+    "mustContain": ["во вторник", "нет", "в среду утром"],
+    "note": "Rules conservatively retain both attempts; the prompt tells the model to keep only the explicit last correction."
+  }
+]
