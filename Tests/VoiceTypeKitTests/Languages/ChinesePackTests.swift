@@ -103,6 +103,16 @@ struct ChineseRuleCleanupTests {
                 == "环境变量是 NODE_ENV：production")
     }
 
+    @Test("Chinese-owned rules are idempotent after rendering")
+    func customRulesIdempotent() {
+        let prose = clean("请打开 main 点 py 逗号 Python")
+        #expect(prose == "请打开 main.py，Python")
+        #expect(clean(prose) == prose)
+
+        let email = clean("请发到 zhang 点 san 艾特 example 点 com 再确认")
+        #expect(clean(email) == email)
+    }
+
     @Test("spoken dates, measure words, quantities, and currency stay faithful")
     func numbersAndQuantities() {
         #expect(clean("发布日期是二零二六年七月二十六日")
