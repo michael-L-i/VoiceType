@@ -80,6 +80,27 @@ struct PackIntegrityTests {
         }
     }
 
+    @Test("a pack that opts into spoken symbols supplies usable trigger words")
+    func symbolVocabularyHygiene() {
+        for pack in LanguagePack.all {
+            guard let symbols = pack.symbols else { continue }
+            #expect(!symbols.dot.isEmpty, "\(pack.code) has no word for a dot")
+            for word in symbols.dot.union(symbols.underscore).union(symbols.dash) {
+                #expect(word == word.lowercased(), "\(pack.code): \(word)")
+                #expect(!word.isEmpty, "\(pack.code)")
+            }
+        }
+    }
+
+    @Test("a standalone capitalized pronoun is a single lowercase letter")
+    func standalonePronounHygiene() {
+        for pack in LanguagePack.all {
+            guard let pronoun = pack.capitalizedStandalonePronoun else { continue }
+            #expect(pronoun == pronoun.lowercased(), "\(pack.code): \(pronoun)")
+            #expect(pronoun.count == 1, "\(pack.code): \(pronoun)")
+        }
+    }
+
     @Test("pack rules are named and uniquely named within a pack")
     func ruleNames() {
         for pack in LanguagePack.all {
