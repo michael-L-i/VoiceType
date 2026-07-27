@@ -106,6 +106,8 @@ struct BulgarianRuleCleanupTests {
         #expect(clean("цената е 50EUR") == "Цената е 50\u{00A0}EUR.")
         #expect(clean("струва 3,14€") == "Струва 3,14\u{00A0}€.")
         #expect(clean("бюджетът е 200лв") == "Бюджетът е 200\u{00A0}лв.")
+        #expect(clean("бюджетът е 1 234 567,89 EUR")
+            == "Бюджетът е 1\u{00A0}234\u{00A0}567,89\u{00A0}EUR.")
     }
 
     @Test("spoken file and identifier symbols render compactly")

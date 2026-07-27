@@ -59,6 +59,11 @@ enum BulgarianCleanup {
             pattern: #"(?<=[А-Яа-яЍѝ])'(?=[А-Яа-яЍѝ])"#,
             template: "’"),
         .regex(
+            name: "normalize Bulgarian digit grouping spaces",
+            stage: .final,
+            pattern: "(?<=\\d)[ \u{00A0}\u{202F}](?=\\d{3}(?:\\D|$))",
+            template: "\u{00A0}"),
+        .regex(
             name: "space Bulgarian trailing currency",
             stage: .final,
             pattern: "(\\d)[ \u{00A0}\u{202F}]*(€|EUR|BGN|лв\\.?)",

@@ -71,10 +71,10 @@
   },
   {
     "id": "bg-currency-spacing",
-    "transcript": "цената е 1234,56EUR",
+    "transcript": "цената е 1 234 567,56EUR",
     "locale": "bg-BG",
-    "exact": "Цената е 1234,56 EUR.",
-    "note": "A following currency code is separated from the amount by a nonbreaking space."
+    "exact": "Цената е 1 234 567,56 EUR.",
+    "note": "Digit groups and a following currency code use nonbreaking spaces."
   },
   {
     "id": "bg-quotation-marks",
