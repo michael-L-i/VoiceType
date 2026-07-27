@@ -1,0 +1,159 @@
+[
+  {
+    "id": "lv-filler-elongated",
+    "transcript": "ēē, šodien pabeigsim darbu",
+    "locale": "lv-LV",
+    "exact": "Šodien pabeigsim darbu.",
+    "note": "An elongated non-word hesitation is safe to remove deterministically."
+  },
+  {
+    "id": "lv-ambiguous-fillers-kept",
+    "transcript": "nu tā mēs turpināsim un respektīvi pabeigsim rīt",
+    "locale": "lv-LV",
+    "exact": "Nu tā mēs turpināsim un respektīvi pabeigsim rīt.",
+    "note": "Meaningful discourse words are never deterministic fillers."
+  },
+  {
+    "id": "lv-spoken-comma",
+    "transcript": "pirmais komats otrais komats trešais",
+    "locale": "lv-LV",
+    "exact": "Pirmais, otrais, trešais.",
+    "note": "The unambiguous spoken punctuation noun komats renders with Latvian spacing."
+  },
+  {
+    "id": "lv-spoken-quotes",
+    "transcript": "viņš teica atverošās pēdiņas labrīt aizverošās pēdiņas",
+    "locale": "lv-LV",
+    "exact": "Viņš teica „labrīt”.",
+    "note": "Spoken opening and closing quotation marks render as Latvian low-high quotes."
+  },
+  {
+    "id": "lv-spoken-idempotent",
+    "transcript": "labi, komats turpinām",
+    "locale": "lv-LV",
+    "exact": "Labi, turpinām.",
+    "note": "An ASR-rendered comma adjacent to its spoken name is not doubled."
+  },
+  {
+    "id": "lv-question-vai",
+    "transcript": "vai tu nāksi rīt",
+    "locale": "lv-LV",
+    "exact": "Vai tu nāksi rīt?",
+    "note": "Sentence-initial vai is the standard yes/no question opener."
+  },
+  {
+    "id": "lv-question-kapec",
+    "transcript": "kāpēc vilciens kavējas",
+    "locale": "lv-LV",
+    "exact": "Kāpēc vilciens kavējas?",
+    "note": "An unpunctuated direct question with kāpēc gains a question mark."
+  },
+  {
+    "id": "lv-decimal-comma",
+    "transcript": "cena ir 12,50 eiro",
+    "locale": "lv-LV",
+    "exact": "Cena ir 12,50 eiro.",
+    "note": "The Latvian decimal comma must not be split by generic comma spacing."
+  },
+  {
+    "id": "lv-ellipsis",
+    "transcript": "es vēl domāju...",
+    "locale": "lv-LV",
+    "exact": "Es vēl domāju...",
+    "note": "A three-dot ellipsis survives generic repeated-mark cleanup."
+  },
+  {
+    "id": "lv-straight-quotes",
+    "transcript": "viņš teica \"labrīt\"",
+    "locale": "lv-LV",
+    "exact": "Viņš teica „labrīt”.",
+    "note": "Paired straight quotes normalize to Latvian low-high quotation marks."
+  },
+  {
+    "id": "lv-worded-date-time",
+    "transcript": "tikšanās ir 2026.gada 26.jūlijā plkst.18.00.",
+    "locale": "lv-LV",
+    "exact": "Tikšanās ir 2026. gada 26. jūlijā plkst. 18.00.",
+    "note": "Worded dates and plkst. clock times use protected spaces after ordinal periods and abbreviations."
+  },
+  {
+    "id": "lv-currency-percent",
+    "transcript": "budžets ir EUR 1 250,50 un pieaugums 10%",
+    "locale": "lv-LV",
+    "exact": "Budžets ir 1 250,50 EUR un pieaugums 10 %.",
+    "note": "Currency follows the amount; currency and percent use non-breaking spaces."
+  },
+  {
+    "id": "lv-abbreviation",
+    "transcript": "tas ir t.i. vienkāršs piemērs",
+    "locale": "lv-LV",
+    "exact": "Tas ir t. i. vienkāršs piemērs.",
+    "note": "The multi-part abbreviation is spaced canonically without falsely capitalizing the next word."
+  },
+  {
+    "id": "lv-spoken-file",
+    "transcript": "atver config punkts json",
+    "locale": "lv-LV",
+    "exact": "Atver config.json",
+    "note": "Contextual punkts renders only before a known extension."
+  },
+  {
+    "id": "lv-spoken-identifier",
+    "transcript": "main pasvītra test",
+    "locale": "lv-LV",
+    "exact": "main_test",
+    "note": "The official Latvian term pasvītra joins an explicitly dictated identifier."
+  },
+  {
+    "id": "lv-punkts-prose-kept",
+    "transcript": "tas ir svarīgs punkts",
+    "locale": "lv-LV",
+    "exact": "Tas ir svarīgs punkts.",
+    "note": "Ambiguous punkts remains a noun outside a recognized technical shape."
+  },
+  {
+    "id": "lv-spoken-email",
+    "transcript": "janis punkts berzins et example punkts lv",
+    "locale": "lv-LV",
+    "exact": "janis.berzins@example.lv",
+    "note": "The accepted Latvian spoken @ name et renders in an email anchored by a TLD."
+  },
+  {
+    "id": "lv-terminal-flag",
+    "transcript": "git defise defise verbose",
+    "locale": "lv-LV",
+    "category": "terminal",
+    "exact": "git --verbose",
+    "note": "Latvian-spoken long flags render without capitalization or terminal punctuation."
+  },
+  {
+    "id": "lv-terminal-path",
+    "transcript": "cd tilde slīpsvītra projekti slīpsvītra VoiceType",
+    "locale": "lv-LV",
+    "category": "terminal",
+    "exact": "cd ~/projekti/VoiceType",
+    "note": "Latvian-spoken shell path symbols render only with terminal bias."
+  },
+  {
+    "id": "lv-embedded-english",
+    "transcript": "atver config.json un pārbaudi timeout mainīgajā request_id",
+    "locale": "lv-LV",
+    "mustContain": ["config.json", "timeout", "request_id"],
+    "note": "Embedded English, file names, and identifiers retain their exact ASCII spelling."
+  },
+  {
+    "id": "lv-long-no-translation",
+    "transcript": "ēē šodienas sanāksmē mēs vispirms pārrunājām jaunās versijas izlaišanas datumu pēc tam izskatījām testēšanas rezultātus un beigās vienojāmies ka dokumentācija jāpabeidz līdz piektdienai bet publicēšanu pārcelsim uz nākamo nedēļu",
+    "locale": "lv-LV",
+    "mustContain": ["sanāksmē", "versijas", "testēšanas", "dokumentācija", "piektdienai", "nedēļu"],
+    "mustNotContain": ["meeting", "release", "testing", "documentation", "Friday", "week"],
+    "note": "Long Latvian dictation keeps every clause and never translates or summarizes."
+  },
+  {
+    "id": "lv-self-correction-safe-floor",
+    "transcript": "nosūtīsim piecas nē sešas kopijas ceturtdien",
+    "locale": "lv-LV",
+    "mustContain": ["piecas", "nē", "sešas", "ceturtdien"],
+    "note": "Self-correction is model territory; the deterministic floor safely preserves both attempts."
+  }
+]
