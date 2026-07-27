@@ -64,6 +64,24 @@ struct EnglishRuleTests {
         #expect(out == "Use parseRequest in the handler.")
     }
 
+    @Test("a leading camel identifier remains lower camel case")
+    func leadingCamelCaseIdentifier() {
+        let out = RuleBasedCleanup.process(
+            "camel case parse request",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "parseRequest.")
+    }
+
+    @Test("multiple camel-case commands render independently")
+    func multipleCamelCaseIdentifiers() {
+        let out = RuleBasedCleanup.process(
+            "call camel case parse request and then call camel case load user with it",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Call parseRequest and then call loadUser with it.")
+    }
+
     @Test("camel case without a multiword target remains prose")
     func camelCaseProseGuard() {
         let out = RuleBasedCleanup.process(

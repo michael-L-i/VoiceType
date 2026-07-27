@@ -108,6 +108,12 @@
     "note": "The explicit directive joins its target, then stops at an English function-word boundary."
   },
   {
+    "id": "camel-identifier-leading",
+    "transcript": "camel case parse request",
+    "exact": "parseRequest.",
+    "note": "A leading lower-camel identifier is protected from sentence capitalization."
+  },
+  {
     "id": "camel-prose-guard",
     "transcript": "camel case is common in javascript",
     "exact": "Camel case is common in javascript.",

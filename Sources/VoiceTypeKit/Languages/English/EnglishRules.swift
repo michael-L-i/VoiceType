@@ -26,6 +26,15 @@ extension LanguagePack {
             pattern: #"\b(to|from|at|on|in|for|with|by)[ \t]+[\p{L}\p{N}][^,\n]{0,39},[ \t]*no[ \t]+wait,[ \t]*\1[ \t]+"#,
             template: "$1 ",
             options: [.caseInsensitive]),
+        // The private-use marker keeps the shared sentence capitalizer from
+        // turning a leading lower-camel identifier into UpperCamelCase. It is
+        // introduced only by the renderer below and removed after every
+        // shared pass has finished.
+        CleanupRule.regex(
+            name: "en: unshield rendered camel identifiers",
+            stage: .final,
+            pattern: "\u{E100}VTENCC\u{E101}",
+            template: ""),
     ]
 
     /// Render an explicit `camel case` command and consume only the identifier
@@ -91,7 +100,9 @@ extension LanguagePack {
                 return component.prefix(1).uppercased() + component.dropFirst()
             }.joined()
 
-            out.replaceSubrange(triggerRange.lowerBound..<cursor, with: rendered)
+            let replacementRange = NSRange(triggerRange.lowerBound..<cursor, in: source)
+            guard let outRange = Range(replacementRange, in: out) else { continue }
+            out.replaceSubrange(outRange, with: "\u{E100}VTENCC\u{E101}" + rendered)
         }
         return out
     }
