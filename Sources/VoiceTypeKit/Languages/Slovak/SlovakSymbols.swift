@@ -49,7 +49,12 @@ enum SlovakSymbols {
         ]))
 
     static func render(_ text: String, _ context: CleanupContext) -> String {
-        SpokenSymbols.render(
+        let containsTrigger = text.split(whereSeparator: \.isWhitespace).contains { token in
+            let core = token.trimmingCharacters(in: .punctuationCharacters).lowercased()
+            return spokenWords.contains(core)
+        }
+        guard containsTrigger else { return text }
+        return SpokenSymbols.render(
             text,
             category: context.category,
             vocabulary: vocabulary)

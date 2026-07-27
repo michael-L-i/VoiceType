@@ -118,6 +118,12 @@ extension LanguagePack {
             SlovakOrthography.restoreNonSentencePeriods(text, context)
         },
         CleanupRule(
+            name: "remove duplicate period after a quoted sentence",
+            stage: .final
+        ) { text, context in
+            SlovakOrthography.normalizeQuotedSentenceEnding(text, context)
+        },
+        CleanupRule(
             name: "use fixed spaces before Slovak measurement marks",
             stage: .final
         ) { text, context in
@@ -128,7 +134,10 @@ extension LanguagePack {
 
 private enum SlovakOrthography {
     private static let decimalComma = "\u{E100}"
-    private static let nonSentencePeriod = "\u{E101}"
+    // A rare punctuation scalar rather than a private-use scalar: the shared
+    // capitalization pass trims punctuation when deciding whether the first
+    // token is a plain word, so sentence-initial `napr.` still becomes `Napr.`.
+    private static let nonSentencePeriod = "\u{2059}"
     private static let fixedSpace = "\u{00A0}"
 
     static func maskDecimalCommas(_ text: String, _: CleanupContext) -> String {
@@ -168,6 +177,10 @@ private enum SlovakOrthography {
 
     static func restoreNonSentencePeriods(_ text: String, _: CleanupContext) -> String {
         text.replacingOccurrences(of: nonSentencePeriod, with: ".")
+    }
+
+    static func normalizeQuotedSentenceEnding(_ text: String, _: CleanupContext) -> String {
+        replace(text, pattern: #"([.!?])“\.$"#, template: "$1“")
     }
 
     static func normalizeProseMarks(_ text: String, _ context: CleanupContext) -> String {
@@ -210,12 +223,12 @@ private enum SlovakOrthography {
         guard context.category != .codeEditor else { return text }
         var out = replace(
             text,
-            pattern: #"(\d)[ \t\u{00A0}]*(%|€|EUR\b|USD\b|CZK\b)"#,
+            pattern: "(\\d)[ \\t\(fixedSpace)]*(%|€|EUR\\b|USD\\b|CZK\\b)",
             template: "$1\(fixedSpace)$2",
             options: [.caseInsensitive])
         out = replace(
             out,
-            pattern: #"(\d)[ \t\u{00A0}]*(°)[ \t]*(C|F)\b"#,
+            pattern: "(\\d)[ \\t\(fixedSpace)]*(°)[ \\t]*(C|F)\\b",
             template: "$1\(fixedSpace)$2$3",
             options: [.caseInsensitive])
         return out
