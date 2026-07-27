@@ -140,5 +140,112 @@
     "locale": "zh-CN",
     "mustContain": ["周四"],
     "note": "Self-correction is model territory (rules keep both); the model should keep only 周四. Judge the model run manually."
+  },
+  {
+    "id": "zh-technical-spoken-dot",
+    "transcript": "请打开 main 点 py 检查配置",
+    "locale": "zh-CN",
+    "exact": "请打开 main.py 检查配置。",
+    "note": "A known Latin file extension makes spoken 点 structurally unambiguous."
+  },
+  {
+    "id": "zh-spoken-email",
+    "transcript": "请发到 zhang 点 san 艾特 example 点 com 再确认",
+    "locale": "zh-CN",
+    "exact": "请发到 zhang.san@example.com 再确认。",
+    "note": "The spoken at-sign plus a known TLD safely anchors a Latin email address."
+  },
+  {
+    "id": "zh-latin-adjacent-comma",
+    "transcript": "支持 TypeScript 逗号 Python 和 Swift",
+    "locale": "zh-CN",
+    "exact": "支持 TypeScript，Python 和 Swift",
+    "note": "A dictated Chinese comma is set solid even when both neighbors are Latin; the existing bare-Latin-tail policy remains unchanged."
+  },
+  {
+    "id": "zh-latin-adjacent-colon",
+    "transcript": "环境变量是 NODE_ENV 冒号 production",
+    "locale": "zh-CN",
+    "exact": "环境变量是 NODE_ENV：production",
+    "note": "Spoken Chinese punctuation beside an ASCII identifier must not retain ASR padding; the existing bare-Latin-tail policy remains unchanged."
+  },
+  {
+    "id": "zh-spoken-decimal-kept",
+    "transcript": "圆周率约等于三点一四",
+    "locale": "zh-CN",
+    "exact": "圆周率约等于三点一四。",
+    "note": "点 inside a number read aloud is decimal content, not a technical symbol."
+  },
+  {
+    "id": "zh-spoken-time-kept",
+    "transcript": "会议安排在三点一刻",
+    "locale": "zh-CN",
+    "exact": "会议安排在三点一刻。",
+    "note": "点 in a spoken time remains lexical."
+  },
+  {
+    "id": "zh-fast-point-kept",
+    "transcript": "请快点把文件发来",
+    "locale": "zh-CN",
+    "exact": "请快点把文件发来。",
+    "note": "Everyday 点 meaning 'a bit/more quickly' is never rewritten."
+  },
+  {
+    "id": "zh-spoken-date-digits",
+    "transcript": "发布日期是二零二六年七月二十六日",
+    "locale": "zh-CN",
+    "exact": "发布日期是二零二六年七月二十六日。",
+    "note": "A date read digit by digit remains exactly as dictated."
+  },
+  {
+    "id": "zh-measure-words",
+    "transcript": "请买三本书和两支笔",
+    "locale": "zh-CN",
+    "exact": "请买三本书和两支笔。",
+    "note": "Numerals and their classifiers remain paired and unchanged."
+  },
+  {
+    "id": "zh-quantity-currency",
+    "transcript": "总价是一百二十八元五角",
+    "locale": "zh-CN",
+    "exact": "总价是一百二十八元五角。",
+    "note": "Spoken quantity and currency units are preserved rather than normalized speculatively."
+  },
+  {
+    "id": "zh-erhua",
+    "transcript": "待会儿去胡同口看看",
+    "locale": "zh-CN",
+    "exact": "待会儿去胡同口看看。",
+    "note": "儿化 is lexical morphology and survives deterministic cleanup."
+  },
+  {
+    "id": "zh-repeated-characters",
+    "transcript": "这个问题要慢慢看看再说",
+    "locale": "zh-CN",
+    "exact": "这个问题要慢慢看看再说。",
+    "note": "Intentional repeated characters are content, not transcription stutter."
+  },
+  {
+    "id": "zh-filler-lookalike-idiom",
+    "transcript": "这简直是对牛弹琴",
+    "locale": "zh-CN",
+    "exact": "这简直是对牛弹琴。",
+    "note": "对 can look discourse-like in isolation but is indispensable inside this idiom."
+  },
+  {
+    "id": "zh-terminal-chinese-prose",
+    "transcript": "请运行 git status 然后把结果发给我",
+    "locale": "zh-CN",
+    "category": "terminal",
+    "exact": "请运行 git status 然后把结果发给我",
+    "note": "Terminal-category Chinese prose and its embedded command stay faithful and gain no sentence mark."
+  },
+  {
+    "id": "zh-terminal-technical-dot",
+    "transcript": "请运行 python main 点 py 然后检查输出",
+    "locale": "zh-CN",
+    "category": "terminal",
+    "exact": "请运行 python main.py 然后检查输出",
+    "note": "The guarded technical 点 rule opts into terminals because joining a known file extension is command-safe."
   }
 ]

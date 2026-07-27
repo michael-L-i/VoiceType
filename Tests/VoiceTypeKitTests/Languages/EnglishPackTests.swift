@@ -44,6 +44,128 @@ struct EnglishPackPolicyTests {
     }
 }
 
+@Suite("Cleanup rules — English deterministic commands")
+struct EnglishRuleTests {
+    @Test("spoken camel case joins only the marked identifier")
+    func camelCaseIdentifier() {
+        let out = RuleBasedCleanup.process(
+            "call camel case get user name with the session token",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Call getUserName with the session token.")
+    }
+
+    @Test("camel case stops at an English function-word boundary")
+    func camelCaseBoundary() {
+        let out = RuleBasedCleanup.process(
+            "use camel case parse request in the handler",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Use parseRequest in the handler.")
+    }
+
+    @Test("a leading camel identifier remains lower camel case")
+    func leadingCamelCaseIdentifier() {
+        let out = RuleBasedCleanup.process(
+            "camel case parse request",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "parseRequest.")
+    }
+
+    @Test("multiple camel-case commands render independently")
+    func multipleCamelCaseIdentifiers() {
+        let out = RuleBasedCleanup.process(
+            "call camel case parse request and then call camel case load user with it",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Call parseRequest and then call loadUser with it.")
+    }
+
+    @Test("camel case without a multiword target remains prose")
+    func camelCaseProseGuard() {
+        let out = RuleBasedCleanup.process(
+            "camel case is common in javascript",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Camel case is common in javascript.")
+    }
+
+    @Test("the same camel-case rule repairs model output")
+    func camelCaseModelPolish() {
+        let out = CleanupPolish.apply(
+            "call camel case get user name with the token",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Call getUserName with the token")
+    }
+
+    @Test("camel-case commands sit out terminal dictation")
+    func camelCaseTerminalGuard() {
+        let out = RuleBasedCleanup.process(
+            "git branch camel case feature name",
+            options: .default,
+            context: CleanupContext(category: .terminal),
+            locale: "en-US")
+        #expect(out == "git branch camel case feature name")
+    }
+
+    @Test("no wait retracts an argument only when its preposition repeats")
+    func repeatedPrepositionCorrection() {
+        let out = RuleBasedCleanup.process(
+            "send the report to bob, no wait, to alice before lunch",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Send the report to alice before lunch.")
+    }
+
+    @Test("ordinary no wait prose is never treated as a correction")
+    func noWaitProseGuard() {
+        let out = RuleBasedCleanup.process(
+            "there is no wait, to enter the museum",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "There is no wait, to enter the museum.")
+    }
+
+    @Test("a changed preposition leaves an ambiguous correction untouched")
+    func noWaitAnchorGuard() {
+        let out = RuleBasedCleanup.process(
+            "send the report to bob, no wait, for alice before lunch",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Send the report to bob, no wait, for alice before lunch.")
+    }
+
+    @Test("no-wait correction sits out terminal dictation")
+    func noWaitTerminalGuard() {
+        let out = RuleBasedCleanup.process(
+            "send the report to bob, no wait, to alice",
+            options: .default,
+            context: CleanupContext(category: .terminal),
+            locale: "en-US")
+        #expect(out == "send the report to bob, no wait, to alice")
+    }
+
+    @Test("bare numeric self-correction remains model territory")
+    func numericCorrectionRefusal() {
+        let out = RuleBasedCleanup.process(
+            "we need five, no six copies",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "We need five, no six copies.")
+    }
+
+    @Test("ordinary numeric no prose preserves both numbers")
+    func numericNoProseGuard() {
+        let out = RuleBasedCleanup.process(
+            "the answer is five, no six is allowed by the rubric",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "The answer is five, no six is allowed by the rubric.")
+    }
+}
+
 @Suite("Cleanup polish — English model output")
 struct EnglishPolishTests {
     @Test("an unpunctuated interrogative opener gains a question mark and a capital")

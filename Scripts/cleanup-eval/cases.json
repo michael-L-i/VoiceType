@@ -44,14 +44,32 @@
     "transcript": "send the report to bob, no wait, to alice before lunch",
     "mustContain": ["lice before lunch"],
     "mustNotContain": ["bob", "Bob"],
-    "note": "Self-correction resolves to the corrected name only."
+    "note": "The repeated preposition gives the deterministic rule a safe boundary for the retracted name."
+  },
+  {
+    "id": "no-wait-prose-guard",
+    "transcript": "there is no wait, to enter the museum",
+    "exact": "There is no wait, to enter the museum.",
+    "note": "Ordinary prose containing no wait has no repeated-preposition anchor and stays intact."
+  },
+  {
+    "id": "no-wait-mismatched-anchor",
+    "transcript": "send the report to bob, no wait, for alice before lunch",
+    "exact": "Send the report to bob, no wait, for alice before lunch.",
+    "note": "A changed preposition makes the retracted span ambiguous, so the rules floor preserves every word."
   },
   {
     "id": "self-correction-number",
     "transcript": "we need um five, no six copies of the deck for the board meeting",
     "mustContain": ["six copies"],
     "mustNotContain": ["five"],
-    "note": "Numeric self-correction keeps only the corrected value."
+    "note": "Intentionally model-only: the rules path cannot distinguish this correction from ordinary no-negation without risking content loss."
+  },
+  {
+    "id": "numeric-no-prose-guard",
+    "transcript": "the answer is five, no six is allowed by the rubric",
+    "exact": "The answer is five, no six is allowed by the rubric.",
+    "note": "The same number-comma-no-number shape can carry literal meaning, proving why the deterministic path preserves it."
   },
   {
     "id": "underscore-file",
@@ -82,6 +100,31 @@
     "transcript": "call camel case get user name with the session token",
     "mustContain": ["getUserName"],
     "note": "Spoken camel case directive joins the identifier."
+  },
+  {
+    "id": "camel-identifier-boundary",
+    "transcript": "use camel case parse request in the handler",
+    "exact": "Use parseRequest in the handler.",
+    "note": "The explicit directive joins its target, then stops at an English function-word boundary."
+  },
+  {
+    "id": "camel-identifier-leading",
+    "transcript": "camel case parse request",
+    "exact": "parseRequest.",
+    "note": "A leading lower-camel identifier is protected from sentence capitalization."
+  },
+  {
+    "id": "camel-prose-guard",
+    "transcript": "camel case is common in javascript",
+    "exact": "Camel case is common in javascript.",
+    "note": "Without a multiword identifier target, camel case remains ordinary prose."
+  },
+  {
+    "id": "camel-terminal-guard",
+    "transcript": "git branch camel case feature name",
+    "category": "terminal",
+    "exact": "git branch camel case feature name",
+    "note": "English pack rules stay out of terminal commands unless explicitly opted in."
   },
   {
     "id": "parens-call",
