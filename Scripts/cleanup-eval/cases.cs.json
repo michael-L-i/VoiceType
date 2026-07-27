@@ -1,0 +1,198 @@
+[
+  {
+    "id": "cs-filler-ehm",
+    "transcript": "ehm myslím že to stihneme",
+    "locale": "cs-CZ",
+    "exact": "Myslím že to stihneme.",
+    "note": "An unmistakable EHM hesitation is removed."
+  },
+  {
+    "id": "cs-filler-eee",
+    "transcript": "to je, eee, dobrý nápad",
+    "locale": "cs-CZ",
+    "exact": "To je, dobrý nápad.",
+    "note": "A vowel-like Czech EE hesitation is removed without deleting content."
+  },
+  {
+    "id": "cs-ambiguous-fillers-kept",
+    "transcript": "no takže to je vlastně prostě hotové",
+    "locale": "cs-CZ",
+    "mustContain": ["No", "takže", "vlastně", "prostě"],
+    "note": "Meaningful Czech discourse words are never deterministic fillers."
+  },
+  {
+    "id": "cs-response-kept",
+    "transcript": "mhm to dává smysl",
+    "locale": "cs-CZ",
+    "exact": "Mhm to dává smysl.",
+    "note": "MHM can convey agreement and must remain."
+  },
+  {
+    "id": "cs-decimal-comma",
+    "transcript": "teplota je 21,5 stupně",
+    "locale": "cs-CZ",
+    "exact": "Teplota je 21,5 stupně.",
+    "note": "A Czech decimal comma stays tight instead of becoming list punctuation."
+  },
+  {
+    "id": "cs-number-list",
+    "transcript": "bylo tam 30, 40 lidí",
+    "locale": "cs-CZ",
+    "exact": "Bylo tam 30, 40 lidí.",
+    "note": "An already-spaced enumeration comma remains an enumeration."
+  },
+  {
+    "id": "cs-abbreviation",
+    "transcript": "potřebujeme např. nový server",
+    "locale": "cs-CZ",
+    "exact": "Potřebujeme např. nový server.",
+    "note": "The period in např. does not capitalize the following common noun."
+  },
+  {
+    "id": "cs-company-abbreviation",
+    "transcript": "firma je s. r. o. se sídlem v Brně",
+    "locale": "cs-CZ",
+    "exact": "Firma je s. r. o. se sídlem v Brně.",
+    "note": "A multi-token graphical abbreviation does not create phantom sentences."
+  },
+  {
+    "id": "cs-quotes",
+    "transcript": "řekl \"ahoj světe\"",
+    "locale": "cs-CZ",
+    "exact": "Řekl „ahoj světe“.",
+    "note": "Straight quote pairs become Czech primary 99-66 quotation marks."
+  },
+  {
+    "id": "cs-ellipsis",
+    "transcript": "já nevím... možná zítra",
+    "locale": "cs-CZ",
+    "exact": "Já nevím… možná zítra.",
+    "note": "Three ASCII periods become the single Czech ellipsis character."
+  },
+  {
+    "id": "cs-question-word",
+    "transcript": "proč to nefunguje",
+    "locale": "cs-CZ",
+    "exact": "Proč to nefunguje?",
+    "note": "An interrogative opener gains a question mark."
+  },
+  {
+    "id": "cs-preposition-question",
+    "transcript": "za jak dlouho to bude hotové",
+    "locale": "cs-CZ",
+    "exact": "Za jak dlouho to bude hotové?",
+    "note": "The pack catches a multi-word Czech question opener hidden from the shared first-token heuristic."
+  },
+  {
+    "id": "cs-later-question",
+    "transcript": "to funguje. kdy začneme",
+    "locale": "cs-CZ",
+    "exact": "To funguje. Kdy začneme?",
+    "note": "A non-initial question is marked sentence by sentence."
+  },
+  {
+    "id": "cs-statement-not-question",
+    "transcript": "je pondělí",
+    "locale": "cs-CZ",
+    "exact": "Je pondělí.",
+    "note": "Czech finite verbs also open statements and are excluded from the heuristic."
+  },
+  {
+    "id": "cs-spoken-file",
+    "transcript": "otevři main tečka py",
+    "locale": "cs-CZ",
+    "exact": "Otevři main.py",
+    "note": "Tečka renders only where a known file extension makes the technical reading safe."
+  },
+  {
+    "id": "cs-spoken-identifier",
+    "transcript": "max podtržítko retries je pět",
+    "locale": "cs-CZ",
+    "exact": "max_retries je pět.",
+    "note": "A spoken underscore joins an explicitly marked identifier."
+  },
+  {
+    "id": "cs-spoken-code-punctuation",
+    "transcript": "print otevřená závorka x čárka y uzavřená závorka",
+    "locale": "cs-CZ",
+    "category": "codeEditor",
+    "exact": "print(x, y)",
+    "note": "In a code editor, unambiguous spoken parentheses and comma render exactly."
+  },
+  {
+    "id": "cs-symbol-prose-guard",
+    "transcript": "desetinná čárka odděluje celou část",
+    "locale": "cs-CZ",
+    "exact": "Desetinná čárka odděluje celou část.",
+    "note": "The punctuation noun čárka remains ordinary prose."
+  },
+  {
+    "id": "cs-embedded-english",
+    "transcript": "používáme Docker a Kubernetes v produkci",
+    "locale": "cs-CZ",
+    "exact": "Používáme Docker a Kubernetes v produkci.",
+    "note": "Embedded English product names keep their case and spelling."
+  },
+  {
+    "id": "cs-existing-file",
+    "transcript": "chyba je v config.json",
+    "locale": "cs-CZ",
+    "exact": "Chyba je v config.json",
+    "note": "An existing ASCII file name remains intact and does not gain a glued period."
+  },
+  {
+    "id": "cs-terminal-command",
+    "transcript": "git status",
+    "locale": "cs-CZ",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "A bare command receives no capital or terminal punctuation."
+  },
+  {
+    "id": "cs-terminal-flag",
+    "transcript": "npm run build pomlčka pomlčka verbose",
+    "locale": "cs-CZ",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "A Czech-spoken long shell flag renders compactly."
+  },
+  {
+    "id": "cs-terminal-path",
+    "transcript": "cd tilda lomítko projekty",
+    "locale": "cs-CZ",
+    "category": "terminal",
+    "exact": "cd ~/projekty",
+    "note": "A Czech-spoken home path renders without prose punctuation."
+  },
+  {
+    "id": "cs-terminal-literal",
+    "transcript": "echo ehm",
+    "locale": "cs-CZ",
+    "category": "terminal",
+    "exact": "echo ehm",
+    "note": "A terminal argument that happens to equal a filler is protected."
+  },
+  {
+    "id": "cs-terminal-decimal",
+    "transcript": "printf 3,14",
+    "locale": "cs-CZ",
+    "category": "terminal",
+    "exact": "printf 3,14",
+    "note": "Shared comma spacing must not split one terminal argument."
+  },
+  {
+    "id": "cs-long-ramble",
+    "transcript": "ehm podle mě bychom měli vydání posunout o týden protože testy ještě nejsou hotové a dokumentace potřebuje doplnit no zároveň ale nechci měnit rozsah verze takže nejdřív opravíme přihlašování potom dokončíme překlady a nakonec znovu projdeme celý instalační postup",
+    "locale": "cs-CZ",
+    "mustContain": ["vydání posunout o týden", "testy ještě nejsou hotové", "dokumentace potřebuje doplnit", "nechci měnit rozsah", "opravíme přihlašování", "dokončíme překlady", "instalační postup"],
+    "mustNotContain": ["ehm", "release", "documentation", "login"],
+    "note": "Long Czech content remains complete, ordered, and untranslated; ambiguous no is retained by rules."
+  },
+  {
+    "id": "cs-self-correction",
+    "transcript": "schůzka bude ve středu ne ve čtvrtek odpoledne",
+    "locale": "cs-CZ",
+    "mustContain": ["ve středu", "ne", "ve čtvrtek odpoledne"],
+    "note": "Self-correction is contextual model work; the rules floor conservatively keeps every spoken word."
+  }
+]
