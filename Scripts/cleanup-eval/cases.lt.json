@@ -1,0 +1,174 @@
+[
+  {
+    "id": "lt-filler-vowel",
+    "transcript": "ėėė, šiandien susitinkame",
+    "locale": "lt-LT",
+    "exact": "Šiandien susitinkame.",
+    "note": "A written-out hesitation vowel is never content and is removed cleanly."
+  },
+  {
+    "id": "lt-ambiguous-fillers-kept",
+    "transcript": "na, nu, žodžiu, hmm, šį planą dar aptarsime",
+    "locale": "lt-LT",
+    "mustContain": ["Na", "nu", "žodžiu", "hmm", "planą"],
+    "note": "Discourse markers and expressive sounds can carry meaning, so deterministic rules retain them."
+  },
+  {
+    "id": "lt-spoken-comma",
+    "transcript": "pirmas kablelis antras",
+    "locale": "lt-LT",
+    "exact": "Pirmas, antras.",
+    "note": "The punctuation-only command kablelis renders with Lithuanian spacing."
+  },
+  {
+    "id": "lt-spoken-question",
+    "transcript": "ar ateisi klaustukas",
+    "locale": "lt-LT",
+    "exact": "Ar ateisi?",
+    "note": "Spoken klaustukas renders a question mark without doubling the question heuristic."
+  },
+  {
+    "id": "lt-spoken-ellipsis",
+    "transcript": "galbūt daugtaškis",
+    "locale": "lt-LT",
+    "exact": "Galbūt…",
+    "note": "Spoken daugtaškis renders the Lithuanian ellipsis without a preceding space."
+  },
+  {
+    "id": "lt-spoken-idempotent",
+    "transcript": "puiku! šauktukas",
+    "locale": "lt-LT",
+    "exact": "Puiku!",
+    "note": "An already-rendered exclamation mark is not duplicated."
+  },
+  {
+    "id": "lt-lithuanian-quotes",
+    "transcript": "jis pasakė \"labas\"",
+    "locale": "lt-LT",
+    "exact": "Jis pasakė „labas“.",
+    "note": "Straight paired quotes become Lithuanian low-high quotation marks."
+  },
+  {
+    "id": "lt-decimal-comma",
+    "transcript": "temperatūra yra 20,5 laipsnio",
+    "locale": "lt-LT",
+    "exact": "Temperatūra yra 20,5 laipsnio.",
+    "note": "A Lithuanian decimal comma must not acquire a following space."
+  },
+  {
+    "id": "lt-spoken-decimal-comma",
+    "transcript": "versija 3 kablelis 14 veikia",
+    "locale": "lt-LT",
+    "exact": "Versija 3,14 veikia.",
+    "note": "A spoken kablelis between digits is protected as a decimal separator."
+  },
+  {
+    "id": "lt-number-currency-spacing",
+    "transcript": "biudžetas yra 12 500 Eur",
+    "locale": "lt-LT",
+    "exact": "Biudžetas yra 12\u00a0500\u00a0Eur.",
+    "note": "Digit groups and a following currency abbreviation use nonbreaking spaces."
+  },
+  {
+    "id": "lt-number-unit-spacing",
+    "transcript": "siunta sveria 12kg",
+    "locale": "lt-LT",
+    "exact": "Siunta sveria 12\u00a0kg.",
+    "note": "Lithuanian typography requires a space between a number and measurement unit."
+  },
+  {
+    "id": "lt-long-date-abbreviation",
+    "transcript": "susitinkame 2026 m. liepos 26 d.",
+    "locale": "lt-LT",
+    "exact": "Susitinkame 2026\u00a0m. liepos 26\u00a0d.",
+    "note": "Long dates retain lowercase month names and do not treat m. as a sentence boundary."
+  },
+  {
+    "id": "lt-short-date",
+    "transcript": "data yra 2026 - 07 - 26",
+    "locale": "lt-LT",
+    "exact": "Data yra 2026-07-26.",
+    "note": "A numeric Lithuanian date is year-month-day with unspaced hyphens."
+  },
+  {
+    "id": "lt-question-particle",
+    "transcript": "nejaugi tai tiesa",
+    "locale": "lt-LT",
+    "exact": "Nejaugi tai tiesa?",
+    "note": "The explicit interrogative particle nejaugi safely anchors the question heuristic."
+  },
+  {
+    "id": "lt-ordinary-point-kept",
+    "transcript": "šis taškas svarbus",
+    "locale": "lt-LT",
+    "exact": "Šis taškas svarbus.",
+    "note": "Taškas is ordinary content here and is deliberately not a flat punctuation command."
+  },
+  {
+    "id": "lt-spoken-file-name",
+    "transcript": "atidaryk config taškas json",
+    "locale": "lt-LT",
+    "exact": "Atidaryk config.json",
+    "note": "Taškas renders only because a known file extension anchors the technical pattern."
+  },
+  {
+    "id": "lt-spoken-identifier",
+    "transcript": "paleisk max pabraukimo brūkšnys retries",
+    "locale": "lt-LT",
+    "exact": "Paleisk max_retries",
+    "note": "The full Lithuanian underscore phrase is consumed inside an explicit identifier."
+  },
+  {
+    "id": "lt-spoken-email",
+    "transcript": "jonas taškas jonaitis ženklas eta gmail taškas com",
+    "locale": "lt-LT",
+    "exact": "jonas.jonaitis@gmail.com",
+    "note": "A TLD-anchored Lithuanian email dictation renders compactly."
+  },
+  {
+    "id": "lt-embedded-english",
+    "transcript": "atidaryk config.json ir paleisk VoiceType",
+    "locale": "lt-LT",
+    "exact": "Atidaryk config.json ir paleisk VoiceType.",
+    "note": "Embedded ASCII file names and the VoiceType brand survive untouched."
+  },
+  {
+    "id": "lt-terminal-flag",
+    "transcript": "git commit brūkšnelis m",
+    "locale": "lt-LT",
+    "category": "terminal",
+    "exact": "git commit -m",
+    "note": "A Lithuanian-spoken short flag renders without capitalization or terminal punctuation."
+  },
+  {
+    "id": "lt-terminal-path",
+    "transcript": "cd tildė pasvirasis brūkšnys projektai pasvirasis brūkšnys voice",
+    "locale": "lt-LT",
+    "category": "terminal",
+    "exact": "cd ~/projektai/voice",
+    "note": "Lithuanian path words render only under the terminal bias."
+  },
+  {
+    "id": "lt-code-editor-source",
+    "transcript": "let value = \"labas\"",
+    "locale": "lt-LT",
+    "category": "codeEditor",
+    "exact": "let value = \"labas\"",
+    "note": "Leading source syntax is protected from prose capitalization, punctuation, and smart quotes."
+  },
+  {
+    "id": "lt-ramble-no-translation",
+    "transcript": "ėėė šiandien per susitikimą aptarėme tris dalykus pirmiausia naujos versijos išleidimą turime atidėti savaitei nes bandymai dar nebaigti tada reikia atnaujinti dokumentaciją ir galiausiai kitą ketvirtį planuojame pasamdyti du naujus inžinierius",
+    "locale": "lt-LT",
+    "mustContain": ["susitikimą", "versijos", "bandymai", "dokumentaciją", "inžinierius"],
+    "mustNotContain": ["meeting", "release", "documentation", "engineers"],
+    "note": "Long Lithuanian dictation stays complete, ordered, and untranslated; only the pure leading hesitation is removed."
+  },
+  {
+    "id": "lt-self-correction",
+    "transcript": "susitinkame trečiadienį ne ketvirtadienį po pietų",
+    "locale": "lt-LT",
+    "mustContain": ["ketvirtadienį", "po pietų"],
+    "note": "Self-correction is contextual model territory. The rules floor conservatively keeps both attempts; the model should keep the last one."
+  }
+]
