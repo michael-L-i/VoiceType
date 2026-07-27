@@ -48,7 +48,7 @@ extension LanguagePack {
         ],
         questionSuffixParticles: [],
         stopwords: LanguagePack.danishStopwords,
-        prompt: .none,
+        prompt: .danish,
         rules: DanishCleanupRules.all,
         spokenSymbolWords: DanishCleanupRules.spokenSymbolWords,
         modelLeadInPatterns: [
