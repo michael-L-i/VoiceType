@@ -1,0 +1,203 @@
+[
+  {
+    "id": "es-question-opening-mark",
+    "transcript": "qué hora es",
+    "locale": "es-ES",
+    "exact": "¿Qué hora es?",
+    "note": "RAE: the opening ¿ is obligatory. No transcriber emits it; the pack restores it."
+  },
+  {
+    "id": "es-question-multiword-opener",
+    "transcript": "por qué no lo hacemos mañana",
+    "locale": "es-ES",
+    "exact": "¿Por qué no lo hacemos mañana?",
+    "note": "Two-word interrogative opener — invisible to the shared single-token heuristic."
+  },
+  {
+    "id": "es-question-after-vocative",
+    "transcript": "María, qué hora es?",
+    "locale": "es-ES",
+    "exact": "María, ¿qué hora es?",
+    "note": "RAE: the opening sign goes where the question begins, after a leading vocative."
+  },
+  {
+    "id": "es-question-later-sentence",
+    "transcript": "Llegué tarde. Qué opinas",
+    "locale": "es-ES",
+    "exact": "Llegué tarde. ¿Qué opinas?",
+    "note": "The question is the second sentence; the shared heuristic only reads the first word of the text."
+  },
+  {
+    "id": "es-exclamation-opening-mark",
+    "transcript": "qué alegría verte!",
+    "locale": "es-ES",
+    "exact": "¡Qué alegría verte!",
+    "note": "¡…! is a double sign too."
+  },
+  {
+    "id": "es-statement-stays-statement",
+    "transcript": "no sé si vendrá",
+    "locale": "es-ES",
+    "exact": "No sé si vendrá.",
+    "note": "Spanish yes/no questions don't invert, so only interrogative words trigger the heuristic."
+  },
+  {
+    "id": "es-marks-idempotent",
+    "transcript": "¿Qué hora es?",
+    "locale": "es-ES",
+    "exact": "¿Qué hora es?",
+    "note": "Marks the engine already produced are never doubled."
+  },
+  {
+    "id": "es-diacritic-restored",
+    "transcript": "¿donde está la reunión?",
+    "locale": "es-ES",
+    "exact": "¿Dónde está la reunión?",
+    "note": "Interrogatives inside ¿…? carry a diacritical tilde, and the word after ¿ is capitalized."
+  },
+  {
+    "id": "es-fillers-removed",
+    "transcript": "eh creo que sí",
+    "locale": "es-ES",
+    "exact": "Creo que sí.",
+    "note": "Pure hesitation sounds go."
+  },
+  {
+    "id": "es-ambiguous-fillers-kept",
+    "transcript": "este informe pues bueno o sea es correcto",
+    "locale": "es-ES",
+    "mustContain": ["nforme", "pues", "bueno", "o sea"],
+    "note": "Ambiguity policy: este/pues/bueno/o sea are content words here — the deterministic pass must never touch them."
+  },
+  {
+    "id": "es-spoken-semicolon",
+    "transcript": "primera parte punto y coma segunda parte",
+    "locale": "es-ES",
+    "exact": "Primera parte; segunda parte.",
+    "note": "«punto y coma» is unambiguous as a phrase; bare «punto» and «coma» are not and stay words."
+  },
+  {
+    "id": "es-spoken-paragraph",
+    "transcript": "primera idea punto y aparte segunda idea",
+    "locale": "es-ES",
+    "exact": "Primera idea.\n\nSegunda idea.",
+    "note": "«punto y aparte» is the Spanish dictation command for a new paragraph."
+  },
+  {
+    "id": "es-spoken-quotes",
+    "transcript": "él dijo abrir comillas no vengo cerrar comillas",
+    "locale": "es-ES",
+    "exact": "Él dijo «no vengo».",
+    "note": "RAE puts comillas angulares at the first level of quotation."
+  },
+  {
+    "id": "es-punto-stays-prose",
+    "transcript": "no entiendo el punto de vista",
+    "locale": "es-ES",
+    "exact": "No entiendo el punto de vista.",
+    "note": "Prose guard: «punto» is an everyday noun and only renders next to a joinable name and a real extension."
+  },
+  {
+    "id": "es-guion-bajo-stays-prose",
+    "transcript": "el guion bajo del documento no aparece",
+    "locale": "es-ES",
+    "mustContain": ["guion bajo"],
+    "mustNotContain": ["_"],
+    "note": "Prose guard: the left neighbour is a function word, so nothing is joined."
+  },
+  {
+    "id": "es-file-name",
+    "transcript": "abre main punto pi",
+    "locale": "es-ES",
+    "exact": "Abre main.py",
+    "note": "Spoken file name; a trailing extension keeps its bare ending."
+  },
+  {
+    "id": "es-snake-identifier",
+    "transcript": "cambia max guion bajo reintentos a cinco",
+    "locale": "es-ES",
+    "mustContain": ["max_reintentos"],
+    "note": "«guion bajo» is two tokens, which the shared single-token trigger set cannot express."
+  },
+  {
+    "id": "es-email-address",
+    "transcript": "mándalo a juan punto perez arroba gmail punto com",
+    "locale": "es-ES",
+    "mustContain": ["juan.perez@gmail.com"],
+    "note": "«arroba» is unambiguous in a way English «at» never is."
+  },
+  {
+    "id": "es-percent-spacing",
+    "transcript": "las ventas subieron un 20%",
+    "locale": "es-ES",
+    "exact": "Las ventas subieron un 20 %.",
+    "note": "RAE: a symbol is separated from the figure it follows. Prose only — a code editor keeps 20%."
+  },
+  {
+    "id": "es-decimal-comma-survives",
+    "transcript": "el total es 1.234,56",
+    "locale": "es-ES",
+    "exact": "El total es 1.234,56.",
+    "note": "The shared spacing pass splits «1.234,56» into «1.234, 56»; the pack shields the decimal comma across it."
+  },
+  {
+    "id": "es-weekday-lowercase",
+    "transcript": "nos vemos el Lunes",
+    "locale": "es-ES",
+    "exact": "Nos vemos el lunes.",
+    "note": "RAE: weekdays, months and language names are common nouns in Spanish."
+  },
+  {
+    "id": "es-proper-name-keeps-capital",
+    "transcript": "descansamos el Viernes Santo",
+    "locale": "es-ES",
+    "exact": "Descansamos el Viernes Santo.",
+    "note": "A festivity is a proper name — the following capital is the guard."
+  },
+  {
+    "id": "es-embedded-english",
+    "transcript": "revisa el pull request de main.py",
+    "locale": "es-ES",
+    "exact": "Revisa el pull request de main.py",
+    "note": "Embedded English and file names pass through untouched."
+  },
+  {
+    "id": "es-terminal-command",
+    "transcript": "git status",
+    "locale": "es-ES",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "Terminal stays command-safe: no capital, no period, no ¿ ¡."
+  },
+  {
+    "id": "es-terminal-flags",
+    "transcript": "npm run build guion guion verbose",
+    "locale": "es-ES",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "«guion» is the Spanish flag marker; the renderer opts into the terminal for exactly this."
+  },
+  {
+    "id": "es-terminal-path",
+    "transcript": "cd virgulilla barra proyectos",
+    "locale": "es-ES",
+    "category": "terminal",
+    "exact": "cd ~/proyectos",
+    "note": "«virgulilla» is ~ in Spanish; «tilde» means the accent mark, so it is terminal-only."
+  },
+  {
+    "id": "es-ramble-no-translation",
+    "transcript": "eh bueno la reunión de ayer trató sobre tres temas el primero fue el retraso del lanzamiento porque las pruebas todavía no están terminadas el segundo fue que la documentación tiene que actualizarse antes de publicar y el tercero eh que el próximo trimestre vamos a contratar a dos ingenieras más",
+    "locale": "es-ES",
+    "mustContain": ["reunión", "lanzamiento", "pruebas", "documentación", "ingenieras"],
+    "mustNotContain": ["meeting", "release", "engineer", " eh ", "1.", "\n"],
+    "note": "Anti-translation, anti-summarization and anti-restructuring: a long Spanish ramble stays Spanish, keeps every clause, and never becomes a list."
+  },
+  {
+    "id": "es-self-correction",
+    "transcript": "manda cinco, digo seis copias del informe",
+    "locale": "es-ES",
+    "mustContain": ["seis copias"],
+    "note": "Self-correction is model territory (the rules floor keeps both); the model should keep only «seis». Judge the model run manually."
+  }
+]
