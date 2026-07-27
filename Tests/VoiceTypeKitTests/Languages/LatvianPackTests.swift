@@ -61,6 +61,16 @@ struct LatvianRuleCleanupTests {
         #expect(clean("mēs emm turpināsim rīt") == "Mēs turpināsim rīt.")
     }
 
+    @Test("disabled filler removal preserves even pure hesitations")
+    func fillersRespectOptions() {
+        let options = CleanupOptions(
+            removeFillers: false,
+            addPunctuation: true,
+            fixCapitalization: true)
+        #expect(clean("ēē šodien strādājam", options: options)
+            == "Ēē šodien strādājam.")
+    }
+
     @Test("meaningful filler lookalikes are retained")
     func ambiguousFillersStay() {
         #expect(clean("nu tā mēs turpināsim") == "Nu tā mēs turpināsim.")
@@ -156,6 +166,18 @@ struct LatvianRuleCleanupTests {
                       category: .terminal)
             == "cd ~/projekti/VoiceType")
         #expect(clean("echo 12,50", category: .terminal) == "echo 12,50")
+    }
+
+    @Test("terminal-safe masks never leak private placeholders")
+    func noPlaceholderLeak() {
+        let outputs = [
+            clean("echo 12,50", category: .terminal),
+            clean("echo ...", category: .terminal),
+        ]
+        #expect(outputs == ["echo 12,50", "echo ..."])
+        #expect(outputs.allSatisfy { !$0.unicodeScalars.contains { scalar in
+            (0xE000...0xF8FF).contains(scalar.value)
+        } })
     }
 }
 
