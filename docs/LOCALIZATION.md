@@ -184,15 +184,20 @@ by what the rules engine produces.
 
 ## Status of the shipped languages
 
-Chinese (zh) is the reference implementation, tested against its own eval
-battery. The other non-English languages (de, es, fr, it, ja, ko, nl, pl,
-pt-BR, ru, sv, tr, uk, vi) were machine-authored following the house rules —
-conservative fillers, no ambiguous spoken punctuation — and reviewed
-structurally (`PackIntegrityTests`), but they have **not** been reviewed by
-native speakers and ship without per-language eval batteries. If that's your
-language: corrections to the UI translation, richer (still never-content)
-fillers, and a `cases.<code>.json` battery are the most valuable
-contributions you can make, and each is a small PR.
+**All 33 offered languages now ship a pack**, each with its own tests and its
+own eval battery (33 batteries, 915 cases). English and Chinese are the
+reference implementations and the most exercised.
+
+Every pack was machine-authored under the house rules on this page —
+conservative fillers, no ambiguous spoken punctuation, orthography encoded only
+where it is unambiguous — is structurally tested (`PackIntegrityTests`), and
+passes its own battery. **None has been reviewed by a native speaker.**
+
+That is the honest status: passing a battery you wrote yourself proves
+self-consistency, not correctness. If a language is yours, the highest-value
+contribution is a correction — a filler that carries meaning after all, a
+convention we got backwards, a case the battery never thought to test. Each is
+a small PR touching only that language's three paths.
 
 ## Known gaps (help welcome)
 
@@ -200,13 +205,15 @@ contributions you can make, and each is a small PR.
   (`InsightsGenerator`, `SummaryPrompt`) — not yet localized.
 - Spoken-symbol rendering doesn't yet run over Latin-script runs embedded in
   CJK dictation.
-- English is still the only language with a `symbols` vocabulary, a
-  `codeRendering` prompt section, or `terminalGuidance`. Adding yours is the
-  single biggest quality win available for a language today.
-- 18 of the 34 offered dictation locales have no pack at all and fall back to
-  `.neutral`, where "remove fillers" does nothing: ar, bg, cs, da, el, et, fi,
-  hi, hr, hu, lt, lv, mt, nb, ro, sk, sl, plus en-GB spelling. Arabic (RTL,
-  `؟ ،`) and Greek (`;` as question mark) need engine support beyond a pack.
+- No pack has been reviewed by a native speaker. Passing a battery you wrote
+  yourself proves self-consistency, not correctness.
+- `en-GB` has no pack of its own: lookup keys on the primary subtag, so British
+  spelling, `pt-PT` and `zh-Hant` cannot differ from their parents until
+  resolution becomes script/region aware.
+- Several languages independently implemented spoken-symbol rendering as a
+  `CleanupRule` because it reaches model output, which `pack.symbols` does not.
+  That duplication is a signal the shared engine should apply the pack's
+  vocabulary in both paths itself.
 - The shared prompt's *fallback* self-correction example is still English
   ("five, no six copies"). A pack that sets `selfCorrectionRule` never sees
   it; one that doesn't, does.

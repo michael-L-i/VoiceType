@@ -8,7 +8,8 @@ Everything below runs **on-device**. Language coverage never costs you privacy:
 there is no "send it to the cloud for the hard languages" path.
 
 - **34 locales** in the language picker (33 languages; English has US and UK).
-- **16 languages** have a hand-written cleanup [language pack](#cleanup-quality-tiers).
+- **All 33 languages** have their own cleanup [language pack](#cleanup-quality-tiers)
+  and their own eval battery — 915 test cases in total.
 - **16 languages** have a translated interface.
 - **Zero** languages require a network round-trip.
 
@@ -37,34 +38,34 @@ are model-card facts; Whisper's is its tokenizer list.
 
 | Language | Locale | Parakeet | Nemotron | Whisper | Cleanup pack | UI |
 | --- | --- | :-: | :-: | :-: | :-: | :-: |
-| Arabic | `ar-SA` | · | ● | ● | | |
-| Bulgarian | `bg-BG` | ● | ● | ● | | |
+| Arabic | `ar-SA` | · | ● | ● | ✅ | |
+| Bulgarian | `bg-BG` | ● | ● | ● | ✅ | |
 | Chinese (Simplified) | `zh-CN` | · | ● | ● | ✅ ref | ✅ |
-| Croatian | `hr-HR` | ● | ● | ● | | |
-| Czech | `cs-CZ` | ● | ● | ● | | |
-| Danish | `da-DK` | ● | ● | ● | | |
+| Croatian | `hr-HR` | ● | ● | ● | ✅ | |
+| Czech | `cs-CZ` | ● | ● | ● | ✅ | |
+| Danish | `da-DK` | ● | ● | ● | ✅ | |
 | Dutch | `nl-NL` | ● | ● | ● | ✅ | ✅ |
 | English | `en-US` `en-GB` | ● | ● | ● | ✅ ref | ✅ |
-| Estonian | `et-EE` | ● | ● | ● | | |
-| Finnish | `fi-FI` | ● | ● | ● | | |
+| Estonian | `et-EE` | ● | ● | ● | ✅ | |
+| Finnish | `fi-FI` | ● | ● | ● | ✅ | |
 | French | `fr-FR` | ● | ● | ● | ✅ | ✅ |
 | German | `de-DE` | ● | ● | ● | ✅ | ✅ |
-| Greek | `el-GR` | ● | · | ● | | |
-| Hindi | `hi-IN` | · | ● | ● | | |
-| Hungarian | `hu-HU` | ● | ● | ● | | |
+| Greek | `el-GR` | ● | · | ● | ✅ | |
+| Hindi | `hi-IN` | · | ● | ● | ✅ | |
+| Hungarian | `hu-HU` | ● | ● | ● | ✅ | |
 | Italian | `it-IT` | ● | ● | ● | ✅ | ✅ |
 | Japanese | `ja-JP` | · | ● | ● | ✅ | ✅ |
 | Korean | `ko-KR` | · | ● | ● | ✅ | ✅ |
-| Latvian | `lv-LV` | ● | · | ● | | |
-| Lithuanian | `lt-LT` | ● | · | ● | | |
-| Maltese | `mt-MT` | ● | · | ● | | |
-| Norwegian Bokmål | `nb-NO` | · | ● | ● | | |
+| Latvian | `lv-LV` | ● | · | ● | ✅ | |
+| Lithuanian | `lt-LT` | ● | · | ● | ✅ | |
+| Maltese | `mt-MT` | ● | · | ● | ✅ | |
+| Norwegian Bokmål | `nb-NO` | · | ● | ● | ✅ | |
 | Polish | `pl-PL` | ● | ● | ● | ✅ | ✅ |
 | Portuguese (Brazil) | `pt-BR` | ● | ● | ● | ✅ | ✅ |
-| Romanian | `ro-RO` | ● | ● | ● | | |
+| Romanian | `ro-RO` | ● | ● | ● | ✅ | |
 | Russian | `ru-RU` | ● | ● | ● | ✅ | ✅ |
-| Slovak | `sk-SK` | ● | ● | ● | | |
-| Slovenian | `sl-SI` | ● | · | ● | | |
+| Slovak | `sk-SK` | ● | ● | ● | ✅ | |
+| Slovenian | `sl-SI` | ● | · | ● | ✅ | |
 | Spanish | `es-ES` | ● | ● | ● | ✅ | ✅ |
 | Swedish | `sv-SE` | ● | ● | ● | ✅ | ✅ |
 | Turkish | `tr-TR` | · | ● | ● | ✅ | ✅ |
@@ -98,30 +99,35 @@ Transcription is half the job. The cleanup pass — punctuation, capitalization,
 filler removal — has to know your language's conventions, or "multilingual"
 means "English rules applied to your words".
 
-**Tier 1 — full language pack (16 languages).** English, Chinese, German,
-Spanish, French, Italian, Japanese, Korean, Dutch, Polish, Portuguese, Russian,
-Swedish, Turkish, Ukrainian, Vietnamese. Each ships a reviewable
+**Every one of the 33 languages ships a full language pack.** There is no
+"neutral cleanup" tier any more — no language falls back to English's rules, and
+none falls back to nothing. Each ships a reviewable
 [`LanguagePack`](../Sources/VoiceTypeKit/Languages/) declaring:
 
 - its **filler words** (嗯/呃, ähm, euh) — never-content tokens only;
 - its **spoken punctuation** (句号 → 。, 読点 → 、) rendered as marks;
-- its **writing conventions** — full-width 。，？ for Chinese and Japanese,
-  no word-boundary regexes or capitalization for scripts written without spaces;
+- its **writing conventions** — full-width 。，？ for Chinese and Japanese, the
+  narrow no-break space before `!?;` and non-breaking space before `:` in
+  French, `¿` and `¡` in Spanish, the danda `।` in Hindi, `؟ ، ؛` in Arabic,
+  `;` as Greek's question mark, Turkish's dotted/dotless `İ`/`I`;
 - its **question heuristics** — English probes the first word, Chinese the final
-  particle (吗).
+  particle (吗), Korean the verb ending;
+- its own **deterministic rules** ([`CleanupRule`](../Sources/VoiceTypeKit/CleanupRule.swift))
+  for anything the fields above can't express, run in both the zero-latency path
+  and the repair applied to model output;
+- its own **LLM prompt guidance** — hesitations, capitalization rule, spoken-code
+  triggers, self-correction phrasing, in that language rather than English's.
 
-**Tier 2 — neutral cleanup (17 languages).** Arabic, Bulgarian, Czech, Danish,
-Greek, Estonian, Finnish, Hindi, Croatian, Hungarian, Lithuanian, Latvian,
-Maltese, Norwegian, Romanian, Slovak, Slovenian. Dictation works and the
-transcript is faithful; you get spacing, terminal periods, and the LLM cleanup
-pass (told which language to write in), but no language-specific fillers or
-spoken punctuation. **A pack is the single highest-value contribution for these
-languages** — it's one file plus tests.
+Every pack ships **its own eval battery** — 33 batteries, 915 cases total,
+runnable with `swift run CleanupEval Scripts/cleanup-eval/cases.<code>.json
+--engine rules`.
 
-Within tier 1, only **Chinese and English** are verified against their own eval
-battery (`Scripts/cleanup-eval/cases.zh.json`, `cases.json`). The other 14 packs
-were machine-authored under conservative house rules and structurally tested,
-but **not reviewed by native speakers**. See
+**What this does and does not mean.** The packs are machine-authored under
+conservative house rules, structurally tested (`PackIntegrityTests`), and each
+passes its own battery. They have **not been reviewed by native speakers**. If a
+language is yours, the highest-value contribution is now a *correction* rather
+than a from-scratch pack: a filler that shouldn't be there, a convention we got
+wrong, a case the battery is missing. See
 [LOCALIZATION.md](./LOCALIZATION.md#status-of-the-shipped-languages).
 
 ## Interface languages
@@ -142,11 +148,20 @@ interface can dictate Portuguese.
 
 Honest list of where multilingual support is still thin:
 
-- **17 languages have no cleanup pack** (tier 2 above).
-- **14 of 16 packs are unreviewed** by native speakers and have no eval battery.
-- **`SpokenSymbols`** — the spoken-symbol pipeline that turns "main dot pie" into
-  `main.py` — is English-only and doesn't yet run over Latin-script runs embedded
-  in CJK dictation.
+- **No pack has been reviewed by a native speaker.** All 33 are machine-authored
+  under conservative house rules and pass their own batteries, which is not the
+  same as being right. This is the single biggest gap.
+- **`SpokenSymbols`** doesn't yet run over Latin-script runs embedded in CJK
+  dictation.
+- **Cleanup engines are not gated by language.** The Apple on-device model runs
+  for locales Apple Intelligence doesn't support, and only the faithfulness
+  guard catches the fallout — `EngineResolver.resolveCleanup` takes no locale.
+- **A `CleanupRule` receives no `CleanupOptions`**, so a pack rule cannot honor
+  "capitalization off" / "punctuation off". Fine for orthography that is always
+  correct; a language whose rule is genuinely optional cannot express that.
+- **`en-GB` rides on English's pack.** Pack lookup keys on the primary subtag,
+  so British spelling, `pt-PT`, and `zh-Hant` cannot differ from their parents
+  until lookup becomes script/region aware.
 - **Insights headlines and the usage summary** (`InsightsGenerator`,
   `SummaryPrompt`) are generated English prose, not yet localized.
 - **No right-to-left UI work.** Arabic dictation works; an Arabic *interface*
@@ -159,9 +174,10 @@ Honest list of where multilingual support is still thin:
 Adding one is deliberately small, and the two tracks are independent:
 
 - **Translate the UI** — no Swift at all, just one `.strings` file.
-- **Make dictation great in your language** — one language pack, its tests, and
-  ten eval cases.
+- **Correct your language's pack** — every language already has one, so the work
+  is now fixing what's wrong rather than starting from nothing: a filler that
+  isn't really a filler, a convention we got backwards, a missing eval case.
 
 Both are walked through step by step in [LOCALIZATION.md](./LOCALIZATION.md).
-Corrections to an existing translation are just as welcome as a new one — the
-machine-authored packs especially need native-speaker eyes.
+Corrections are the most valuable contribution available — the packs are
+machine-authored and have never had native-speaker eyes on them.
