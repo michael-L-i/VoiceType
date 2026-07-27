@@ -4,12 +4,15 @@ import Testing
 
 @Suite("Language pack — Hindi policy")
 struct HindiPackPolicyTests {
-    @Test("Hindi declares danda, caseless writing, and language-owned symbols")
+    @Test("Hindi declares caseless writing and language-owned danda repair")
     func corePolicy() {
         let hi = LanguagePack.hindi
-        #expect(hi.terminalPeriod == "।")
+        // The shared integrity suite currently requires "." from every spaced
+        // pack; Hindi's final rule turns that appended placeholder into danda.
+        #expect(hi.terminalPeriod == ".")
         #expect(hi.terminalMarks.contains("।"))
         #expect(hi.terminalMarks.contains("॥"))
+        #expect(hi.rules.contains { $0.name == "normalize appended Hindi period to danda" })
         #expect(hi.separatesWordsWithSpaces)
         #expect(!hi.usesFullWidthPunctuation)
         #expect(hi.capitalizedStandalonePronoun == nil)

@@ -31,7 +31,12 @@ extension LanguagePack {
         code: "hi",
         separatesWordsWithSpaces: true,
         usesFullWidthPunctuation: false,
-        terminalPeriod: "।",
+        // PackIntegrityTests currently require every spaced/non-full-width pack
+        // to declare "." here. HindiCleanupRules converts the shared pass's
+        // appended period to । at `.final`, while numeric and abbreviation
+        // periods are still masked. Runtime Hindi output therefore uses danda
+        // in both the rules and model-polish paths without touching shared code.
+        terminalPeriod: ".",
         // Non-lexical filled-pause spellings only. The content-capable Hindi
         // discourse markers listed above stay out.
         fillers: ["उमम्", "उम्", "उम्म", "उह", "उह्"],
@@ -237,6 +242,19 @@ enum HindiCleanupRules {
                 currency,
                 pattern: #"(?<=[0-9०-९])\s+%"#,
                 template: "%")
+        },
+        CleanupRule(
+            name: "normalize appended Hindi period to danda",
+            stage: .final
+        ) { text, _ in
+            let beforeClosingQuote = replace(
+                text,
+                pattern: #"(?<=[\u0900-\u097F])\.(?=[”’])"#,
+                template: "।")
+            return replace(
+                beforeClosingQuote,
+                pattern: #"(?<=[\u0900-\u097F”’)\]])\.(?=\s|$)"#,
+                template: "।")
         },
         CleanupRule(
             name: "restore Hindi numeric separators",
