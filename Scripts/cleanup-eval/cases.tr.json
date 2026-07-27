@@ -1,0 +1,196 @@
+[
+  {
+    "id": "tr-filler-closed-vowel",
+    "transcript": "ııı bugün toplantıya gideceğiz",
+    "locale": "tr-TR",
+    "exact": "Bugün toplantıya gideceğiz.",
+    "note": "A non-lexical closed-vowel pause is removed."
+  },
+  {
+    "id": "tr-ambiguous-fillers-kept",
+    "transcript": "şey bu şey çok önemli yani bunu değiştirmeyelim",
+    "locale": "tr-TR",
+    "mustContain": ["Şey bu şey", "yani"],
+    "note": "Şey and yani carry meaning here and are never removed blindly."
+  },
+  {
+    "id": "tr-dotted-i-capitalization",
+    "transcript": "istanbul bugün sıcak",
+    "locale": "tr-TR",
+    "exact": "İstanbul bugün sıcak.",
+    "note": "Sentence-initial i uppercases to Turkish İ."
+  },
+  {
+    "id": "tr-dotless-i-capitalization",
+    "transcript": "ılık bir akşam",
+    "locale": "tr-TR",
+    "exact": "Ilık bir akşam.",
+    "note": "Sentence-initial dotless ı uppercases to I."
+  },
+  {
+    "id": "tr-spoken-question-mark",
+    "transcript": "yarın görüşürüz soru işareti",
+    "locale": "tr-TR",
+    "exact": "Yarın görüşürüz?",
+    "note": "The unambiguous multi-word punctuation command renders exactly."
+  },
+  {
+    "id": "tr-spoken-marks",
+    "transcript": "birinci virgül işareti ikinci noktalı virgül üçüncü",
+    "locale": "tr-TR",
+    "exact": "Birinci, ikinci; üçüncü.",
+    "note": "Spoken comma and semicolon names render with Turkish spacing."
+  },
+  {
+    "id": "tr-spoken-mark-idempotent",
+    "transcript": "yarın görüşürüz? soru işareti",
+    "locale": "tr-TR",
+    "exact": "Yarın görüşürüz?",
+    "note": "An engine-rendered question mark plus a spoken mark does not double."
+  },
+  {
+    "id": "tr-curly-quotes",
+    "transcript": "tırnak aç Merhaba tırnak kapat dedi",
+    "locale": "tr-TR",
+    "exact": "“Merhaba” dedi.",
+    "note": "Spoken quotation commands render Turkish curly quotes without inner spaces."
+  },
+  {
+    "id": "tr-decimal-comma",
+    "transcript": "oran 3,14 fiyat 1.250,50 lira",
+    "locale": "tr-TR",
+    "exact": "Oran 3,14 fiyat 1.250,50 lira.",
+    "note": "Decimal commas stay attached; a thousands period stays untouched."
+  },
+  {
+    "id": "tr-rate-and-currency",
+    "transcript": "oran yüzde işareti 25 fiyat türk lirası işareti 125,50",
+    "locale": "tr-TR",
+    "exact": "Oran %25 fiyat ₺125,50.",
+    "note": "Percent and lira signs precede their number without a space."
+  },
+  {
+    "id": "tr-date-and-time",
+    "transcript": "toplantı 29.10.2026 günü saat 17.30'da",
+    "locale": "tr-TR",
+    "exact": "Toplantı 29.10.2026 günü saat 17.30'da.",
+    "note": "Turkish numeric date and time periods remain compact."
+  },
+  {
+    "id": "tr-abbreviation-boundary",
+    "transcript": "örnekler elma vb. meyveler içeriyor",
+    "locale": "tr-TR",
+    "exact": "Örnekler elma vb. meyveler içeriyor.",
+    "note": "An abbreviation period does not falsely capitalize the next word."
+  },
+  {
+    "id": "tr-question-particle-person",
+    "transcript": "yarın geliyor musun",
+    "locale": "tr-TR",
+    "exact": "Yarın geliyor musun?",
+    "note": "A separately written question particle with a joined person suffix gains ?."
+  },
+  {
+    "id": "tr-question-particle-past",
+    "transcript": "toplantı gelecek miydi",
+    "locale": "tr-TR",
+    "exact": "Toplantı gelecek miydi?",
+    "note": "A question particle with a joined past suffix gains ?."
+  },
+  {
+    "id": "tr-question-opener",
+    "transcript": "neden geciktin",
+    "locale": "tr-TR",
+    "exact": "Neden geciktin?",
+    "note": "A conservative direct-question opener gains ?."
+  },
+  {
+    "id": "tr-spoken-file-extension",
+    "transcript": "main nokta swift dosyasını aç",
+    "locale": "tr-TR",
+    "exact": "main.swift dosyasını aç.",
+    "note": "Nokta joins only when followed by a known file extension."
+  },
+  {
+    "id": "tr-prose-nokta-kept",
+    "transcript": "bu nokta çok önemli",
+    "locale": "tr-TR",
+    "exact": "Bu nokta çok önemli.",
+    "note": "Bare nokta remains an ordinary noun outside a technical shape."
+  },
+  {
+    "id": "tr-code-underscore",
+    "transcript": "max alt çizgi retries değerini ayarla",
+    "locale": "tr-TR",
+    "category": "codeEditor",
+    "exact": "max_retries değerini ayarla.",
+    "note": "Alt çizgi joins an identifier in a code editor."
+  },
+  {
+    "id": "tr-prose-underscore-kept",
+    "transcript": "metindeki alt çizgi önemlidir",
+    "locale": "tr-TR",
+    "exact": "Metindeki alt çizgi önemlidir.",
+    "note": "The ambiguous noun phrase alt çizgi remains prose in general text."
+  },
+  {
+    "id": "tr-code-brackets",
+    "transcript": "print parantez aç x virgül y parantez kapat",
+    "locale": "tr-TR",
+    "category": "codeEditor",
+    "exact": "print(x, y)",
+    "note": "Turkish noun-first bracket commands render a compact call."
+  },
+  {
+    "id": "tr-spoken-email",
+    "transcript": "bana ali nokta veli et gmail nokta com adresinden yaz",
+    "locale": "tr-TR",
+    "exact": "Bana ali.veli@gmail.com adresinden yaz.",
+    "note": "A TLD-anchored email shape consumes nokta and et without touching prose uses."
+  },
+  {
+    "id": "tr-line-break",
+    "transcript": "birinci yeni satır ikinci",
+    "locale": "tr-TR",
+    "exact": "Birinci\nikinci.",
+    "note": "A spoken line-break command survives shared whitespace cleanup."
+  },
+  {
+    "id": "tr-embedded-english",
+    "transcript": "VoiceType main.swift dosyasını bugün güncelledi",
+    "locale": "tr-TR",
+    "exact": "VoiceType main.swift dosyasını bugün güncelledi.",
+    "note": "Embedded English brands and ASCII file names retain their spelling and case."
+  },
+  {
+    "id": "tr-terminal-flags-path",
+    "transcript": "git checkout tire b feature eğik çizgi lang tire tire force",
+    "locale": "tr-TR",
+    "category": "terminal",
+    "exact": "git checkout -b feature/lang --force",
+    "note": "Terminal-only spoken flags and path separators render without capitalization or punctuation."
+  },
+  {
+    "id": "tr-terminal-command-safe",
+    "transcript": "echo yeni satır",
+    "locale": "tr-TR",
+    "category": "terminal",
+    "exact": "echo yeni satır",
+    "note": "A line-break phrase never injects a newline into a shell command."
+  },
+  {
+    "id": "tr-ramble-faithful",
+    "transcript": "ııı yani bugünkü toplantıda önce yeni sürümün çıkış tarihini konuştuk sonra testlerin henüz bitmediğini söyledik ayrıca belgelerin cuma gününe kadar güncellenmesi gerektiğini ve gelecek çeyrekte iki yeni mühendis alacağımızı kararlaştırdık",
+    "locale": "tr-TR",
+    "mustContain": ["Yani bugünkü toplantıda", "çıkış tarihini", "testlerin henüz bitmediğini", "belgelerin cuma gününe kadar", "iki yeni mühendis"],
+    "mustNotContain": ["meeting", "release date", "engineer"],
+    "note": "Long anti-translation/anti-summarization case: every Turkish clause and suffix chain survives."
+  },
+  {
+    "id": "tr-self-correction-conservative-floor",
+    "transcript": "toplantıyı salıya hayır çarşambaya al",
+    "locale": "tr-TR",
+    "mustContain": ["salıya", "hayır", "çarşambaya"],
+    "note": "Self-correction is prompt territory; the rules floor preserves both attempts rather than guessing."
+  }
+]

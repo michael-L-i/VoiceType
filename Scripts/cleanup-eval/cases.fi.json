@@ -1,0 +1,194 @@
+[
+  {
+    "id": "fi-filler-pure",
+    "transcript": "öö tämä toimii",
+    "locale": "fi-FI",
+    "exact": "Tämä toimii.",
+    "note": "A nonlexical Finnish hesitation sound is removed."
+  },
+  {
+    "id": "fi-fillers-ambiguous-kept",
+    "transcript": "tota tämä ja tuota vaihtoehto siis toimivat",
+    "locale": "fi-FI",
+    "exact": "Tota tämä ja tuota vaihtoehto siis toimivat.",
+    "note": "tota/tuota/siis can carry meaning, so the deterministic floor never strips them."
+  },
+  {
+    "id": "fi-spoken-question",
+    "transcript": "mitä kuuluu kysymysmerkki",
+    "locale": "fi-FI",
+    "exact": "Mitä kuuluu?",
+    "note": "The unambiguous spoken compound kysymysmerkki renders as ?."
+  },
+  {
+    "id": "fi-spoken-colon",
+    "transcript": "otsikko kaksoispiste asia",
+    "locale": "fi-FI",
+    "exact": "Otsikko: asia.",
+    "note": "Spoken kaksoispiste renders with Finnish prose spacing."
+  },
+  {
+    "id": "fi-spoken-idempotent",
+    "transcript": "mitä kuuluu? kysymysmerkki",
+    "locale": "fi-FI",
+    "exact": "Mitä kuuluu?",
+    "note": "An already-rendered question mark does not double."
+  },
+  {
+    "id": "fi-question-ko",
+    "transcript": "onko tämä valmis",
+    "locale": "fi-FI",
+    "exact": "Onko tämä valmis?",
+    "note": "A common finite -ko question opener gains a question mark."
+  },
+  {
+    "id": "fi-question-suffix-guard",
+    "transcript": "koko suunnitelma toimii",
+    "locale": "fi-FI",
+    "exact": "Koko suunnitelma toimii.",
+    "note": "A blind -ko suffix rule would corrupt ordinary koko; the curated opener list does not."
+  },
+  {
+    "id": "fi-decimal-currency",
+    "transcript": "hinta on 29,90€ ja alennus 12,5%",
+    "locale": "fi-FI",
+    "exact": "Hinta on 29,90 € ja alennus 12,5 %.",
+    "note": "Decimal commas remain compact; currency and percent signs take a preceding space."
+  },
+  {
+    "id": "fi-decimal-units",
+    "transcript": "lämpötila on 14,6°C ja matka 2,5km",
+    "locale": "fi-FI",
+    "exact": "Lämpötila on 14,6 °C ja matka 2,5 km.",
+    "note": "Finnish quantity spacing is restored without splitting decimal commas."
+  },
+  {
+    "id": "fi-abbreviations",
+    "transcript": "esim. tämä toimii ja mm. tuo toimii",
+    "locale": "fi-FI",
+    "exact": "Esim. tämä toimii ja mm. tuo toimii.",
+    "note": "Abbreviation periods do not falsely capitalize the following word."
+  },
+  {
+    "id": "fi-date",
+    "transcript": "kokous on 26.7.2026",
+    "locale": "fi-FI",
+    "exact": "Kokous on 26.7.2026.",
+    "note": "A Finnish day-month-year date keeps internal periods and still receives sentence punctuation."
+  },
+  {
+    "id": "fi-clock",
+    "transcript": "kokous alkaa klo 9.15",
+    "locale": "fi-FI",
+    "exact": "Kokous alkaa klo 9.15.",
+    "note": "A prose clock time uses a period and is not mistaken for a file extension."
+  },
+  {
+    "id": "fi-quotation",
+    "transcript": "hän sanoi aloita lainaus hei lopeta lainaus , sitten lähti",
+    "locale": "fi-FI",
+    "exact": "Hän sanoi ”hei”, sitten lähti.",
+    "note": "Explicit quotation commands render Finnish symmetric curly quotation marks."
+  },
+  {
+    "id": "fi-apostrophe",
+    "transcript": "raa'an omenan hinta laski",
+    "locale": "fi-FI",
+    "exact": "Raa’an omenan hinta laski.",
+    "note": "The Finnish apostrophe is typographic in prose."
+  },
+  {
+    "id": "fi-newline",
+    "transcript": "ensimmäinen uusi rivi toinen",
+    "locale": "fi-FI",
+    "exact": "Ensimmäinen\ntoinen.",
+    "note": "The explicit Apple-style uusi rivi command survives the shared whitespace pass."
+  },
+  {
+    "id": "fi-file-homophone",
+    "transcript": "avaa main piste pyy",
+    "locale": "fi-FI",
+    "exact": "Avaa main.py",
+    "note": "A Finnish ASR rendering of the .py extension is joined only in known-extension context."
+  },
+  {
+    "id": "fi-snake-identifier",
+    "transcript": "aseta max alaviiva yritykset viiteen",
+    "locale": "fi-FI",
+    "exact": "Aseta max_yritykset viiteen.",
+    "note": "Spoken alaviiva joins identifier-like neighbors and is consumed."
+  },
+  {
+    "id": "fi-email",
+    "transcript": "osoite on matti piste meikalainen ät esimerkki piste fi",
+    "locale": "fi-FI",
+    "exact": "Osoite on matti.meikalainen@esimerkki.fi",
+    "note": "Finnish spoken dot/at names render an anchored email address."
+  },
+  {
+    "id": "fi-symbol-prose-guard",
+    "transcript": "tässä piste on tärkeä ja piirrä suora viiva tähän",
+    "locale": "fi-FI",
+    "exact": "Tässä piste on tärkeä ja piirrä suora viiva tähän.",
+    "note": "Everyday noun uses of piste and viiva remain prose."
+  },
+  {
+    "id": "fi-embedded-english",
+    "transcript": "käytä VoiceTypea ja avaa config.json sitten päivitä APIClient",
+    "locale": "fi-FI",
+    "exact": "Käytä VoiceTypea ja avaa config.json sitten päivitä APIClient.",
+    "note": "Embedded English brands, files, and identifiers preserve spelling and case."
+  },
+  {
+    "id": "fi-terminal-flag",
+    "transcript": "npm run build viiva viiva verbose",
+    "locale": "fi-FI",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "Terminal-only bias turns Finnish viiva viiva into a long flag without capitalization or punctuation."
+  },
+  {
+    "id": "fi-terminal-path",
+    "transcript": "cd tilde kauttaviiva projektit kauttaviiva voice",
+    "locale": "fi-FI",
+    "category": "terminal",
+    "exact": "cd ~/projektit/voice",
+    "note": "Spoken Finnish path symbols render in terminal context."
+  },
+  {
+    "id": "fi-terminal-decimal",
+    "transcript": "python script.py viiva n 3,14",
+    "locale": "fi-FI",
+    "category": "terminal",
+    "exact": "python script.py -n 3,14",
+    "note": "The paired decimal mask is terminal-safe and never leaks its sentinel."
+  },
+  {
+    "id": "fi-ramble-faithful",
+    "transcript": "öö mä ajattelin että ensi viikon julkaisua pitäisi siirtää muutamalla päivällä koska kirjautumisessa on vielä virhe ja markkinointi tarvitsee lisää aikaa sähköpostikampanjaan ja mieluummin julkaisen vakaan version kuin kiirehdin ja pyydän myöhemmin anteeksi",
+    "locale": "fi-FI",
+    "mustContain": [
+      "ensi viikon julkaisua",
+      "kirjautumisessa on vielä virhe",
+      "markkinointi tarvitsee lisää aikaa",
+      "pyydän myöhemmin anteeksi"
+    ],
+    "mustNotContain": [
+      "release next week",
+      "marketing needs",
+      "I apologize"
+    ],
+    "note": "Long anti-summary and anti-translation case: every Finnish clause and the colloquial mä survive."
+  },
+  {
+    "id": "fi-self-correction-contextual",
+    "transcript": "kokous on tiistaina eiku keskiviikkona",
+    "locale": "fi-FI",
+    "mustContain": [
+      "tiistaina",
+      "eiku",
+      "keskiviikkona"
+    ],
+    "note": "Rules deliberately retain the ambiguous repair sequence; the Finnish model guidance resolves it contextually."
+  }
+]

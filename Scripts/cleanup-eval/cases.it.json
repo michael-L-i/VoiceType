@@ -1,0 +1,167 @@
+[
+  {
+    "id": "it-spoken-question-mark",
+    "transcript": "sei pronto punto interrogativo",
+    "locale": "it-IT",
+    "exact": "Sei pronto?",
+    "note": "Compound punctuation name: 'punto interrogativo' renders ? and glues to the word on its left."
+  },
+  {
+    "id": "it-spoken-semicolon",
+    "transcript": "abbiamo finito il lavoro punto e virgola domani si parte",
+    "locale": "it-IT",
+    "exact": "Abbiamo finito il lavoro; domani si parte.",
+    "note": "'punto e virgola' renders ; and the clause after it stays lowercase, as Italian requires."
+  },
+  {
+    "id": "it-spoken-idempotent",
+    "transcript": "Sei pronto?",
+    "locale": "it-IT",
+    "exact": "Sei pronto?",
+    "note": "Idempotence: the engine already produced the mark, so nothing doubles up."
+  },
+  {
+    "id": "it-bare-punto-and-virgola-kept",
+    "transcript": "ho segnato due punti e poi ho spostato la virgola di due posizioni",
+    "locale": "it-IT",
+    "mustContain": ["due punti", "la virgola"],
+    "mustNotContain": [":"],
+    "note": "Ambiguity policy: bare 'punto', 'virgola' and 'due punti' are everyday nouns — the deterministic pass must never render them."
+  },
+  {
+    "id": "it-brackets-and-quotes",
+    "transcript": "ha detto aperte virgolette non lo so chiuse virgolette e se n'e' andato",
+    "locale": "it-IT",
+    "exact": "Ha detto “non lo so” e se n'è andato.",
+    "note": "Quotation marks are set tight against the quoted text; n'e' is the ASCII spelling of n'è."
+  },
+  {
+    "id": "it-fillers-removed-markers-kept",
+    "transcript": "ehm allora cioe diciamo tipo il progetto e' in ritardo",
+    "locale": "it-IT",
+    "exact": "Allora cioè diciamo tipo il progetto è in ritardo.",
+    "note": "Breath noises go; the segnali discorsivi (allora/cioè/diciamo/tipo) are content until an LLM says otherwise."
+  },
+  {
+    "id": "it-interjections-kept",
+    "transcript": "boh, mah, eh, non saprei",
+    "locale": "it-IT",
+    "exact": "Boh, mah, eh, non saprei.",
+    "note": "Meaningful interjections look like hesitations but carry meaning — never deterministic fillers."
+  },
+  {
+    "id": "it-accents-restored",
+    "transcript": "la citta e' bellissima perchè piu tranquilla",
+    "locale": "it-IT",
+    "exact": "La città è bellissima perché più tranquilla.",
+    "note": "Accents restored only where the bare spelling is not an Italian word; perchè → perché (acute, per Crusca)."
+  },
+  {
+    "id": "it-apostrophe-norms",
+    "transcript": "ci vuole un pò di pazienza e un'altro po' di tempo",
+    "locale": "it-IT",
+    "exact": "Ci vuole un po' di pazienza e un altro po' di tempo.",
+    "note": "pò → po' (Crusca); un'altro → un altro (the masculine article is never apostrophized); troncamento keeps its space."
+  },
+  {
+    "id": "it-elision-spacing",
+    "transcript": "l' universita di Bologna e' la piu antica",
+    "locale": "it-IT",
+    "exact": "L'università di Bologna è la più antica.",
+    "note": "No space after an elision apostrophe (Treccani); the accent fix reaches the stem behind it."
+  },
+  {
+    "id": "it-ellipsis",
+    "transcript": "non so... forse domani",
+    "locale": "it-IT",
+    "exact": "Non so… forse domani.",
+    "note": "Suspension points survive as a single … instead of being collapsed to a full stop by the shared pass."
+  },
+  {
+    "id": "it-decimal-comma",
+    "transcript": "il totale e' 3 virgola 5 su 3,14",
+    "locale": "it-IT",
+    "exact": "Il totale è 3,5 su 3,14.",
+    "note": "Italian decimal separator is the comma: spoken 'virgola' between digits renders, and an existing 3,14 is not split apart."
+  },
+  {
+    "id": "it-number-list-not-a-decimal",
+    "transcript": "il 5, 6 e 7 maggio siamo chiusi",
+    "locale": "it-IT",
+    "exact": "Il 5, 6 e 7 maggio siamo chiusi.",
+    "note": "An enumeration of numerals keeps its spacing — the decimal rule backs off before a conjunction."
+  },
+  {
+    "id": "it-date-casing",
+    "transcript": "la riunione e' il 5 Gennaio 2027",
+    "locale": "it-IT",
+    "exact": "La riunione è il 5 gennaio 2027.",
+    "note": "Italian writes months lowercase (Treccani); only inside an unmistakable date, so surnames like Di Gennaio survive."
+  },
+  {
+    "id": "it-file-name",
+    "transcript": "apri il file config punto json e cambia il timeout",
+    "locale": "it-IT",
+    "exact": "Apri il file config.json e cambia il timeout.",
+    "note": "'punto' renders only when a known extension follows; embedded English (timeout) is untouched."
+  },
+  {
+    "id": "it-identifier-and-email",
+    "transcript": "chiamalo max trattino basso tentativi e scrivi a mario punto rossi chiocciola gmail punto com",
+    "locale": "it-IT",
+    "mustContain": ["max_tentativi", "mario.rossi@gmail.com"],
+    "note": "Identifiers join on 'trattino basso'; 'chiocciola' renders @ only inside an address anchored on a TLD."
+  },
+  {
+    "id": "it-dash-in-prose",
+    "transcript": "metti un trattino qui e una barra laterale piu larga",
+    "locale": "it-IT",
+    "exact": "Metti un trattino qui e una barra laterale più larga.",
+    "note": "Outside a terminal 'trattino' and 'barra' are words: a determiner on the left blocks the join."
+  },
+  {
+    "id": "it-question-heuristic",
+    "transcript": "quanti sono i partecipanti",
+    "locale": "it-IT",
+    "exact": "Quanti sono i partecipanti?",
+    "note": "Interrogative opener with no terminal mark gains ?. Italian yes/no questions don't invert, so only wh-words trigger it."
+  },
+  {
+    "id": "it-che-is-not-a-question",
+    "transcript": "che bello vedervi",
+    "locale": "it-IT",
+    "exact": "Che bello vedervi.",
+    "note": "'che' opens exclamations as often as questions, so it is deliberately absent from the opener set."
+  },
+  {
+    "id": "it-terminal-command",
+    "transcript": "git status",
+    "locale": "it-IT",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "Terminal category stays command-safe: no capital, no full stop, no rule fires."
+  },
+  {
+    "id": "it-terminal-options",
+    "transcript": "git push origin trattino trattino force e poi cd tilde barra progetti",
+    "locale": "it-IT",
+    "category": "terminal",
+    "mustContain": ["--force", "~/progetti"],
+    "note": "Spoken options and paths render inside a terminal only; a real command contains none of these Italian trigger words."
+  },
+  {
+    "id": "it-ramble-no-translation",
+    "transcript": "ehm allora volevo dire che la riunione di stamattina ha toccato tre punti il primo e' che il rilascio va spostato di una settimana perche i test non sono ancora finiti il secondo e' che la documentazione va aggiornata prima di pubblicare e il terzo e' che nel prossimo trimestre dobbiamo assumere due ingegneri nuovi",
+    "locale": "it-IT",
+    "mustContain": ["riunione", "rilascio", "documentazione", "ingegneri"],
+    "mustNotContain": ["meeting", "release", "documentation", "engineers", "1.", "2."],
+    "note": "Anti-translation and anti-summarization: a long Italian ramble stays Italian, keeps every clause, and enumerated speech stays prose."
+  },
+  {
+    "id": "it-self-correction",
+    "transcript": "mandalo a Marco, anzi no, a Giulia",
+    "locale": "it-IT",
+    "mustContain": ["Giulia"],
+    "note": "Self-correction is model territory (the rules floor keeps both names); the model should keep only Giulia. Judge the model run manually."
+  }
+]

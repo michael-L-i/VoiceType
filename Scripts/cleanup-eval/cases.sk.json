@@ -1,0 +1,196 @@
+[
+  {
+    "id": "sk-filler-removal",
+    "transcript": "ehm dnes prídem ééé neskôr",
+    "locale": "sk-SK",
+    "exact": "Dnes prídem neskôr.",
+    "note": "Only non-lexical hesitation spellings are removed deterministically."
+  },
+  {
+    "id": "sk-ambiguous-fillers-kept",
+    "transcript": "no teda vlastne proste tento návrh platí",
+    "locale": "sk-SK",
+    "exact": "No teda vlastne proste tento návrh platí.",
+    "note": "Every token can carry meaning, so the rules floor preserves all of them."
+  },
+  {
+    "id": "sk-decimal-comma",
+    "transcript": "výsledok je 3,14",
+    "locale": "sk-SK",
+    "exact": "Výsledok je 3,14.",
+    "note": "The Slovak decimal comma is masked across the shared comma-spacing pass."
+  },
+  {
+    "id": "sk-abbreviation-period",
+    "transcript": "napr. toto funguje",
+    "locale": "sk-SK",
+    "exact": "Napr. toto funguje.",
+    "note": "An abbreviation period is not a sentence boundary."
+  },
+  {
+    "id": "sk-multiword-abbreviation",
+    "transcript": "je to t. j. bežný prípad",
+    "locale": "sk-SK",
+    "exact": "Je to t. j. bežný prípad.",
+    "note": "Both periods in t. j. are protected from false capitalization."
+  },
+  {
+    "id": "sk-ordinal-period",
+    "transcript": "získal 1. miesto v súťaži",
+    "locale": "sk-SK",
+    "exact": "Získal 1. miesto v súťaži.",
+    "note": "The dot after an ordinal numeral does not capitalize the following common noun."
+  },
+  {
+    "id": "sk-question-prefix",
+    "transcript": "prečo to nefunguje",
+    "locale": "sk-SK",
+    "exact": "Prečo to nefunguje?",
+    "note": "An unambiguous interrogative opener gains a question mark."
+  },
+  {
+    "id": "sk-ambiguous-question-opener",
+    "transcript": "ako sme sa dohodli prídem zajtra",
+    "locale": "sk-SK",
+    "exact": "Ako sme sa dohodli prídem zajtra.",
+    "note": "Ako is deliberately absent from the heuristic because it often opens a statement."
+  },
+  {
+    "id": "sk-quotation-marks",
+    "transcript": "povedal \"prídem zajtra\"",
+    "locale": "sk-SK",
+    "exact": "Povedal „prídem zajtra“.",
+    "note": "A complete ASCII quote pair becomes Slovak low-high quotation marks."
+  },
+  {
+    "id": "sk-quoted-sentence-ending",
+    "transcript": "povedal: \"Prídem zajtra.\"",
+    "locale": "sk-SK",
+    "exact": "Povedal: „Prídem zajtra.“",
+    "note": "A full quoted sentence keeps its period inside the closing quotation mark without a duplicate."
+  },
+  {
+    "id": "sk-ellipsis",
+    "transcript": "neviem... možno zajtra",
+    "locale": "sk-SK",
+    "exact": "Neviem… možno zajtra.",
+    "note": "Three ASCII periods become a Slovak typographic ellipsis before the shared collapse pass."
+  },
+  {
+    "id": "sk-spaced-dash",
+    "transcript": "to je - myslím - dobré",
+    "locale": "sk-SK",
+    "exact": "To je – myslím – dobré.",
+    "note": "A spaced prose hyphen is normalized to the Slovak spaced en dash."
+  },
+  {
+    "id": "sk-slash-spacing",
+    "transcript": "možnosť áno / nie platí",
+    "locale": "sk-SK",
+    "exact": "Možnosť áno/nie platí.",
+    "note": "A slash between words has no surrounding spaces."
+  },
+  {
+    "id": "sk-enclosure-spacing",
+    "transcript": "text ( poznámka ).",
+    "locale": "sk-SK",
+    "exact": "Text (poznámka).",
+    "note": "Parenthesis contents have no inner spaces."
+  },
+  {
+    "id": "sk-percent-spacing",
+    "transcript": "zľava je 20%",
+    "locale": "sk-SK",
+    "exact": "Zľava je 20\u00a0%.",
+    "note": "A fixed space joins a number to the percent sign."
+  },
+  {
+    "id": "sk-currency-spacing",
+    "transcript": "cena je 50 EUR",
+    "locale": "sk-SK",
+    "exact": "Cena je 50\u00a0EUR.",
+    "note": "A fixed space joins an amount to its following currency code."
+  },
+  {
+    "id": "sk-spoken-file-extension",
+    "transcript": "otvor main bodka py",
+    "locale": "sk-SK",
+    "exact": "Otvor main.py",
+    "note": "Bodka renders only because a known file extension anchors the technical meaning."
+  },
+  {
+    "id": "sk-spoken-identifier",
+    "transcript": "nastav max podčiarkovník retries",
+    "locale": "sk-SK",
+    "exact": "Nastav max_retries",
+    "note": "The unambiguous technical noun podčiarkovník joins identifier parts."
+  },
+  {
+    "id": "sk-spoken-email",
+    "transcript": "napíš jana bodka novakova zavináč example bodka sk",
+    "locale": "sk-SK",
+    "exact": "Napíš jana.novakova@example.sk",
+    "note": "A TLD-anchored sequence renders as an email address."
+  },
+  {
+    "id": "sk-punctuation-noun-kept",
+    "transcript": "bodka je interpunkčné znamienko",
+    "locale": "sk-SK",
+    "exact": "Bodka je interpunkčné znamienko.",
+    "note": "Bodka remains an ordinary noun when no technical context anchors it."
+  },
+  {
+    "id": "sk-embedded-identifiers",
+    "transcript": "súbor main.py používa max_retries",
+    "locale": "sk-SK",
+    "exact": "Súbor main.py používa max_retries",
+    "note": "Existing ASCII file names and identifiers survive untouched."
+  },
+  {
+    "id": "sk-code-editor-safety",
+    "transcript": "let_value = \"text\";",
+    "locale": "sk-SK",
+    "category": "codeEditor",
+    "exact": "let_value = \"text\";",
+    "note": "Prose quote normalization sits out code-editor string syntax."
+  },
+  {
+    "id": "sk-terminal-flag",
+    "transcript": "git log pomlčka pomlčka oneline",
+    "locale": "sk-SK",
+    "category": "terminal",
+    "exact": "git log --oneline",
+    "note": "Terminal opt-in renders a spoken long flag without capitalization or a final period."
+  },
+  {
+    "id": "sk-terminal-path",
+    "transcript": "cd tilda lomka projekty lomka VoiceType",
+    "locale": "sk-SK",
+    "category": "terminal",
+    "exact": "cd ~/projekty/VoiceType",
+    "note": "Terminal opt-in renders a home-relative path."
+  },
+  {
+    "id": "sk-terminal-placeholder-safety",
+    "transcript": "printf 3,14",
+    "locale": "sk-SK",
+    "category": "terminal",
+    "exact": "printf 3,14",
+    "note": "The paired decimal mask and restore both run in terminals, so no placeholder can leak."
+  },
+  {
+    "id": "sk-long-ramble",
+    "transcript": "ehm dnes sme na porade prešli tri veci prvá bola termín vydania ktorý sa posunie o týždeň druhá bola dokumentácia ktorú treba dokončiť a no tretia bola potreba prijať dvoch nových vývojárov",
+    "locale": "sk-SK",
+    "exact": "Dnes sme na porade prešli tri veci prvá bola termín vydania ktorý sa posunie o týždeň druhá bola dokumentácia ktorú treba dokončiť a no tretia bola potreba prijať dvoch nových vývojárov.",
+    "mustNotContain": ["meeting", "release", "documentation", "developers"],
+    "note": "Long anti-translation and anti-summarization case: all content survives, while the pure leading hesitation is removed."
+  },
+  {
+    "id": "sk-self-correction-model-territory",
+    "transcript": "objednaj päť nie šesť položiek",
+    "locale": "sk-SK",
+    "mustContain": ["päť", "šesť"],
+    "note": "The rules floor conservatively keeps both attempts; the model prompt is responsible for resolving the correction."
+  }
+]

@@ -1,0 +1,145 @@
+[
+  {
+    "id": "da-fillers",
+    "transcript": "øh jeg synes øhm det virker",
+    "locale": "da-DK",
+    "exact": "Jeg synes det virker.",
+    "note": "Pure hesitation sounds are removed deterministically."
+  },
+  {
+    "id": "da-ambiguous-discourse-kept",
+    "transcript": "altså jo det er ligesom sådan det er hmm",
+    "locale": "da-DK",
+    "exact": "Altså jo det er ligesom sådan det er hmm.",
+    "note": "Meaningful discourse words are never blind fillers."
+  },
+  {
+    "id": "da-spoken-punctuation",
+    "transcript": "hej komma hvordan går det spørgsmålstegn",
+    "locale": "da-DK",
+    "exact": "Hej, hvordan går det?",
+    "note": "Apple-style Danish punctuation commands render with Danish spacing."
+  },
+  {
+    "id": "da-spoken-punctuation-idempotent",
+    "transcript": "det virker? spørgsmålstegn",
+    "locale": "da-DK",
+    "exact": "Det virker?",
+    "note": "An already-rendered mark is not doubled."
+  },
+  {
+    "id": "da-punctuation-nouns-kept",
+    "transcript": "vi taler om et komma og et punktum",
+    "locale": "da-DK",
+    "exact": "Vi taler om et komma og et punktum.",
+    "note": "Obvious metalinguistic uses remain words."
+  },
+  {
+    "id": "da-question-modal",
+    "transcript": "kan du komme i morgen",
+    "locale": "da-DK",
+    "exact": "Kan du komme i morgen?",
+    "note": "A Danish verb-first polar question gains a question mark."
+  },
+  {
+    "id": "da-question-word",
+    "transcript": "hvornår begynder mødet",
+    "locale": "da-DK",
+    "exact": "Hvornår begynder mødet?",
+    "note": "A Danish interrogative opener gains a question mark."
+  },
+  {
+    "id": "da-imperative-not-question",
+    "transcript": "kom hjem nu",
+    "locale": "da-DK",
+    "exact": "Kom hjem nu.",
+    "note": "The imperative kom is deliberately excluded from blind question openers."
+  },
+  {
+    "id": "da-decimal-and-currency",
+    "transcript": "beløbet er 1.234,56 kr.",
+    "locale": "da-DK",
+    "exact": "Beløbet er 1.234,56 kr.",
+    "note": "Decimal comma, grouping point, currency spacing, and one abbreviation period survive."
+  },
+  {
+    "id": "da-abbreviation-mid-sentence",
+    "transcript": "det sker bl.a. i morgen",
+    "locale": "da-DK",
+    "exact": "Det sker bl.a. i morgen.",
+    "note": "An abbreviation period does not trigger false sentence capitalization."
+  },
+  {
+    "id": "da-currency-abbreviation",
+    "transcript": "prisen er 100kr",
+    "locale": "da-DK",
+    "exact": "Prisen er 100 kr.",
+    "note": "A numeric krone abbreviation gets its required separation and abbreviation point."
+  },
+  {
+    "id": "da-spoken-line-break",
+    "transcript": "første linje ny linje anden linje",
+    "locale": "da-DK",
+    "exact": "Første linje\nanden linje.",
+    "note": "The Danish line-break command survives the Latin whitespace pass."
+  },
+  {
+    "id": "da-file-and-identifier",
+    "transcript": "send config punktum json og bruger understregning id til mig",
+    "locale": "da-DK",
+    "exact": "Send config.json og bruger_id til mig.",
+    "note": "Explicit Danish technical joiners render a file name and identifier."
+  },
+  {
+    "id": "da-email",
+    "transcript": "skriv til anna punktum hansen snabel-a eksempel punktum dk",
+    "locale": "da-DK",
+    "exact": "Skriv til anna.hansen@eksempel.dk",
+    "note": "A dictated Danish email address renders compactly and stays bare."
+  },
+  {
+    "id": "da-paired-symbols",
+    "transcript": "kald startparentes navn komma alder slutparentes",
+    "locale": "da-DK",
+    "exact": "Kald (navn, alder)",
+    "note": "Published Danish parenthesis and comma commands render compactly."
+  },
+  {
+    "id": "da-embedded-tech",
+    "transcript": "vi bruger VoiceType med parseRequest og main.py",
+    "locale": "da-DK",
+    "exact": "Vi bruger VoiceType med parseRequest og main.py",
+    "note": "Embedded English, camelCase, and a file name remain untouched."
+  },
+  {
+    "id": "da-terminal-flags",
+    "transcript": "git log bindestreg bindestreg oneline",
+    "locale": "da-DK",
+    "category": "terminal",
+    "exact": "git log --oneline",
+    "note": "A Danish spoken long flag renders without capitalization or final punctuation."
+  },
+  {
+    "id": "da-terminal-path",
+    "transcript": "cd tilde skråstreg projekter skråstreg VoiceType",
+    "locale": "da-DK",
+    "category": "terminal",
+    "exact": "cd ~/projekter/VoiceType",
+    "note": "A Danish spoken shell path renders while preserving path casing."
+  },
+  {
+    "id": "da-ramble-no-translation",
+    "transcript": "øh jeg vil lige forklare hele planen først flytter vi mødet til torsdag fordi designet ikke er færdigt derefter gennemgår vi alle fejlene med holdet og til sidst sender vi den opdaterede tidsplan til kunden så ingen mangler oplysninger",
+    "locale": "da-DK",
+    "mustContain": ["forklare", "torsdag", "designet", "fejlene", "tidsplan", "kunden"],
+    "mustNotContain": ["meeting", "Thursday", "customer"],
+    "note": "Long Danish dictation keeps every clause and is never translated or summarized."
+  },
+  {
+    "id": "da-self-correction",
+    "transcript": "send fem nej seks kopier til kontoret",
+    "locale": "da-DK",
+    "mustContain": ["fem", "nej", "seks"],
+    "note": "Self-correction is deliberately model territory; the rules floor preserves every word."
+  }
+]
