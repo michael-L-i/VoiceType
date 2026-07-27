@@ -1,0 +1,181 @@
+[
+  {
+    "id": "hr-filler-vocal",
+    "transcript": "eee danas šaljemo novu verziju",
+    "locale": "hr-HR",
+    "exact": "Danas šaljemo novu verziju.",
+    "note": "A non-lexical hesitation is removed and the sentence is capitalized."
+  },
+  {
+    "id": "hr-ambiguous-fillers-kept",
+    "transcript": "ovaj prijedlog znači velik napredak pa ga prihvaćamo",
+    "locale": "hr-HR",
+    "mustContain": ["Ovaj", "znači", "pa"],
+    "note": "Lexical/discourse lookalikes are never deterministic fillers."
+  },
+  {
+    "id": "hr-spoken-punctuation",
+    "transcript": "prvo zarez drugo uskličnik",
+    "locale": "hr-HR",
+    "exact": "Prvo, drugo!",
+    "note": "Specialized Croatian dictation commands render as punctuation."
+  },
+  {
+    "id": "hr-spoken-punctuation-idempotent",
+    "transcript": "dobro? upitnik",
+    "locale": "hr-HR",
+    "exact": "Dobro?",
+    "note": "An already-rendered mark next to its spoken command does not double."
+  },
+  {
+    "id": "hr-spoken-semicolon",
+    "transcript": "prvo točka sa zarezom drugo",
+    "locale": "hr-HR",
+    "exact": "Prvo; drugo.",
+    "note": "The longest multi-word punctuation command wins."
+  },
+  {
+    "id": "hr-line-break",
+    "transcript": "prvi red novi redak drugi red",
+    "locale": "hr-HR",
+    "exact": "Prvi red\ndrugi red.",
+    "note": "A dictated line break survives the shared whitespace pass without inventing a sentence boundary."
+  },
+  {
+    "id": "hr-decimal-comma",
+    "transcript": "cijena je 12,50 eura",
+    "locale": "hr-HR",
+    "exact": "Cijena je 12,50 eura.",
+    "note": "The Croatian decimal comma remains tight instead of becoming 12, 50."
+  },
+  {
+    "id": "hr-percent-spacing",
+    "transcript": "rast je 12,5%",
+    "locale": "hr-HR",
+    "exact": "Rast je 12,5 %.",
+    "note": "Croatian typography puts a space between a number and percent sign."
+  },
+  {
+    "id": "hr-currency-spacing",
+    "transcript": "cijena je 99,90€",
+    "locale": "hr-HR",
+    "exact": "Cijena je 99,90 €.",
+    "note": "Croatian typography puts a space between a number and currency sign."
+  },
+  {
+    "id": "hr-numeric-date",
+    "transcript": "sastanak je 24.12.2026. u podne",
+    "locale": "hr-HR",
+    "exact": "Sastanak je 24. 12. 2026. u podne.",
+    "note": "Numeric dates use spaced ordinal dots without falsely capitalizing the continuation."
+  },
+  {
+    "id": "hr-version-not-date",
+    "transcript": "verzija release-1.2.2027 ostaje ista",
+    "locale": "hr-HR",
+    "exact": "Verzija release-1.2.2027 ostaje ista.",
+    "note": "A hyphenated release identifier is not reformatted as a date."
+  },
+  {
+    "id": "hr-quotes",
+    "transcript": "rekao je “dolazim sutra”",
+    "locale": "hr-HR",
+    "exact": "Rekao je „dolazim sutra”.",
+    "note": "English-style opening smart quotes normalize to Croatian „…”."
+  },
+  {
+    "id": "hr-abbreviation",
+    "transcript": "npr. danas šaljemo paket",
+    "locale": "hr-HR",
+    "exact": "Npr. danas šaljemo paket.",
+    "note": "An abbreviation period does not spuriously capitalize the following word."
+  },
+  {
+    "id": "hr-question-opener",
+    "transcript": "gdje je sastanak",
+    "locale": "hr-HR",
+    "exact": "Gdje je sastanak?",
+    "note": "A conservative Croatian interrogative opener gains a question mark."
+  },
+  {
+    "id": "hr-question-li",
+    "transcript": "je li sastanak potvrđen",
+    "locale": "hr-HR",
+    "exact": "Je li sastanak potvrđen?",
+    "note": "The pack-local auxiliary + li rule covers the shared first-token heuristic's multi-word gap."
+  },
+  {
+    "id": "hr-declarative-question-lookalike",
+    "transcript": "što se mene tiče sve je spremno",
+    "locale": "hr-HR",
+    "exact": "Što se mene tiče sve je spremno.",
+    "note": "Ambiguous što is not treated as a blind question opener."
+  },
+  {
+    "id": "hr-content-tocka",
+    "transcript": "ovo je ključna točka projekta",
+    "locale": "hr-HR",
+    "exact": "Ovo je ključna točka projekta.",
+    "note": "The ordinary noun točka remains prose."
+  },
+  {
+    "id": "hr-file-extension",
+    "transcript": "otvori main točka pi",
+    "locale": "hr-HR",
+    "exact": "Otvori main.py",
+    "note": "The ambiguous word točka renders only in a known file-extension shape."
+  },
+  {
+    "id": "hr-identifier",
+    "transcript": "promijeni max donja crta retries",
+    "locale": "hr-HR",
+    "exact": "Promijeni max_retries",
+    "note": "A Croatian spoken underscore compacts an explicitly marked identifier."
+  },
+  {
+    "id": "hr-embedded-english",
+    "transcript": "VoiceType koristi main.swift i get_user",
+    "locale": "hr-HR",
+    "exact": "VoiceType koristi main.swift i get_user",
+    "note": "Embedded English, a file name and identifier retain exact spelling and casing."
+  },
+  {
+    "id": "hr-terminal-flag",
+    "transcript": "git status crtica crtica short",
+    "locale": "hr-HR",
+    "category": "terminal",
+    "exact": "git status --short",
+    "note": "Terminal dictation renders a spoken long flag but gains no capitalization or period."
+  },
+  {
+    "id": "hr-terminal-path",
+    "transcript": "cd tilda kosa crta projekti kosa crta VoiceType",
+    "locale": "hr-HR",
+    "category": "terminal",
+    "exact": "cd ~/projekti/VoiceType",
+    "note": "Croatian path words render compactly in the terminal."
+  },
+  {
+    "id": "hr-terminal-punctuation-safe",
+    "transcript": "echo zarez",
+    "locale": "hr-HR",
+    "category": "terminal",
+    "exact": "echo zarez",
+    "note": "Prose punctuation commands sit out terminal dictation."
+  },
+  {
+    "id": "hr-ramble-faithful",
+    "transcript": "eee što se tiče jučerašnjeg sastanka prvo moramo završiti testiranje nove verzije zatim ažurirati dokumentaciju i obavijestiti korisnike a nakon toga ovaj možemo dogovoriti točan datum objave jer nijedan od tih koraka ne smijemo preskočiti",
+    "locale": "hr-HR",
+    "mustContain": ["jučerašnjeg", "testiranje", "dokumentaciju", "korisnike", "datum", "preskočiti"],
+    "mustNotContain": ["meeting", "testing", "documentation", "users", "release"],
+    "note": "Long Croatian dictation stays Croatian and retains every clause; contextual ovaj is model territory."
+  },
+  {
+    "id": "hr-self-correction",
+    "transcript": "sastanak je u petak ne u subotu u deset sati",
+    "locale": "hr-HR",
+    "mustContain": ["petak", "subotu", "deset"],
+    "note": "Rules fail conservative and retain both attempts; the Croatian prompt tells the model to keep the clear replacement spoken last."
+  }
+]
