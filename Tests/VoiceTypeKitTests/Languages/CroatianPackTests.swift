@@ -121,6 +121,7 @@ struct CroatianRuleCleanupTests {
 
     @Test("common abbreviation periods do not trigger false sentence capitalization")
     func abbreviations() {
+        #expect(clean("npr. danas šaljemo paket") == "Npr. danas šaljemo paket.")
         #expect(clean("Npr. danas šaljemo paket") == "Npr. danas šaljemo paket.")
         #expect(clean("Dr. Horvat dolazi danas") == "Dr. Horvat dolazi danas.")
         #expect(clean("Pogledaj str. 12 dokumenta") == "Pogledaj str. 12 dokumenta.")

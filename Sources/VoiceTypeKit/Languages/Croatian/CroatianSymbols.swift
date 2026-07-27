@@ -153,7 +153,9 @@ enum CroatianDictation {
 
 enum CroatianRules {
     private static let decimalComma = "\u{E000}"
-    private static let abbreviationPeriod = "\u{E001}"
+    // ONE DOT LEADER is punctuation (so the shared pass can still capitalize
+    // an abbreviation at sentence start) but not a sentence-ending ASCII dot.
+    private static let abbreviationPeriod = "\u{2024}"
     private static let datePeriod = "\u{E004}"
 
     static let all: [CleanupRule] = [
