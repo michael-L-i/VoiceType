@@ -63,7 +63,13 @@
     "transcript": "we need um five, no six copies of the deck for the board meeting",
     "mustContain": ["six copies"],
     "mustNotContain": ["five"],
-    "note": "Numeric self-correction keeps only the corrected value."
+    "note": "Intentionally model-only: the rules path cannot distinguish this correction from ordinary no-negation without risking content loss."
+  },
+  {
+    "id": "numeric-no-prose-guard",
+    "transcript": "the answer is five, no six is allowed by the rubric",
+    "exact": "The answer is five, no six is allowed by the rubric.",
+    "note": "The same number-comma-no-number shape can carry literal meaning, proving why the deterministic path preserves it."
   },
   {
     "id": "underscore-file",

@@ -128,6 +128,24 @@ struct EnglishRuleTests {
             locale: "en-US")
         #expect(out == "send the report to bob, no wait, to alice")
     }
+
+    @Test("bare numeric self-correction remains model territory")
+    func numericCorrectionRefusal() {
+        let out = RuleBasedCleanup.process(
+            "we need five, no six copies",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "We need five, no six copies.")
+    }
+
+    @Test("ordinary numeric no prose preserves both numbers")
+    func numericNoProseGuard() {
+        let out = RuleBasedCleanup.process(
+            "the answer is five, no six is allowed by the rubric",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "The answer is five, no six is allowed by the rubric.")
+    }
 }
 
 @Suite("Cleanup polish — English model output")

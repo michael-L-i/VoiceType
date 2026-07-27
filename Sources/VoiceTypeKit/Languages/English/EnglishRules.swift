@@ -5,6 +5,12 @@ import Foundation
 /// These are deliberately command-shaped: they act only on words the speaker
 /// uses to request a mechanical rendering. Lexical cleanup that needs meaning
 /// stays in the model prompt.
+///
+/// Deliberately NOT a rule: bare numeric `five, no six` correction. The same
+/// token shape can be ordinary negation ("the answer is five, no six is
+/// allowed by the rubric"), and `CleanupRule` intentionally has no cleanup-
+/// option input that could limit deletion to disfluency removal. That judgment
+/// remains in English's model prompt rather than risking lost content.
 extension LanguagePack {
     static let englishRules: [CleanupRule] = [
         CleanupRule(
