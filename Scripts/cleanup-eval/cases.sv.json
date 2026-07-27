@@ -1,0 +1,244 @@
+[
+  {
+    "id": "sv-filler-leading",
+    "transcript": "eh vi ses på måndag",
+    "locale": "sv-SE",
+    "exact": "Vi ses på måndag.",
+    "note": "Leading hesitation vowel removed; måndag keeps its lowercase initial."
+  },
+  {
+    "id": "sv-filler-mid",
+    "transcript": "jag tror öhm att det stämmer",
+    "locale": "sv-SE",
+    "exact": "Jag tror att det stämmer.",
+    "note": "Mid-sentence hesitation removed without leaving a double space."
+  },
+  {
+    "id": "sv-ambiguous-fillers-kept",
+    "transcript": "alltså jag menar ju att typ hälften är klar",
+    "locale": "sv-SE",
+    "mustContain": ["Alltså", "ju", "typ"],
+    "note": "Ambiguity policy: liksom/typ/alltså/ju carry meaning — the deterministic pass must never touch them. The LLM decides."
+  },
+  {
+    "id": "sv-millimetre-kept",
+    "transcript": "vi har 5 mm marginal kvar",
+    "locale": "sv-SE",
+    "exact": "Vi har 5 mm marginal kvar.",
+    "note": "\"mm\" is excluded from the filler list because it is also the unit millimetre."
+  },
+  {
+    "id": "sv-spoken-marks",
+    "transcript": "är du klar frågetecken vi måste gå utropstecken",
+    "locale": "sv-SE",
+    "exact": "Är du klar? Vi måste gå!",
+    "note": "Unambiguous -tecken compounds render, and the next sentence capitalizes."
+  },
+  {
+    "id": "sv-spoken-quotes",
+    "transcript": "han sa citattecken det är klart citattecken igår",
+    "locale": "sv-SE",
+    "exact": "Han sa ”det är klart” igår.",
+    "note": "Swedish uses the same nine-shaped ” to open and close; parity decides which end."
+  },
+  {
+    "id": "sv-spoken-newline",
+    "transcript": "första punkten ny rad andra punkten",
+    "locale": "sv-SE",
+    "exact": "Första punkten\nAndra punkten.",
+    "note": "\"ny rad\" inserts a real newline; the surrounding \"punkten\" (inflected) is never a mark."
+  },
+  {
+    "id": "sv-punkt-as-period",
+    "transcript": "det var allt punkt tack för idag",
+    "locale": "sv-SE",
+    "exact": "Det var allt. Tack för idag.",
+    "note": "Bare \"punkt\" renders a period only where the noun reading is impossible."
+  },
+  {
+    "id": "sv-punkt-as-noun",
+    "transcript": "han har en svag punkt",
+    "locale": "sv-SE",
+    "exact": "Han har en svag punkt.",
+    "note": "A determiner two tokens back shields the noun — \"en svag punkt\" is a weak spot."
+  },
+  {
+    "id": "sv-punkt-before-numeral",
+    "transcript": "vi går igenom det punkt för punkt",
+    "locale": "sv-SE",
+    "exact": "Vi går igenom det punkt för punkt.",
+    "note": "\"punkt för punkt\" is guarded from both sides; nothing renders."
+  },
+  {
+    "id": "sv-punkt-idempotent",
+    "transcript": "det var bra. punkt",
+    "locale": "sv-SE",
+    "exact": "Det var bra.",
+    "note": "The transcriber already emitted the mark AND the speaker said it — no doubling."
+  },
+  {
+    "id": "sv-percent-spacing",
+    "transcript": "andelen ökade till 12,5% i år",
+    "locale": "sv-SE",
+    "exact": "Andelen ökade till 12,5 % i år.",
+    "note": "Svenska skrivregler §12.14.1: a space between the figure and %. The decimal comma survives the shared spacing pass."
+  },
+  {
+    "id": "sv-degree-spacing",
+    "transcript": "temperaturen är 20°C ute",
+    "locale": "sv-SE",
+    "exact": "Temperaturen är 20 °C ute.",
+    "note": "Same rule for the degree sign."
+  },
+  {
+    "id": "sv-number-enumeration",
+    "transcript": "se kapitel 3, 4 och 5",
+    "locale": "sv-SE",
+    "exact": "Se kapitel 3, 4 och 5.",
+    "note": "A comma that arrived spaced is an enumeration, not a decimal — left alone."
+  },
+  {
+    "id": "sv-curly-quotes",
+    "transcript": "han sa “hej” till mig",
+    "locale": "sv-SE",
+    "exact": "Han sa ”hej” till mig.",
+    "note": "English curly quotes become the Swedish ”; straight \" is left alone (code)."
+  },
+  {
+    "id": "sv-calendar-case",
+    "transcript": "mötet är på Fredag i Juli",
+    "locale": "sv-SE",
+    "exact": "Mötet är på fredag i juli.",
+    "note": "Weekdays and months are common nouns in Swedish (Språkrådet) — lowercased mid-sentence."
+  },
+  {
+    "id": "sv-abbreviation-case",
+    "transcript": "vi behöver t.ex. det andra alternativet",
+    "locale": "sv-SE",
+    "exact": "Vi behöver t.ex. det andra alternativet.",
+    "note": "An abbreviation's period does not start a sentence; the shared capitalization pass is undone."
+  },
+  {
+    "id": "sv-abbreviation-spares-names",
+    "transcript": "jag tar med bl.a. Anna och Erik",
+    "locale": "sv-SE",
+    "exact": "Jag tar med bl.a. Anna och Erik.",
+    "note": "Only function words are lowered after an abbreviation, so a proper noun is never eaten."
+  },
+  {
+    "id": "sv-question-interrogative",
+    "transcript": "vad heter filen",
+    "locale": "sv-SE",
+    "exact": "Vad heter filen?",
+    "note": "Interrogative opener gains a question mark."
+  },
+  {
+    "id": "sv-question-inversion",
+    "transcript": "kan du kolla det",
+    "locale": "sv-SE",
+    "exact": "Kan du kolla det?",
+    "note": "Swedish is V2: a finite verb in first position is a yes/no question."
+  },
+  {
+    "id": "sv-question-var",
+    "transcript": "var ligger filen",
+    "locale": "sv-SE",
+    "exact": "Var ligger filen?",
+    "note": "\"var\" is interrogative only when a finite verb follows it."
+  },
+  {
+    "id": "sv-imperative-var",
+    "transcript": "var snäll och skicka rapporten",
+    "locale": "sv-SE",
+    "exact": "Var snäll och skicka rapporten.",
+    "note": "Same word as an imperative — must stay a statement."
+  },
+  {
+    "id": "sv-imperative-gor",
+    "transcript": "gör det nu",
+    "locale": "sv-SE",
+    "exact": "Gör det nu.",
+    "note": "\"gör\" is excluded from the question openers because its imperative is spelled the same."
+  },
+  {
+    "id": "sv-file-name",
+    "transcript": "spara det som main punkt paj",
+    "locale": "sv-SE",
+    "exact": "Spara det som main.py",
+    "note": "\"paj\" is how a Swedish transcriber writes the spoken \".py\"; no period is glued onto a file name."
+  },
+  {
+    "id": "sv-identifier",
+    "transcript": "max understreck försök är satt till fem",
+    "locale": "sv-SE",
+    "exact": "max_försök är satt till fem.",
+    "note": "Identifiers join and keep the Swedish spelling; a leading identifier is not capitalized."
+  },
+  {
+    "id": "sv-email",
+    "transcript": "skicka till anna punkt svensson snabel-a exempel punkt se",
+    "locale": "sv-SE",
+    "exact": "Skicka till anna.svensson@exempel.se",
+    "note": "snabel-a is the Swedish name for @; .se anchors the address pattern."
+  },
+  {
+    "id": "sv-embedded-english",
+    "transcript": "kolla version 2.5.1 av paketet innan vi kör npm run build",
+    "locale": "sv-SE",
+    "exact": "Kolla version 2.5.1 av paketet innan vi kör npm run build.",
+    "note": "Embedded English and a dotted version number survive untouched."
+  },
+  {
+    "id": "sv-prose-noun-streck",
+    "transcript": "drar ett streck i sanden",
+    "locale": "sv-SE",
+    "exact": "Drar ett streck i sanden.",
+    "note": "\"streck\" is a flag marker in a terminal and an everyday noun in prose; the vocabulary is split by category."
+  },
+  {
+    "id": "sv-terminal-command",
+    "transcript": "git status",
+    "locale": "sv-SE",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "Terminal category stays command-safe: no capital, no period, no rule fires."
+  },
+  {
+    "id": "sv-terminal-flags",
+    "transcript": "kör npm run build streck streck watch",
+    "locale": "sv-SE",
+    "category": "terminal",
+    "exact": "kör npm run build --watch",
+    "note": "\"streck streck\" is how a Swede dictates a long flag."
+  },
+  {
+    "id": "sv-terminal-path",
+    "transcript": "cd tilde snedstreck projekt snedstreck voicetype",
+    "locale": "sv-SE",
+    "category": "terminal",
+    "exact": "cd ~/projekt/voicetype",
+    "note": "Spoken paths render in the terminal category only."
+  },
+  {
+    "id": "sv-ramble-no-translation",
+    "transcript": "öh så alltså jag tänkte att vi kanske skulle kunna ta ett möte på måndag och gå igenom hela backloggen för det finns typ trettio ärenden kvar och sen behöver vi liksom bestämma vem som gör vad innan releasen",
+    "locale": "sv-SE",
+    "mustContain": ["möte", "backloggen", "ärenden", "bestämma", "releasen"],
+    "mustNotContain": ["meeting", "backlog items", "decide", "release date"],
+    "note": "Anti-translation and anti-summarization: a long Swedish ramble stays Swedish and keeps every clause. Only the leading \"öh\" goes."
+  },
+  {
+    "id": "sv-self-correction",
+    "transcript": "boka mötet till onsdag nej förresten torsdag eftermiddag",
+    "locale": "sv-SE",
+    "mustContain": ["torsdag"],
+    "note": "Self-correction is model territory (the rules floor keeps both); the model should keep only torsdag. Judge the model run manually."
+  },
+  {
+    "id": "sv-sarskrivning",
+    "transcript": "vi bokade ett styr else möte om vår kaffe kopp budget",
+    "locale": "sv-SE",
+    "mustContain": ["budget"],
+    "note": "Särskrivning: split compounds are the #1 Swedish STT error, and rejoining them needs a lexicon. Rules leave them; the prompt asks the model for styrelsemöte / kaffekoppsbudget. Judge the model run manually."
+  }
+]
