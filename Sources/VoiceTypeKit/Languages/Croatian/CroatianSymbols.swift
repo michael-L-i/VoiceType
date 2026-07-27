@@ -154,6 +154,7 @@ enum CroatianDictation {
 enum CroatianRules {
     private static let decimalComma = "\u{E000}"
     private static let abbreviationPeriod = "\u{E001}"
+    private static let datePeriod = "\u{E004}"
 
     static let all: [CleanupRule] = [
         CleanupRule(
@@ -176,12 +177,27 @@ enum CroatianRules {
         ) { text, _ in
             maskAbbreviationPeriods(text)
         },
+        CleanupRule(
+            name: "protect Croatian numeric date periods",
+            stage: .early
+        ) { text, context in
+            guard context.category == .general || context.category == .messaging else {
+                return text
+            }
+            return maskDatePeriods(text)
+        },
         .regex(
             name: "restore Croatian decimal commas",
             stage: .afterPunctuation,
             runsInTerminal: true,
             pattern: NSRegularExpression.escapedPattern(for: decimalComma),
             template: ","
+        ),
+        .regex(
+            name: "restore Croatian numeric date periods",
+            stage: .final,
+            pattern: NSRegularExpression.escapedPattern(for: datePeriod) + "\\.?",
+            template: "."
         ),
         CleanupRule(
             name: "Croatian numeric date and unit spacing",
@@ -232,16 +248,21 @@ enum CroatianRules {
 
     private static func normalizeNumbers(_ text: String) -> String {
         var out = text
-        // Croatian numeric dates use ordinal dots with spaces between day,
-        // month and year. Tight scope avoids versions, IPs and file names.
-        out = replace(
-            out,
-            pattern: #"(?<![\w.-])(0?[1-9]|[12]\d|3[01])\.\s*(0?[1-9]|1[0-2])\.\s*((?:19|20)\d{2})\.?(?![\w.-])"#,
-            template: "$1. $2. $3.")
         // Croatian typography separates percent/promille and the euro sign
         // from the number. Code-editor and terminal contexts sit this out.
         out = replace(out, pattern: #"(?<=\d)\s*([%‰€])"#, template: " $1")
         return out
+    }
+
+    private static func maskDatePeriods(_ text: String) -> String {
+        let escaped = NSRegularExpression.escapedTemplate(for: datePeriod)
+        // Normalize at masking time so none of the three ordinal dots can
+        // trigger the shared sentence-capitalization pass. Tight boundaries
+        // exclude versions, IPs, paths and hyphenated release identifiers.
+        return replace(
+            text,
+            pattern: #"(?<![\w.-])(0?[1-9]|[12]\d|3[01])\.\s*(0?[1-9]|1[0-2])\.\s*((?:19|20)\d{2})\.?(?![\w.-])"#,
+            template: "$1\(escaped) $2\(escaped) $3\(escaped)")
     }
 
     private static func repairLiQuestions(_ text: String) -> String {
