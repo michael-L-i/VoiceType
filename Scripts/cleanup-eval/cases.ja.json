@@ -1,0 +1,209 @@
+[
+  {
+    "id": "ja-filler-leading",
+    "transcript": "えっと、今日は晴れです",
+    "locale": "ja-JP",
+    "exact": "今日は晴れです。",
+    "note": "An unmistakable leading hesitation is removed with its following comma."
+  },
+  {
+    "id": "ja-filler-mid-sentence",
+    "transcript": "明日は、えーと、雨です",
+    "locale": "ja-JP",
+    "exact": "明日は、雨です。",
+    "note": "A punctuation-delimited hesitation is removed without leaving doubled punctuation."
+  },
+  {
+    "id": "ja-ambiguous-discourse-words-kept",
+    "transcript": "あの資料はまあ悪くないですがその案も確認します",
+    "locale": "ja-JP",
+    "mustContain": ["あの資料", "まあ悪くない", "その案"],
+    "note": "あの, まあ, and その carry meaning here and are never deterministic fillers."
+  },
+  {
+    "id": "ja-thoughtful-uun-kept",
+    "transcript": "うーん、今回は見送ります",
+    "locale": "ja-JP",
+    "exact": "うーん、今回は見送ります。",
+    "note": "うーん conveys uncertainty or stance and must not be stripped blindly."
+  },
+  {
+    "id": "ja-spoken-period",
+    "transcript": "今日は晴れです句点",
+    "locale": "ja-JP",
+    "exact": "今日は晴れです。",
+    "note": "The unambiguous spoken command 句点 renders the Japanese full stop."
+  },
+  {
+    "id": "ja-spoken-commas",
+    "transcript": "赤読点青読点緑",
+    "locale": "ja-JP",
+    "exact": "赤、青、緑。",
+    "note": "読点 renders the ideographic comma used by the pack's ordinary prose style."
+  },
+  {
+    "id": "ja-spoken-punctuation-idempotent",
+    "transcript": "今日は晴れです。句点",
+    "locale": "ja-JP",
+    "exact": "今日は晴れです。",
+    "note": "An ASR-rendered mark followed by its spoken name does not double."
+  },
+  {
+    "id": "ja-spoken-corner-quotes",
+    "transcript": "彼は開きかぎ括弧了解閉じかぎ括弧と言いました",
+    "locale": "ja-JP",
+    "exact": "彼は「了解」と言いました。",
+    "note": "Explicit corner-bracket commands render Japanese quotation marks."
+  },
+  {
+    "id": "ja-spoken-paired-leader",
+    "transcript": "まだ考えています三点リーダー",
+    "locale": "ja-JP",
+    "exact": "まだ考えています……",
+    "note": "The Japanese typographic command renders a paired three-dot leader."
+  },
+  {
+    "id": "ja-spoken-newline",
+    "transcript": "一行目改行二行目",
+    "locale": "ja-JP",
+    "exact": "一行目\n二行目。",
+    "note": "改行 inserts a literal newline and the following Japanese text remains intact."
+  },
+  {
+    "id": "ja-polite-question-masuka",
+    "transcript": "明日は空いていますか",
+    "locale": "ja-JP",
+    "exact": "明日は空いていますか？",
+    "note": "The unambiguous polite interrogative ending ますか gains a full-width question mark."
+  },
+  {
+    "id": "ja-polite-question-deshouka",
+    "transcript": "こちらでよろしいでしょうか",
+    "locale": "ja-JP",
+    "exact": "こちらでよろしいでしょうか？",
+    "note": "でしょうか is a deterministic question ending."
+  },
+  {
+    "id": "ja-bare-ka-kept-conservative",
+    "transcript": "そうか",
+    "locale": "ja-JP",
+    "exact": "そうか。",
+    "note": "Bare か is not always interrogative, so the rules floor conservatively adds the ordinary full stop."
+  },
+  {
+    "id": "ja-dividing-mark-one-em-space",
+    "transcript": "本当？次を確認します",
+    "locale": "ja-JP",
+    "exact": "本当？　次を確認します。",
+    "note": "A new sentence after ？ is separated by one ideographic space."
+  },
+  {
+    "id": "ja-question-before-closing-quote-solid",
+    "transcript": "彼は「本当？」と言いました",
+    "locale": "ja-JP",
+    "exact": "彼は「本当？」と言いました。",
+    "note": "No space is inserted between a question mark and its closing bracket."
+  },
+  {
+    "id": "ja-bracket-asr-spaces-removed",
+    "transcript": "彼は 「 了解 」 と言いました",
+    "locale": "ja-JP",
+    "exact": "彼は「了解」と言いました。",
+    "note": "Literal ASR whitespace around Japanese corner brackets is removed."
+  },
+  {
+    "id": "ja-horizontal-comma-style-preserved",
+    "transcript": "今日は晴れです,明日は雨です",
+    "locale": "ja-JP",
+    "exact": "今日は晴れです，明日は雨です。",
+    "note": "The permitted horizontal ，。 style is normalized to full-width and preserved rather than blindly changed to 、。."
+  },
+  {
+    "id": "ja-date-preserved",
+    "transcript": "日付は2026年7月26日です",
+    "locale": "ja-JP",
+    "exact": "日付は2026年7月26日です。",
+    "note": "An already formatted Gregorian date remains exact."
+  },
+  {
+    "id": "ja-decimal-thousands-preserved",
+    "transcript": "金額は1,234.56円です",
+    "locale": "ja-JP",
+    "exact": "金額は1,234.56円です。",
+    "note": "ASCII thousands and decimal separators inside numeric data are not converted to Japanese sentence punctuation."
+  },
+  {
+    "id": "ja-embedded-file",
+    "transcript": "main.pyを開きます",
+    "locale": "ja-JP",
+    "exact": "main.pyを開きます。",
+    "note": "An embedded ASCII file name survives unchanged."
+  },
+  {
+    "id": "ja-spoken-file-extension",
+    "transcript": "config ドット ジェイソンを開きます",
+    "locale": "ja-JP",
+    "exact": "config.jsonを開きます。",
+    "note": "A Japanese spoken extension joins even when the following particle attaches directly."
+  },
+  {
+    "id": "ja-spoken-snake-case",
+    "transcript": "max アンダースコア retriesを五にします",
+    "locale": "ja-JP",
+    "exact": "max_retriesを五にします。",
+    "note": "The guarded symbol renderer joins an explicitly dictated snake-case identifier."
+  },
+  {
+    "id": "ja-dot-prose-guard",
+    "transcript": "ドット柄のシャツです",
+    "locale": "ja-JP",
+    "exact": "ドット柄のシャツです。",
+    "note": "ドット is ordinary content in ドット柄 and is not blindly replaced."
+  },
+  {
+    "id": "ja-latin-abbreviations",
+    "transcript": "AIとVoiceTypeのAPIを使います",
+    "locale": "ja-JP",
+    "exact": "AIとVoiceTypeのAPIを使います。",
+    "note": "Established casing of abbreviations and brands survives Japanese cleanup."
+  },
+  {
+    "id": "ja-terminal-short-flag",
+    "transcript": "git commit ハイフン m fix",
+    "locale": "ja-JP",
+    "category": "terminal",
+    "exact": "git commit -m fix",
+    "note": "A Japanese spoken hyphen renders a shell flag and terminal punctuation stays disabled."
+  },
+  {
+    "id": "ja-terminal-long-flag",
+    "transcript": "npm run build ハイフン ハイフン verbose",
+    "locale": "ja-JP",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "Repeated ハイフン renders a long option without capitalization or a terminal mark."
+  },
+  {
+    "id": "ja-terminal-path",
+    "transcript": "cd チルダ スラッシュ projects スラッシュ VoiceType",
+    "locale": "ja-JP",
+    "category": "terminal",
+    "exact": "cd ~/projects/VoiceType",
+    "note": "Japanese symbol words render a compact shell path."
+  },
+  {
+    "id": "ja-ramble-faithful-and-untranslated",
+    "transcript": "えっと今日の会議では三つの点を確認しました最初に新しい音声入力機能の公開日はテストが終わるまで一週間延期します次に利用者向けの説明を公開前に書き直します最後に来月は日本語の認識精度を測るため長い会話と専門用語を含む試験を追加します",
+    "locale": "ja-JP",
+    "mustContain": ["今日の会議", "一週間延期", "利用者向けの説明", "日本語の認識精度", "専門用語"],
+    "mustNotContain": ["えっと", "meeting", "release", "accuracy"],
+    "note": "Long anti-summary and anti-translation case: every clause remains Japanese and the opening hesitation alone is removed."
+  },
+  {
+    "id": "ja-self-correction-model-territory",
+    "transcript": "会議は水曜日いや木曜日の午後に変更します",
+    "locale": "ja-JP",
+    "mustContain": ["水曜日", "いや", "木曜日"],
+    "note": "The rules floor preserves an ambiguous repair; the model prompt is responsible for retaining only the clearly corrected version."
+  }
+]
