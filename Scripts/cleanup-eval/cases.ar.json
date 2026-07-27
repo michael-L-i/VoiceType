@@ -1,0 +1,202 @@
+[
+  {
+    "id": "ar-filler-leading",
+    "transcript": "إمم، سنبدأ الآن",
+    "locale": "ar-SA",
+    "exact": "سنبدأ الآن.",
+    "note": "A non-lexical hesitation elongation is removed with its orphan comma."
+  },
+  {
+    "id": "ar-filler-middle",
+    "transcript": "أعتقد، ممم، أن الخطة جاهزة",
+    "locale": "ar-EG",
+    "exact": "أعتقد، أن الخطة جاهزة.",
+    "note": "A mid-sentence hesitation is removed without doubled Arabic punctuation."
+  },
+  {
+    "id": "ar-ambiguous-fillers-kept",
+    "transcript": "آه هذا يعني أن الحل طيب",
+    "locale": "ar-SA",
+    "mustContain": ["آه", "يعني", "طيب"],
+    "note": "Meaning-bearing interjections/discourse words are never deterministic fillers."
+  },
+  {
+    "id": "ar-homographic-fillers-kept",
+    "transcript": "أمم كثيرة لها تاريخ عريق وهمم الناس كبيرة",
+    "locale": "ar-SA",
+    "mustContain": ["أمم", "همم"],
+    "note": "أمم means nations and همم means ambitions/concerns; neither may be stripped as a hesitation."
+  },
+  {
+    "id": "ar-spoken-question-mark",
+    "transcript": "هل انتهيت علامة استفهام",
+    "locale": "ar-SA",
+    "exact": "هل انتهيت؟",
+    "note": "The documented explicit dictation phrase renders U+061F."
+  },
+  {
+    "id": "ar-spoken-semicolon",
+    "transcript": "تأخرنا فاصلة منقوطة الطريق مزدحم",
+    "locale": "ar-EG",
+    "exact": "تأخرنا؛ الطريق مزدحم.",
+    "note": "The explicit semicolon phrase renders U+061B with Arabic spacing."
+  },
+  {
+    "id": "ar-spoken-idempotent",
+    "transcript": "هل انتهيت؟ علامة استفهام",
+    "locale": "ar-SA",
+    "exact": "هل انتهيت؟",
+    "note": "An ASR-rendered mark plus the spoken command never doubles."
+  },
+  {
+    "id": "ar-spoken-line-break",
+    "transcript": "السطر الأول أول السطر السطر الثاني",
+    "locale": "ar-SA",
+    "exact": "السطر الأول\nالسطر الثاني.",
+    "note": "Microsoft Word's Arabic line-break command survives shared whitespace cleanup."
+  },
+  {
+    "id": "ar-ascii-lookalikes",
+    "transcript": "مرحبًا ,كيف حالك ?",
+    "locale": "ar-EG",
+    "exact": "مرحبًا، كيف حالك؟",
+    "note": "ASCII comma/question lookalikes in Arabic prose become U+060C/U+061F."
+  },
+  {
+    "id": "ar-punctuation-spacing",
+    "transcript": "الأول ،  الثاني؛الثالث ؟",
+    "locale": "ar-SA",
+    "exact": "الأول، الثاني؛ الثالث؟",
+    "note": "Arabic punctuation touches the previous word and takes one following space."
+  },
+  {
+    "id": "ar-question-prefix",
+    "transcript": "كيف نصل إلى المحطة",
+    "locale": "ar-SA",
+    "exact": "كيف نصل إلى المحطة؟",
+    "note": "A strong initial interrogative gains the Arabic question mark."
+  },
+  {
+    "id": "ar-question-prefix-file-tail",
+    "transcript": "أين main.py",
+    "locale": "ar-SA",
+    "exact": "أين main.py؟",
+    "note": "An Arabic question ending in a Latin filename still receives U+061F."
+  },
+  {
+    "id": "ar-ambiguous-question-opener",
+    "transcript": "ما زال العمل مستمرًا",
+    "locale": "ar-SA",
+    "exact": "ما زال العمل مستمرًا.",
+    "note": "ما is frequently negation/relative content and must not blindly force a question."
+  },
+  {
+    "id": "ar-terminal-period",
+    "transcript": "الخطة جاهزة",
+    "locale": "ar-SA",
+    "exact": "الخطة جاهزة.",
+    "note": "Arabic prose uses the ordinary full stop."
+  },
+  {
+    "id": "ar-spoken-file",
+    "transcript": "افتح main نقطة py",
+    "locale": "ar-SA",
+    "exact": "افتح main.py",
+    "note": "Ambiguous نقطة renders only when a known file extension anchors the technical reading."
+  },
+  {
+    "id": "ar-spoken-underscore",
+    "transcript": "سمه user شرطة سفلية id",
+    "locale": "ar-SA",
+    "exact": "سمه user_id",
+    "note": "The explicit two-word underscore phrase joins a Latin identifier."
+  },
+  {
+    "id": "ar-dot-prose-guard",
+    "transcript": "هذه نقطة مهمة",
+    "locale": "ar-SA",
+    "exact": "هذه نقطة مهمة.",
+    "note": "Bare نقطة in ordinary prose remains the word point."
+  },
+  {
+    "id": "ar-police-prose-guard",
+    "transcript": "شرطة المدينة قريبة",
+    "locale": "ar-SA",
+    "exact": "شرطة المدينة قريبة.",
+    "note": "Bare شرطة means police and is never treated as a dash."
+  },
+  {
+    "id": "ar-embedded-latin",
+    "transcript": "main يعمل هنا و APIClient جاهز",
+    "locale": "ar-SA",
+    "exact": "main يعمل هنا و APIClient جاهز.",
+    "note": "Leading and embedded Latin tokens preserve exact script and case in RTL prose."
+  },
+  {
+    "id": "ar-latin-internal-punctuation",
+    "transcript": "استخدم foo?bar داخل المثال",
+    "locale": "ar-SA",
+    "exact": "استخدم foo?bar داخل المثال.",
+    "note": "ASCII punctuation internal to a Latin token survives without spaces or Arabic substitution."
+  },
+  {
+    "id": "ar-western-number",
+    "transcript": "القيمة 1,234.50 ريال",
+    "locale": "ar-SA",
+    "exact": "القيمة 1,234.50 ريال.",
+    "note": "European digits and grouping/decimal punctuation are preserved exactly."
+  },
+  {
+    "id": "ar-arabic-indic-number",
+    "transcript": "القيمة ١٬٢٣٤٫٥٠ ريال",
+    "locale": "ar-SA",
+    "exact": "القيمة ١٬٢٣٤٫٥٠ ريال.",
+    "note": "Arabic-Indic digits plus U+066C/U+066B are preserved exactly."
+  },
+  {
+    "id": "ar-date-currency",
+    "transcript": "الموعد 26/7/2026 والسعر ١٬٢٣٤٫٥٠ ريال",
+    "locale": "ar-SA",
+    "exact": "الموعد 26/7/2026 والسعر ١٬٢٣٤٫٥٠ ريال.",
+    "note": "Cleanup does not impose a regional date order, digit family, or currency format."
+  },
+  {
+    "id": "ar-terminal-flag",
+    "transcript": "git status داش داش short",
+    "locale": "ar-SA",
+    "category": "terminal",
+    "exact": "git status --short",
+    "note": "An unambiguous loanword renders a long shell flag; no final punctuation is added."
+  },
+  {
+    "id": "ar-terminal-path",
+    "transcript": "cd تيلدا سلاش projects سلاش VoiceType",
+    "locale": "ar-SA",
+    "category": "terminal",
+    "exact": "cd ~/projects/VoiceType",
+    "note": "Spoken tilde/slash render a path while Latin path case survives."
+  },
+  {
+    "id": "ar-terminal-arabic-rule-optout",
+    "transcript": "echo مرحبا ,العالم",
+    "locale": "ar-SA",
+    "category": "terminal",
+    "exact": "echo مرحبا, العالم",
+    "note": "The shared ASCII spacing floor still runs, but Arabic shape conversion sits out terminal commands."
+  },
+  {
+    "id": "ar-ramble-no-translation",
+    "transcript": "إمم اليوم ناقشنا خطة الإصدار وموعد الاختبارات ومراجعة الوثائق ثم اتفقنا أن يؤجل الفريق الإطلاق أسبوعًا لأن مشكلة تسجيل الدخول لم تحل بعد وأن يرسل سامر التقرير إلى قسم الدعم قبل الاجتماع القادم",
+    "locale": "ar-SA",
+    "mustContain": ["خطة الإصدار", "موعد الاختبارات", "مراجعة الوثائق", "مشكلة تسجيل الدخول", "قسم الدعم", "الاجتماع القادم"],
+    "mustNotContain": ["release plan", "login issue", "support team"],
+    "note": "Long anti-translation/anti-summarization case: every Arabic clause survives; the pure hesitation is removed."
+  },
+  {
+    "id": "ar-self-correction-model-territory",
+    "transcript": "انقل الاجتماع إلى الثلاثاء لا قصدي الأربعاء بعد الظهر",
+    "locale": "ar-SA",
+    "mustContain": ["الثلاثاء", "لا قصدي", "الأربعاء"],
+    "note": "Rules conservatively keep the whole correction; the model prompt is responsible for retaining only الأربعاء."
+  }
+]
