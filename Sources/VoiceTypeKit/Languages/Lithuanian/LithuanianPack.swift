@@ -269,6 +269,10 @@ private enum LithuanianCleanupRules {
             template: "“")
         out = replace(
             out,
+            pattern: #"\s+…"#,
+            template: "…")
+        out = replace(
+            out,
             pattern: #"\b(\d{4})\s*-\s*(\d{2})\s*-\s*(\d{2})\b"#,
             template: "$1-$2-$3")
         out = replace(

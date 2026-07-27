@@ -81,6 +81,7 @@ struct LithuanianRuleCleanupTests {
         #expect(clean("pirmas kablelis antras") == "Pirmas, antras.")
         #expect(clean("ar ateisi klaustukas") == "Ar ateisi?")
         #expect(clean("tikrai šauktukas") == "Tikrai!")
+        #expect(clean("galbūt daugtaškis") == "Galbūt…")
     }
 
     @Test("spoken punctuation is idempotent after an engine-rendered mark")
