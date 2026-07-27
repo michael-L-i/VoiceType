@@ -87,7 +87,7 @@ private enum SlovenianCleanupRules {
             name: "protect Slovenian decimal commas",
             stage: .early,
             runsInTerminal: true,
-            pattern: #"(?<=\d)\s*,\s*(?=\d)"#,
+            pattern: #"(?<=\d),(?=\d)"#,
             template: decimalComma),
         CleanupRule(
             name: "protect Slovenian abbreviation periods",
@@ -243,7 +243,7 @@ private enum SlovenianCleanupRules {
         // the required spaces safe. Unanchored 1.5.2026 may be a version.
         out = replacing(
             out,
-            pattern: #"\bdne\s+([0-3]?\d)\.\s*([01]?\d)\.\s*((?:19|20)\d{2})\b"#,
+            pattern: #"\bdne\s+(0?[1-9]|[12]\d|3[01])\.\s*(0?[1-9]|1[0-2])\.\s*((?:19|20)\d{2})\b"#,
             template: "dne $1. $2. $3",
             options: [.caseInsensitive]
         )

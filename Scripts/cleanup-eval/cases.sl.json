@@ -36,7 +36,7 @@
   },
   {
     "id": "sl-decimal-comma",
-    "transcript": "vrednost je 3 , 14",
+    "transcript": "vrednost je 3,14",
     "locale": "sl-SI",
     "exact": "Vrednost je 3,14.",
     "note": "A decimal comma stays attached on both sides."

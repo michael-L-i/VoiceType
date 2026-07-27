@@ -81,7 +81,8 @@ struct SlovenianRuleCleanupTests {
 
     @Test("decimal commas survive shared punctuation spacing")
     func decimalComma() {
-        #expect(clean("vrednost je 3 , 14") == "Vrednost je 3,14.")
+        #expect(clean("vrednost je 3,14") == "Vrednost je 3,14.")
+        #expect(clean("izberi 3 , 14 ali 15") == "Izberi 3, 14 ali 15.")
         #expect(clean("temperatura je 18,5 °C") == "Temperatura je 18,5\(nbsp)°C.")
     }
 
@@ -178,7 +179,7 @@ struct SlovenianPolishTests {
     @Test("mechanical Slovenian orthography also repairs model output")
     func modelRepair() {
         let out = CleanupPolish.apply(
-            #"vrednost "pi" je 3 , 14"#,
+            #"vrednost "pi" je 3,14"#,
             options: .default,
             locale: "sl-SI"
         )
