@@ -203,6 +203,7 @@ public struct LanguagePack: Sendable {
     /// shared line every new language must touch, and one-per-line keeps two
     /// contributors landing different languages from colliding on it.
     public static let all: [LanguagePack] = [
+        .arabic,
         .bulgarian,
         .chinese,
         .croatian,
