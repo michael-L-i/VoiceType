@@ -44,6 +44,55 @@ struct EnglishPackPolicyTests {
     }
 }
 
+@Suite("Cleanup rules — English deterministic commands")
+struct EnglishRuleTests {
+    @Test("spoken camel case joins only the marked identifier")
+    func camelCaseIdentifier() {
+        let out = RuleBasedCleanup.process(
+            "call camel case get user name with the session token",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Call getUserName with the session token.")
+    }
+
+    @Test("camel case stops at an English function-word boundary")
+    func camelCaseBoundary() {
+        let out = RuleBasedCleanup.process(
+            "use camel case parse request in the handler",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Use parseRequest in the handler.")
+    }
+
+    @Test("camel case without a multiword target remains prose")
+    func camelCaseProseGuard() {
+        let out = RuleBasedCleanup.process(
+            "camel case is common in javascript",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Camel case is common in javascript.")
+    }
+
+    @Test("the same camel-case rule repairs model output")
+    func camelCaseModelPolish() {
+        let out = CleanupPolish.apply(
+            "call camel case get user name with the token",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Call getUserName with the token")
+    }
+
+    @Test("camel-case commands sit out terminal dictation")
+    func camelCaseTerminalGuard() {
+        let out = RuleBasedCleanup.process(
+            "git branch camel case feature name",
+            options: .default,
+            context: CleanupContext(category: .terminal),
+            locale: "en-US")
+        #expect(out == "git branch camel case feature name")
+    }
+}
+
 @Suite("Cleanup polish — English model output")
 struct EnglishPolishTests {
     @Test("an unpunctuated interrogative opener gains a question mark and a capital")

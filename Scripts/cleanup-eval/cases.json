@@ -84,6 +84,25 @@
     "note": "Spoken camel case directive joins the identifier."
   },
   {
+    "id": "camel-identifier-boundary",
+    "transcript": "use camel case parse request in the handler",
+    "exact": "Use parseRequest in the handler.",
+    "note": "The explicit directive joins its target, then stops at an English function-word boundary."
+  },
+  {
+    "id": "camel-prose-guard",
+    "transcript": "camel case is common in javascript",
+    "exact": "Camel case is common in javascript.",
+    "note": "Without a multiword identifier target, camel case remains ordinary prose."
+  },
+  {
+    "id": "camel-terminal-guard",
+    "transcript": "git branch camel case feature name",
+    "category": "terminal",
+    "exact": "git branch camel case feature name",
+    "note": "English pack rules stay out of terminal commands unless explicitly opted in."
+  },
+  {
     "id": "parens-call",
     "transcript": "print open paren x comma y close paren",
     "mustContain": ["print(x, y)"],
