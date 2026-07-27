@@ -51,7 +51,7 @@ audio never leaves your Mac, in any language.
 
 ## Why VoiceType
 
-- 🌍 **Multilingual end to end, not English-with-subtitles.** Dictate in [33 languages](./docs/LANGUAGES.md). VoiceType picks a speech model that actually supports your language, cleans up using *that* language's conventions — full-width 中文 punctuation, spoken 句号, language-aware fillers — and ships its own interface in 16 languages.
+- 🌍 **Multilingual end to end, not English-with-subtitles.** Dictate in [33 languages](./docs/LANGUAGES.md). VoiceType picks a speech model that actually supports your language, cleans up using *that* language's conventions — full-width 中文 punctuation, spoken 句号, French's space before « ! », Turkish's dotted İ, language-aware fillers — and ships its own interface in 16 languages.
 - 🔒 **Private in every language.** Audio and transcripts stay on your Mac. No account, no telemetry, no cloud — there's no "send the hard languages to a server" path to opt out of.
 - ⚡ **Latency is the feature.** Native Swift with on-device speech models — time-to-text is what we optimize.
 - 🎙️ **Press-to-talk anywhere.** A global hotkey works in any app; the cleaned text is inserted right where your cursor is.
@@ -106,7 +106,7 @@ Most dictation apps are built for English and translated afterwards. VoiceType
 treats every language as a first-class case — this is the thing we care most
 about getting right.
 
-**33 languages** for dictation · **16** with hand-written cleanup rules ·
+**33 languages** for dictation · **all 33** with hand-written cleanup rules ·
 **16** with a translated interface · **0** that need the cloud.
 
 Arabic · Bulgarian · 简体中文 · Croatian · Czech · Danish · Nederlands ·
@@ -123,11 +123,13 @@ What "multilingual" actually means here:
   supports (Parakeet is European-only; Nemotron covers 40 locales including
   Chinese; Whisper covers 99; Apple's list comes from macOS). Models that can't
   handle your language gray out, and VoiceType switches to one that can.
-- **Cleanup knows the language.** 16 languages ship a small, reviewable
-  "language pack": its filler words (嗯/呃, ähm, euh — never words that carry
-  meaning), its punctuation conventions (full-width 。，？ for Chinese and
-  Japanese, spoken 句号/読点 rendered as marks), and its question heuristics.
-  The rest get faithful transcription with neutral cleanup.
+- **Cleanup knows the language.** Every one of the 33 languages ships a small,
+  reviewable "language pack": its filler words (嗯/呃, ähm, euh — never words
+  that carry meaning), its punctuation conventions (full-width 。，？ for Chinese
+  and Japanese, a narrow no-break space before `!?` in French, `¿` in Spanish,
+  the danda `।` in Hindi, `؟` in Arabic), its question heuristics, and its own
+  deterministic rules for anything those don't cover. Each has its own eval
+  battery — 915 cases in total.
 - **The interface is localized** into 16 languages, following your macOS system
   language — independent of your dictation language, so a Japanese interface can
   dictate Portuguese.
