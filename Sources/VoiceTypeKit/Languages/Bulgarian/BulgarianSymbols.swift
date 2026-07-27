@@ -52,13 +52,16 @@ enum BulgarianCleanup {
             },
         .regex(
             name: "normalize Bulgarian elision apostrophe",
-            stage: .afterPunctuation,
+            // Run after capitalization: the shared plain-word probe accepts a
+            // straight apostrophe but intentionally rejects typographic
+            // punctuation inside a token.
+            stage: .final,
             pattern: #"(?<=[А-Яа-яЍѝ])'(?=[А-Яа-яЍѝ])"#,
             template: "’"),
         .regex(
             name: "space Bulgarian trailing currency",
             stage: .final,
-            pattern: #"(\d)[ \u{00A0}\u{202F}]*(€|EUR|BGN|лв\.?)"#,
+            pattern: "(\\d)[ \u{00A0}\u{202F}]*(€|EUR|BGN|лв\\.?)",
             template: "$1\u{00A0}$2",
             options: [.caseInsensitive]),
         .regex(
@@ -111,8 +114,11 @@ enum BulgarianCleanup {
         ("удивителен знак", "!"),
         ("отварящи кавички", "„"),
         ("затварящи кавички", "“"),
-        ("двоеточие", ":"),
-        ("многоточие", "…"),
+        // The shared spacing pass deliberately does not add a space after
+        // colons because it must preserve paths and times. A spoken prose
+        // colon supplies its own following space.
+        ("двоеточие", ": "),
+        ("многоточие", "… "),
         ("запетая", ","),
     ]
 
