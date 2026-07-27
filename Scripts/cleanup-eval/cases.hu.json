@@ -1,0 +1,242 @@
+[
+  {
+    "id": "hu-fillers-repeated-vowels",
+    "transcript": "ööö, ezt hmm most befejezzük",
+    "locale": "hu-HU",
+    "exact": "Ezt most befejezzük.",
+    "note": "Repeated non-lexical hesitation sounds are removed."
+  },
+  {
+    "id": "hu-ambiguous-discourse-kept",
+    "transcript": "hát ezt izé módon oldjuk meg",
+    "locale": "hu-HU",
+    "exact": "Hát ezt izé módon oldjuk meg.",
+    "note": "hát and izé can carry discourse or lexical meaning, so rules keep them."
+  },
+  {
+    "id": "hu-letter-name-kept",
+    "transcript": "ö a magyar ábécé egyik betűje",
+    "locale": "hu-HU",
+    "exact": "Ö a magyar ábécé egyik betűje.",
+    "note": "A single ö can be a dictated letter name and is never a blind filler."
+  },
+  {
+    "id": "hu-question-prefix",
+    "transcript": "miért késik a vonat",
+    "locale": "hu-HU",
+    "exact": "Miért késik a vonat?",
+    "note": "A strongly interrogative opener gets a question mark."
+  },
+  {
+    "id": "hu-yes-no-conservative",
+    "transcript": "elküldöd holnap",
+    "locale": "hu-HU",
+    "exact": "Elküldöd holnap.",
+    "note": "Intonation-dependent yes/no judgment stays out of deterministic rules."
+  },
+  {
+    "id": "hu-spoken-question-mark",
+    "transcript": "miért késik kérdőjel",
+    "locale": "hu-HU",
+    "exact": "Miért késik?",
+    "note": "The explicit whole-token punctuation command renders."
+  },
+  {
+    "id": "hu-spoken-colon",
+    "transcript": "megjegyzés kettőspont fontos",
+    "locale": "hu-HU",
+    "exact": "Megjegyzés: fontos.",
+    "note": "kettőspont renders and receives Hungarian prose spacing."
+  },
+  {
+    "id": "hu-spoken-semicolon",
+    "transcript": "első pontosvessző második",
+    "locale": "hu-HU",
+    "exact": "Első; második.",
+    "note": "pontosvessző renders with no preceding and one following space."
+  },
+  {
+    "id": "hu-spoken-idempotent",
+    "transcript": "miért késik? kérdőjel",
+    "locale": "hu-HU",
+    "exact": "Miért késik?",
+    "note": "An already rendered mark and its spoken name do not double."
+  },
+  {
+    "id": "hu-inflected-symbol-noun-kept",
+    "transcript": "írj egy kérdőjelet",
+    "locale": "hu-HU",
+    "exact": "Írj egy kérdőjelet.",
+    "note": "Whole-token matching does not corrupt an inflected content word."
+  },
+  {
+    "id": "hu-ambiguous-point-comma-kept",
+    "transcript": "a pont a kör középpontja és a vessző vékony ág",
+    "locale": "hu-HU",
+    "exact": "A pont a kör középpontja és a vessző vékony ág.",
+    "note": "pont and vessző are real nouns and remain text outside clear technical context."
+  },
+  {
+    "id": "hu-decimal-comma",
+    "transcript": "a pí értéke 3,14",
+    "locale": "hu-HU",
+    "exact": "A pí értéke 3,14.",
+    "note": "The Hungarian decimal comma has no following space."
+  },
+  {
+    "id": "hu-currency-spacing",
+    "transcript": "az ár 2500Ft és 20€",
+    "locale": "hu-HU",
+    "exact": "Az ár 2500 Ft és 20 €.",
+    "note": "Currency abbreviations and signs follow the amount with a space."
+  },
+  {
+    "id": "hu-measure-spacing",
+    "transcript": "a tömeg 25kg és a hőmérséklet 20°C",
+    "locale": "hu-HU",
+    "exact": "A tömeg 25 kg és a hőmérséklet 20 °C.",
+    "note": "Measurement symbols are separated from the number."
+  },
+  {
+    "id": "hu-percent-spacing",
+    "transcript": "a növekedés 5 %",
+    "locale": "hu-HU",
+    "exact": "A növekedés 5%.",
+    "note": "Unlike measurement and currency symbols, % attaches to its number."
+  },
+  {
+    "id": "hu-quotation-marks",
+    "transcript": "Azt mondta: \"indulunk\".",
+    "locale": "hu-HU",
+    "exact": "Azt mondta: „indulunk”.",
+    "note": "Paired straight prose quotes become Hungarian low-high quotes."
+  },
+  {
+    "id": "hu-parenthesis-spacing",
+    "transcript": "ez ( fontos ) rész",
+    "locale": "hu-HU",
+    "exact": "Ez (fontos) rész.",
+    "note": "No spaces sit immediately inside parentheses."
+  },
+  {
+    "id": "hu-time-colon",
+    "transcript": "a találkozó 10:35-kor kezdődik",
+    "locale": "hu-HU",
+    "exact": "A találkozó 10:35-kor kezdődik.",
+    "note": "A numeric time remains compact while prose colons are spaced."
+  },
+  {
+    "id": "hu-date-lowercase-month",
+    "transcript": "találkozunk 2026. július 26.",
+    "locale": "hu-HU",
+    "exact": "Találkozunk 2026. július 26.",
+    "note": "The year period does not falsely capitalize the lowercase month."
+  },
+  {
+    "id": "hu-abbreviation-no-false-capital",
+    "transcript": "kb. húsz ember érkezik",
+    "locale": "hu-HU",
+    "exact": "Kb. húsz ember érkezik.",
+    "note": "A non-sentence abbreviation period does not capitalize its continuation."
+  },
+  {
+    "id": "hu-ellipsis",
+    "transcript": "talán... mégsem",
+    "locale": "hu-HU",
+    "exact": "Talán… mégsem.",
+    "note": "Three dots survive as an ellipsis instead of collapsing to one period."
+  },
+  {
+    "id": "hu-file-extension-letter-names",
+    "transcript": "nyisd meg a main pont pé ipszilon fájlt",
+    "locale": "hu-HU",
+    "exact": "Nyisd meg a main.py fájlt.",
+    "note": "Hungarian letter names after pont render a common ASCII extension."
+  },
+  {
+    "id": "hu-json-extension",
+    "transcript": "nyisd meg a config pont dzsézon fájlt",
+    "locale": "hu-HU",
+    "exact": "Nyisd meg a config.json fájlt.",
+    "note": "A common recognizer spelling for JSON renders only in file context."
+  },
+  {
+    "id": "hu-snake-identifier",
+    "transcript": "állítsd be a max aláhúzásjel retries értékét",
+    "locale": "hu-HU",
+    "exact": "Állítsd be a max_retries értékét.",
+    "note": "An explicit Hungarian underscore command joins an identifier."
+  },
+  {
+    "id": "hu-email",
+    "transcript": "írj a janos pont kovacs kukac gmail pont com címre",
+    "locale": "hu-HU",
+    "exact": "Írj a janos.kovacs@gmail.com címre.",
+    "note": "pont and kukac render inside a TLD-anchored email address."
+  },
+  {
+    "id": "hu-embedded-technical",
+    "transcript": "a VoiceType megnyitja a main.py fájlt és a getUser értéke változatlan",
+    "locale": "hu-HU",
+    "exact": "A VoiceType megnyitja a main.py fájlt és a getUser értéke változatlan.",
+    "note": "Embedded English brands, file names, and identifiers keep exact case."
+  },
+  {
+    "id": "hu-terminal-short-flag",
+    "transcript": "git commit kötőjel em javítás",
+    "locale": "hu-HU",
+    "category": "terminal",
+    "exact": "git commit -m javítás",
+    "note": "A Hungarian letter name after kötőjel renders a short shell flag."
+  },
+  {
+    "id": "hu-terminal-long-flag",
+    "transcript": "npm run build kötőjel kötőjel verbose",
+    "locale": "hu-HU",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "A doubled Hungarian dash command renders a long flag."
+  },
+  {
+    "id": "hu-terminal-path",
+    "transcript": "cd tilde perjel projektek perjel VoiceType",
+    "locale": "hu-HU",
+    "category": "terminal",
+    "exact": "cd ~/projektek/VoiceType",
+    "note": "Explicit Hungarian path symbols join, with no capital or final period."
+  },
+  {
+    "id": "hu-terminal-command-safe",
+    "transcript": "echo kérdőjel",
+    "locale": "hu-HU",
+    "category": "terminal",
+    "exact": "echo kérdőjel",
+    "note": "Prose punctuation rules sit out terminal dictation."
+  },
+  {
+    "id": "hu-long-ramble-faithful",
+    "transcript": "ööö szerintem a jövő heti kiadást néhány nappal el kell halasztanunk mert a beléptetési folyamatban még mindig hibás a folyamatjelző és a dokumentáció sincs kész ráadásul a marketingcsapat több időt kért az e-mail-kampányhoz úgyhogy inkább adjunk ki később egy stabil verziót mint most egy hibásat",
+    "locale": "hu-HU",
+    "mustContain": [
+      "jövő heti kiadást",
+      "beléptetési folyamatban",
+      "dokumentáció",
+      "marketingcsapat",
+      "stabil verziót"
+    ],
+    "mustNotContain": [
+      "ööö",
+      "release",
+      "documentation",
+      "marketing team"
+    ],
+    "note": "Long Hungarian content remains complete, ordered, and untranslated."
+  },
+  {
+    "id": "hu-self-correction-conservative-floor",
+    "transcript": "öt, nem, hat példányt kérek",
+    "locale": "hu-HU",
+    "exact": "Öt, nem, hat példányt kérek.",
+    "note": "Rules preserve a lexical self-correction; contextual resolution belongs to the LLM."
+  }
+]
