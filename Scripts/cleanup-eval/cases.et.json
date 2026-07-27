@@ -1,0 +1,146 @@
+[
+  {
+    "id": "et-filler-safe",
+    "transcript": "õõ ma tulen homme",
+    "locale": "et-EE",
+    "exact": "Ma tulen homme.",
+    "note": "The unlexicalized hesitation õõ is removed."
+  },
+  {
+    "id": "et-ambiguous-fillers-kept",
+    "transcript": "öö oli vaikne ja noh see oli hea",
+    "locale": "et-EE",
+    "exact": "Öö oli vaikne ja noh see oli hea.",
+    "note": "öö, noh, and see can all carry meaning and remain deterministic content."
+  },
+  {
+    "id": "et-spoken-punctuation-explicit",
+    "transcript": "tere kirjuta koma kuidas läheb kirjuta küsimärk",
+    "locale": "et-EE",
+    "exact": "Tere, kuidas läheb?",
+    "note": "Explicit kirjuta cues make punctuation rendering unambiguous."
+  },
+  {
+    "id": "et-punctuation-nouns-kept",
+    "transcript": "punkt ja koma on kirjavahemärgid",
+    "locale": "et-EE",
+    "exact": "Punkt ja koma on kirjavahemärgid.",
+    "note": "Bare punctuation names remain nouns rather than being blindly rendered."
+  },
+  {
+    "id": "et-question-kas",
+    "transcript": "kas sa tuled homme",
+    "locale": "et-EE",
+    "exact": "Kas sa tuled homme?",
+    "note": "A direct kas question gains a question mark."
+  },
+  {
+    "id": "et-question-noninitial",
+    "transcript": "homme on koosolek. kas sa saad tulla",
+    "locale": "et-EE",
+    "exact": "Homme on koosolek. Kas sa saad tulla?",
+    "note": "The Estonian rule handles a kas question after the first sentence."
+  },
+  {
+    "id": "et-decimal-euro",
+    "transcript": "hind on 3,50€",
+    "locale": "et-EE",
+    "exact": "Hind on 3,50 €.",
+    "note": "Decimal comma stays attached and the euro sign receives its space."
+  },
+  {
+    "id": "et-percent-spacing",
+    "transcript": "kasv oli 9 %",
+    "locale": "et-EE",
+    "exact": "Kasv oli 9%.",
+    "note": "The percent sign attaches to the number."
+  },
+  {
+    "id": "et-date-and-time",
+    "transcript": "kohtume 24. detsembril kell 10.30",
+    "locale": "et-EE",
+    "exact": "Kohtume 24. detsembril kell 10.30.",
+    "note": "The ordinal date period does not falsely capitalize the lowercase month."
+  },
+  {
+    "id": "et-quotes",
+    "transcript": "ta ütles \" tere tulemast \"",
+    "locale": "et-EE",
+    "exact": "Ta ütles „tere tulemast“.",
+    "note": "Straight ASR quotes normalize to Estonian „…“ with tight inner spacing."
+  },
+  {
+    "id": "et-ellipsis",
+    "transcript": "ma ei tea... võib-olla homme",
+    "locale": "et-EE",
+    "exact": "Ma ei tea… võib-olla homme.",
+    "note": "Three periods normalize to a single Estonian typographic ellipsis."
+  },
+  {
+    "id": "et-spoken-file",
+    "transcript": "ava main punkt py",
+    "locale": "et-EE",
+    "exact": "Ava main.py",
+    "note": "Technical punkt joins only before a known file extension."
+  },
+  {
+    "id": "et-spoken-identifier",
+    "transcript": "muutuja on kasutaja alakriips id",
+    "locale": "et-EE",
+    "exact": "Muutuja on kasutaja_id",
+    "note": "An explicit alakriips joins identifier parts."
+  },
+  {
+    "id": "et-spoken-email",
+    "transcript": "saada aadressile mari punkt tamm ätt gmail punkt com",
+    "locale": "et-EE",
+    "exact": "Saada aadressile mari.tamm@gmail.com",
+    "note": "Estonian punkt and ätt render an email anchored by a known TLD."
+  },
+  {
+    "id": "et-existing-technical-text",
+    "transcript": "VoiceType avab faili config.json ja muutuja request_id jääb samaks",
+    "locale": "et-EE",
+    "exact": "VoiceType avab faili config.json ja muutuja request_id jääb samaks.",
+    "note": "Existing English brands, file names, and identifiers survive untouched."
+  },
+  {
+    "id": "et-terminal-command",
+    "transcript": "git log kriips kriips oneline",
+    "locale": "et-EE",
+    "category": "terminal",
+    "exact": "git log --oneline",
+    "note": "Terminal speech renders an Estonian-spoken long flag without capitalization or punctuation."
+  },
+  {
+    "id": "et-terminal-path",
+    "transcript": "cd tilde kaldkriips projektid kaldkriips VoiceType",
+    "locale": "et-EE",
+    "category": "terminal",
+    "exact": "cd ~/projektid/VoiceType",
+    "note": "Terminal-only path rendering preserves the command and path case."
+  },
+  {
+    "id": "et-terminal-decimal",
+    "transcript": "echo 3,14",
+    "locale": "et-EE",
+    "category": "terminal",
+    "exact": "echo 3,14",
+    "note": "The decimal-comma mask and restore pair also runs in terminals."
+  },
+  {
+    "id": "et-ramble-no-translation",
+    "transcript": "õõ ma arvan et tänasel koosolekul peame kõigepealt rääkima uue versiooni tähtajast sest testid ei ole veel valmis ja siis vaatama üle dokumentatsiooni ning lõpuks otsustama kes saadab klientidele teate",
+    "locale": "et-EE",
+    "mustContain": ["koosolekul", "versiooni", "testid", "dokumentatsiooni", "klientidele"],
+    "mustNotContain": ["meeting", "release", "tests", "documentation", "clients"],
+    "note": "Long anti-summary and anti-translation coverage; rules remove only õõ."
+  },
+  {
+    "id": "et-self-correction-model-only",
+    "transcript": "kohtume teisipäeval ei kolmapäeval kell kolm",
+    "locale": "et-EE",
+    "mustContain": ["teisipäeval", "kolmapäeval"],
+    "note": "Rules preserve both versions; the prompt tells the model to keep the clearly corrected final one."
+  }
+]
