@@ -1,0 +1,176 @@
+[
+  {
+    "id": "nl-filler-leading",
+    "transcript": "uh ik denk dat we het morgen moeten doen",
+    "locale": "nl-NL",
+    "exact": "Ik denk dat we het morgen moeten doen.",
+    "note": "Pure hesitation sounds go; the sentence gains a capital and a period."
+  },
+  {
+    "id": "nl-filler-mid",
+    "transcript": "we moeten, ehm, de release uitstellen",
+    "locale": "nl-NL",
+    "exact": "We moeten, de release uitstellen.",
+    "note": "A comma-wrapped hesitation is removed without leaving a doubled mark."
+  },
+  {
+    "id": "nl-ambiguous-fillers-kept",
+    "transcript": "dus dat is eigenlijk gewoon toch even wachten",
+    "locale": "nl-NL",
+    "mustContain": ["Dus dat is", "eigenlijk", "gewoon", "toch", "even"],
+    "note": "Ambiguity policy: every one of these is a real Dutch word — the deterministic pass must never touch them. The LLM may drop them when context shows they are empty."
+  },
+  {
+    "id": "nl-er-is-not-a-filler",
+    "transcript": "er staat nog een fout in de tekst",
+    "locale": "nl-NL",
+    "exact": "Er staat nog een fout in de tekst.",
+    "note": "English's filler list contains 'er'; in Dutch it is a pronoun. Copying English here would have destroyed the sentence."
+  },
+  {
+    "id": "nl-decimal-comma",
+    "transcript": "de temperatuur is 21,5 graden en de omzet steeg met 12 %",
+    "locale": "nl-NL",
+    "exact": "De temperatuur is 21,5 graden en de omzet steeg met 12%.",
+    "note": "The decimal comma survives the shared spacing pass (which would split it into '21, 5'); the percent sign sits against the number (Onze Taal)."
+  },
+  {
+    "id": "nl-euro-amount",
+    "transcript": "het abonnement kost €15,50 per maand",
+    "locale": "nl-NL",
+    "exact": "Het abonnement kost € 15,50 per maand.",
+    "note": "Taaladvies: the euro sign precedes the amount with a space, and the decimal separator is a comma."
+  },
+  {
+    "id": "nl-thousands-separator",
+    "transcript": "we hebben 1.250 euro nodig",
+    "locale": "nl-NL",
+    "exact": "We hebben 1.250 euro nodig.",
+    "note": "A period groups thousands in Dutch and must not be read as a sentence end."
+  },
+  {
+    "id": "nl-abbreviation-no-capital",
+    "transcript": "we hebben bijv. koffie en thee nodig",
+    "locale": "nl-NL",
+    "exact": "We hebben bijv. koffie en thee nodig.",
+    "note": "An abbreviation period is not a sentence end: 'bijv. Koffie' is the failure this pack fixes."
+  },
+  {
+    "id": "nl-abbreviation-proper-noun",
+    "transcript": "we bezoeken o.a. Amsterdam en Utrecht",
+    "locale": "nl-NL",
+    "exact": "We bezoeken o.a. Amsterdam en Utrecht.",
+    "note": "The fix must preserve a genuine proper noun after the abbreviation — masking the period does, blanket lowercasing would not."
+  },
+  {
+    "id": "nl-abbreviation-sentence-final",
+    "transcript": "meer informatie staat op blz.",
+    "locale": "nl-NL",
+    "exact": "Meer informatie staat op blz.",
+    "note": "Taaladvies: a sentence ending in an abbreviation carries one period, not two."
+  },
+  {
+    "id": "nl-ij-digraph",
+    "transcript": "ijsland is een prachtig land",
+    "locale": "nl-NL",
+    "exact": "IJsland is een prachtig land.",
+    "note": "A capitalized word starting with the digraph ij takes TWO capitals: IJsland, never Ijsland."
+  },
+  {
+    "id": "nl-sentence-initial-clitic",
+    "transcript": "'s ochtends regent het vaak",
+    "locale": "nl-NL",
+    "exact": "'s Ochtends regent het vaak.",
+    "note": "Onze Taal: when a sentence opens with 's / 't / 'n / 'k, the capital moves to the next word."
+  },
+  {
+    "id": "nl-question-opener",
+    "transcript": "wat is de status van de release",
+    "locale": "nl-NL",
+    "exact": "Wat is de status van de release?",
+    "note": "An interrogative opener with no terminal mark gains a question mark."
+  },
+  {
+    "id": "nl-tag-question",
+    "transcript": "je komt morgen toch hè",
+    "locale": "nl-NL",
+    "exact": "Je komt morgen toch hè?",
+    "note": "Sentence-final 'hè' is a Dutch tag question. Bare 'he' is deliberately not a particle — it would fire on every word ending in -he."
+  },
+  {
+    "id": "nl-imperative-is-not-a-question",
+    "transcript": "ga naar huis en rust even uit",
+    "locale": "nl-NL",
+    "exact": "Ga naar huis en rust even uit.",
+    "note": "Bare verb stems are imperatives as often as questions, so they are excluded from the question openers."
+  },
+  {
+    "id": "nl-spoken-email",
+    "transcript": "stuur het naar jan apenstaartje voorbeeld punt nl",
+    "locale": "nl-NL",
+    "exact": "Stuur het naar jan@voorbeeld.nl",
+    "note": "'apenstaartje' is only ever @ in Dutch; 'punt' joins only because a known TLD follows it."
+  },
+  {
+    "id": "nl-spoken-identifier",
+    "transcript": "open main punt py en zet max underscore retries omhoog",
+    "locale": "nl-NL",
+    "exact": "Open main.py en zet max_retries omhoog.",
+    "note": "File name and identifier render compactly; the trigger word is consumed, never kept."
+  },
+  {
+    "id": "nl-trigger-words-stay-prose",
+    "transcript": "dat is een goed punt van je en de underscore van het bestand klopt niet",
+    "locale": "nl-NL",
+    "mustContain": ["goed punt van je", "de underscore van het bestand"],
+    "mustNotContain": ["punt.", "de_van"],
+    "note": "The same trigger words inside ordinary prose stay prose — the joins are guarded by Dutch function words and a closed extension set."
+  },
+  {
+    "id": "nl-embedded-english",
+    "transcript": "we gebruiken Docker en Kubernetes in productie en de fout zit in main.py",
+    "locale": "nl-NL",
+    "mustContain": ["Docker", "Kubernetes", "main.py"],
+    "mustNotContain": ["Main.py", "docker"],
+    "note": "Embedded English product names and file names survive untouched."
+  },
+  {
+    "id": "nl-terminal-command",
+    "transcript": "git status",
+    "locale": "nl-NL",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "Terminal category stays command-safe: no capital, no period, no Dutch rules."
+  },
+  {
+    "id": "nl-terminal-flags",
+    "transcript": "npm run build streepje streepje verbose",
+    "locale": "nl-NL",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "Spoken flags render only in a terminal, where 'streepje' cannot be the ordinary noun."
+  },
+  {
+    "id": "nl-terminal-path",
+    "transcript": "cd tilde schuine streep projecten",
+    "locale": "nl-NL",
+    "category": "terminal",
+    "exact": "cd ~/projecten",
+    "note": "'tilde schuine streep' renders a home-relative path; an unmatched 'schuine streep' is restored intact."
+  },
+  {
+    "id": "nl-ramble-no-translation",
+    "transcript": "uh dus de vergadering van vanmorgen ging eigenlijk over drie dingen ehm ten eerste moeten we de release een week uitstellen omdat de tests nog niet klaar zijn ten tweede moet de documentatie bijgewerkt worden voordat we live gaan en ten derde uh willen we volgend kwartaal twee nieuwe ontwikkelaars aannemen",
+    "locale": "nl-NL",
+    "mustContain": ["vergadering", "release", "documentatie", "ontwikkelaars"],
+    "mustNotContain": ["meeting", "engineers", "1.", "2.", "\n", " uh ", " ehm "],
+    "note": "Anti-translation, anti-summarization and anti-restructuring: a long Dutch ramble stays Dutch flowing prose and keeps every clause, including the last one."
+  },
+  {
+    "id": "nl-self-correction",
+    "transcript": "we hebben vijf nee zes exemplaren nodig",
+    "locale": "nl-NL",
+    "mustContain": ["zes"],
+    "note": "Self-correction is model territory — the rule engine keeps both numbers, which loses no information. Judge the model run manually."
+  }
+]
