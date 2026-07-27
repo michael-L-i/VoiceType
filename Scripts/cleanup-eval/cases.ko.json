@@ -1,0 +1,209 @@
+[
+  {
+    "id": "ko-spoken-period",
+    "transcript": "안녕하세요 마침표",
+    "locale": "ko-KR",
+    "exact": "안녕하세요.",
+    "note": "Apple's documented Korean dictation command 마침표 renders as a period."
+  },
+  {
+    "id": "ko-spoken-commas",
+    "transcript": "첫째 쉼표 둘째 쉼표 셋째",
+    "locale": "ko-KR",
+    "exact": "첫째, 둘째, 셋째.",
+    "note": "Spoken commas attach left and gain normal following spacing."
+  },
+  {
+    "id": "ko-spoken-question",
+    "transcript": "정말입니까 물음표",
+    "locale": "ko-KR",
+    "exact": "정말입니까?",
+    "note": "An explicit spoken question mark does not double with the ending heuristic."
+  },
+  {
+    "id": "ko-spoken-idempotent",
+    "transcript": "안녕하세요. 마침표",
+    "locale": "ko-KR",
+    "exact": "안녕하세요.",
+    "note": "An engine-rendered mark followed by the spoken command stays single."
+  },
+  {
+    "id": "ko-spoken-quotes",
+    "transcript": "따옴표 안녕하세요 따옴표 종료 라고 말했다",
+    "locale": "ko-KR",
+    "exact": "“안녕하세요” 라고 말했다.",
+    "note": "Documented quote commands render Korean curved quotation marks with no inner spaces."
+  },
+  {
+    "id": "ko-spoken-newline",
+    "transcript": "첫째 새로운 줄 둘째",
+    "locale": "ko-KR",
+    "exact": "첫째\n둘째.",
+    "note": "Apple's 새로운 줄 formatting command survives the shared whitespace pass."
+  },
+  {
+    "id": "ko-spoken-paragraph",
+    "transcript": "첫 문단 새로운 단락 둘째 문단",
+    "locale": "ko-KR",
+    "exact": "첫 문단\n\n둘째 문단.",
+    "note": "Apple's 새로운 단락 formatting command produces a paragraph break."
+  },
+  {
+    "id": "ko-prolonged-filler",
+    "transcript": "으음 오늘 회의는 세 시입니다",
+    "locale": "ko-KR",
+    "exact": "오늘 회의는 세 시입니다.",
+    "note": "A distinctly prolonged hesitation spelling is safe to remove."
+  },
+  {
+    "id": "ko-ambiguous-fillers-kept",
+    "transcript": "음이 높고 흠이 하나 있다",
+    "locale": "ko-KR",
+    "mustContain": ["음이", "흠이"],
+    "note": "음 and 흠 carry musical/lexical/evaluative meaning and are never blind fillers."
+  },
+  {
+    "id": "ko-discourse-words-kept",
+    "transcript": "그 계획은 이제 시작이다",
+    "locale": "ko-KR",
+    "exact": "그 계획은 이제 시작이다.",
+    "note": "그 and 이제 are content here and must survive deterministic cleanup."
+  },
+  {
+    "id": "ko-question-formal",
+    "transcript": "이것이 새 버전입니까",
+    "locale": "ko-KR",
+    "exact": "이것이 새 버전입니까?",
+    "note": "The distinctive formal interrogative ending -입니까 gains a question mark."
+  },
+  {
+    "id": "ko-question-suggestion",
+    "transcript": "회의를 지금 시작할까요",
+    "locale": "ko-KR",
+    "exact": "회의를 지금 시작할까요?",
+    "note": "The distinctive interrogative ending -까요 gains a question mark."
+  },
+  {
+    "id": "ko-ambiguous-nayo-statement",
+    "transcript": "우리는 내일 만나요",
+    "locale": "ko-KR",
+    "exact": "우리는 내일 만나요.",
+    "note": "Bare -나요 would collide with 만나+요, so it is not a deterministic question suffix."
+  },
+  {
+    "id": "ko-thousands-decimal",
+    "transcript": "값은 1,234.5 입니다",
+    "locale": "ko-KR",
+    "exact": "값은 1,234.5 입니다.",
+    "note": "Korean uses comma grouping and a decimal point; the comma must not become 1, 234."
+  },
+  {
+    "id": "ko-currency-spacing",
+    "transcript": "예산은 ₩ 1,234,567 입니다",
+    "locale": "ko-KR",
+    "exact": "예산은 ₩1,234,567 입니다.",
+    "note": "A currency symbol attaches before the grouped number."
+  },
+  {
+    "id": "ko-percent-spacing",
+    "transcript": "성공률은 99.5 % 입니다",
+    "locale": "ko-KR",
+    "exact": "성공률은 99.5% 입니다.",
+    "note": "The percent sign attaches to its number."
+  },
+  {
+    "id": "ko-date-format",
+    "transcript": "마감일은 2026년 7월 26일 입니다",
+    "locale": "ko-KR",
+    "exact": "마감일은 2026년 7월 26일 입니다.",
+    "note": "The conventional Korean year-month-day form remains intact."
+  },
+  {
+    "id": "ko-middle-dot",
+    "transcript": "연구 가운뎃점 개발",
+    "locale": "ko-KR",
+    "exact": "연구·개발.",
+    "note": "The official mark name 가운뎃점 renders and attaches on both sides."
+  },
+  {
+    "id": "ko-colon-label",
+    "transcript": "일시 쌍점 2026년 7월 26일",
+    "locale": "ko-KR",
+    "exact": "일시: 2026년 7월 26일.",
+    "note": "A Korean label colon attaches left and takes one following space."
+  },
+  {
+    "id": "ko-lowercase-embedded",
+    "transcript": "git 명령은 유용하다",
+    "locale": "ko-KR",
+    "exact": "git 명령은 유용하다.",
+    "note": "Caseless Korean must not trigger English sentence capitalization on embedded Latin text."
+  },
+  {
+    "id": "ko-spoken-file",
+    "transcript": "main 점 파이 파일을 열어 줘",
+    "locale": "ko-KR",
+    "exact": "main.py 파일을 열어 줘.",
+    "note": "Ambiguous 점 renders only in a known file-extension frame."
+  },
+  {
+    "id": "ko-spoken-identifier",
+    "transcript": "config 언더스코어 dev 점 제이슨 파일",
+    "locale": "ko-KR",
+    "exact": "config_dev.json 파일.",
+    "note": "Explicit identifier joiners and a Korean-spoken JSON extension render compactly."
+  },
+  {
+    "id": "ko-dot-prose-kept",
+    "transcript": "이 점이 가장 중요하다",
+    "locale": "ko-KR",
+    "exact": "이 점이 가장 중요하다.",
+    "note": "Ordinary 점 remains the lexical word 'point'."
+  },
+  {
+    "id": "ko-spoken-email",
+    "transcript": "주소는 michael 골뱅이 gmail 점 com",
+    "locale": "ko-KR",
+    "exact": "주소는 michael@gmail.com",
+    "note": "골뱅이 and an anchored TLD render an email; the address keeps a bare ending."
+  },
+  {
+    "id": "ko-terminal-flag",
+    "transcript": "git 대시 대시 verbose",
+    "locale": "ko-KR",
+    "category": "terminal",
+    "exact": "git --verbose",
+    "note": "Terminal dictation consumes repeated 대시 into a long flag without adding punctuation."
+  },
+  {
+    "id": "ko-terminal-path",
+    "transcript": "틸드 슬래시 projects 슬래시 VoiceType",
+    "locale": "ko-KR",
+    "category": "terminal",
+    "exact": "~/projects/VoiceType",
+    "note": "Terminal path vocabulary renders compactly and preserves casing."
+  },
+  {
+    "id": "ko-terminal-command-safe",
+    "transcript": "git status",
+    "locale": "ko-KR",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "An ordinary command remains byte-for-byte safe."
+  },
+  {
+    "id": "ko-ramble-no-translation",
+    "transcript": "음 오늘 회의에서는 새 버전의 출시 일정을 한 주 미루고 테스트가 끝난 뒤에 문서를 업데이트하며 다음 분기에 개발자 두 명을 채용하는 계획까지 순서대로 검토했습니다",
+    "locale": "ko-KR",
+    "mustContain": ["회의에서는", "출시 일정을", "테스트가", "문서를", "개발자 두 명을", "검토했습니다"],
+    "mustNotContain": ["meeting", "release", "test plan", "developer"],
+    "note": "A long Korean ramble stays Korean and retains every clause; ambiguous 음 is conservatively kept by rules."
+  },
+  {
+    "id": "ko-self-correction",
+    "transcript": "회의는 수요일 아니 목요일 오후 세 시에 시작합니다",
+    "locale": "ko-KR",
+    "mustContain": ["수요일", "목요일", "오후 세 시"],
+    "note": "Rules preserve both sides of an ambiguous correction; contextual removal belongs to the model."
+  }
+]
