@@ -3,16 +3,17 @@ import Foundation
 @testable import VoiceTypeKit
 
 /// Everything specific to the Chinese pack. Lives beside the other per-language
-/// suites so a contributor working on zh touches exactly one source file and
-/// one test file — see docs/LOCALIZATION.md.
+/// suites so a contributor working on zh touches exactly one language source
+/// directory and one test file — see docs/LOCALIZATION.md.
 @Suite("Language pack — Chinese policy")
 struct ChinesePackPolicyTests {
-    @Test("unambiguous fillers only, 点 and 那个 excluded")
+    @Test("unambiguous fillers only, ambiguous 点 and 那个 excluded from blind fields")
     func policy() {
         let zh = LanguagePack.chinese
         #expect(zh.fillers == ["嗯", "呃"])
         #expect(zh.spokenPunctuation["点"] == nil)
         #expect(!zh.fillers.contains("那个"))
+        #expect(zh.symbols == nil)
         #expect(zh.usesFullWidthPunctuation)
         #expect(!zh.separatesWordsWithSpaces)
     }
@@ -75,14 +76,70 @@ struct ChineseRuleCleanupTests {
         #expect(clean("请把 main.py 发给我") == "请把 main.py 发给我。")
     }
 
+    @Test("guarded 点 renders only a known Latin file extension")
+    func guardedTechnicalPoint() {
+        #expect(clean("请打开 main 点 py 检查配置") == "请打开 main.py 检查配置。")
+        #expect(clean("把 config 点 json 发给我") == "把 config.json 发给我。")
+    }
+
+    @Test("点 remains lexical in times, spoken decimals, and requests")
+    func ambiguousPointKept() {
+        #expect(clean("会议安排在三点一刻") == "会议安排在三点一刻。")
+        #expect(clean("圆周率约等于三点一四") == "圆周率约等于三点一四。")
+        #expect(clean("请快点把文件发来") == "请快点把文件发来。")
+    }
+
+    @Test("a structurally anchored spoken Latin email renders")
+    func spokenEmail() {
+        #expect(clean("请发到 zhang 点 san 艾特 example 点 com 再确认")
+                == "请发到 zhang.san@example.com 再确认。")
+    }
+
+    @Test("spoken full-width punctuation is set solid beside Latin text")
+    func latinAdjacentSpokenPunctuation() {
+        #expect(clean("支持 TypeScript 逗号 Python 和 Swift")
+                == "支持 TypeScript，Python 和 Swift")
+        #expect(clean("环境变量是 NODE_ENV 冒号 production")
+                == "环境变量是 NODE_ENV：production")
+    }
+
+    @Test("Chinese-owned rules are idempotent after rendering")
+    func customRulesIdempotent() {
+        let prose = clean("请打开 main 点 py 逗号 Python")
+        #expect(prose == "请打开 main.py，Python")
+        #expect(clean(prose) == prose)
+
+        let email = clean("请发到 zhang 点 san 艾特 example 点 com 再确认")
+        #expect(clean(email) == email)
+    }
+
+    @Test("spoken dates, measure words, quantities, and currency stay faithful")
+    func numbersAndQuantities() {
+        #expect(clean("发布日期是二零二六年七月二十六日")
+                == "发布日期是二零二六年七月二十六日。")
+        #expect(clean("请买三本书和两支笔") == "请买三本书和两支笔。")
+        #expect(clean("总价是一百二十八元五角") == "总价是一百二十八元五角。")
+    }
+
+    @Test("儿化, repeated characters, and filler-lookalike idiom content survive")
+    func lexicalFormsPreserved() {
+        #expect(clean("待会儿去胡同口看看") == "待会儿去胡同口看看。")
+        #expect(clean("这个问题要慢慢看看再说") == "这个问题要慢慢看看再说。")
+        #expect(clean("这简直是对牛弹琴") == "这简直是对牛弹琴。")
+    }
+
     @Test("no capitalization pass runs on a leading English fragment")
     func noCapitalization() {
         #expect(clean("git 命令很有用") == "git 命令很有用。")
     }
 
-    @Test("terminal category stays command-safe: no terminal mark, no filler surprises")
+    @Test("terminal category preserves Chinese prose around a command without a terminal mark")
     func terminalCategory() {
         #expect(clean("git status", category: .terminal) == "git status")
+        #expect(clean("请运行 git status 然后把结果发给我", category: .terminal)
+                == "请运行 git status 然后把结果发给我")
+        #expect(clean("请运行 python main 点 py 然后检查输出", category: .terminal)
+                == "请运行 python main.py 然后检查输出")
     }
 }
 
@@ -104,6 +161,15 @@ struct ChinesePolishTests {
     func capitalizationSkipped() {
         let out = CleanupPolish.apply("ok 我们开始吧。", options: .default, locale: "zh-CN")
         #expect(out == "ok 我们开始吧。")
+    }
+
+    @Test("Chinese-owned technical and spacing rules also repair model output")
+    func packRulesApply() {
+        let out = CleanupPolish.apply(
+            "请打开 main 点 py， 然后检查 TypeScript 逗号 Python",
+            options: .default,
+            locale: "zh-CN")
+        #expect(out == "请打开 main.py，然后检查 TypeScript，Python")
     }
 }
 

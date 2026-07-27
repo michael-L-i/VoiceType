@@ -1,0 +1,230 @@
+[
+  {
+    "id": "de-spoken-question-mark",
+    "transcript": "kommt er morgen Fragezeichen",
+    "locale": "de-DE",
+    "exact": "Kommt er morgen?",
+    "note": "Spoken Fragezeichen renders the mark and absorbs the space before it."
+  },
+  {
+    "id": "de-spoken-exclamation",
+    "transcript": "das ist super Ausrufezeichen",
+    "locale": "de-DE",
+    "exact": "Das ist super!",
+    "note": "Ausrufezeichen/Rufzeichen are compound nouns that only ever name the mark."
+  },
+  {
+    "id": "de-spoken-idempotent",
+    "transcript": "kommt er morgen? Fragezeichen",
+    "locale": "de-DE",
+    "exact": "Kommt er morgen?",
+    "note": "The engine already punctuated AND the speaker said the name — no doubling."
+  },
+  {
+    "id": "de-spoken-brackets",
+    "transcript": "das Ergebnis Klammer auf ungefähr Klammer zu ist gut",
+    "locale": "de-DE",
+    "exact": "Das Ergebnis (ungefähr) ist gut.",
+    "note": "German names the bracket before the direction, which the shared paren renderer cannot express."
+  },
+  {
+    "id": "de-ambiguous-nouns-kept",
+    "transcript": "das bringt es auf den Punkt und Punkt zwölf gehen wir",
+    "locale": "de-DE",
+    "exact": "Das bringt es auf den Punkt und Punkt zwölf gehen wir.",
+    "note": "Ambiguity policy: Punkt/Komma are everyday nouns and are never rendered unconditionally."
+  },
+  {
+    "id": "de-fillers-removed",
+    "transcript": "ähm das ist ähm ganz gut",
+    "locale": "de-DE",
+    "exact": "Das ist ganz gut.",
+    "note": "Pure hesitation sounds go."
+  },
+  {
+    "id": "de-modal-particles-kept",
+    "transcript": "das ist halt doch ganz gut und eh klar",
+    "locale": "de-DE",
+    "mustContain": ["halt", "doch", "eh"],
+    "note": "Modal particles look like fillers and are content — they carry the sentence's attitude. Never deterministic."
+  },
+  {
+    "id": "de-decimal-comma",
+    "transcript": "wir haben 5 Komma 5 Prozent mehr Umsatz",
+    "locale": "de-DE",
+    "exact": "Wir haben 5,5 Prozent mehr Umsatz.",
+    "note": "Spoken decimal renders with a comma (Duden, Dezimalkomma)."
+  },
+  {
+    "id": "de-decimal-survives-spacing",
+    "transcript": "das kostet 12,50 Euro",
+    "locale": "de-DE",
+    "exact": "Das kostet 12,50 Euro.",
+    "note": "The shared spacing pass adds a space after every comma; German has to put the decimal back together."
+  },
+  {
+    "id": "de-percent-space",
+    "transcript": "die Auslastung liegt bei 80%",
+    "locale": "de-DE",
+    "exact": "Die Auslastung liegt bei 80 %.",
+    "note": "DIN 5008: a space between the number and the sign it is read as."
+  },
+  {
+    "id": "de-currency-after-amount",
+    "transcript": "das kostet €12,50",
+    "locale": "de-DE",
+    "exact": "Das kostet 12,50 €.",
+    "note": "DIN 5008: the currency sign follows the amount. The leading form is an English-trained transcriber artifact."
+  },
+  {
+    "id": "de-abbreviation-spacing",
+    "transcript": "wir brauchen z.b. mehr Zeit",
+    "locale": "de-DE",
+    "exact": "Wir brauchen z. B. mehr Zeit.",
+    "note": "Duden: multi-part abbreviations take a space; and the following function word must not gain a false sentence capital."
+  },
+  {
+    "id": "de-abbreviation-sentence-end",
+    "transcript": "Äpfel Birnen usw. Der Rest kommt später",
+    "locale": "de-DE",
+    "exact": "Äpfel Birnen usw. Der Rest kommt später.",
+    "note": "usw. routinely ends a sentence, so it is excluded from the de-capitalization list — the next sentence keeps its capital."
+  },
+  {
+    "id": "de-weekday-capital",
+    "transcript": "wir treffen uns am montag im august",
+    "locale": "de-DE",
+    "exact": "Wir treffen uns am Montag im August.",
+    "note": "Weekdays and months are the one closed class of German nouns a rule can capitalize safely."
+  },
+  {
+    "id": "de-weekday-adverb-stays-lowercase",
+    "transcript": "wir haben montags immer frei",
+    "locale": "de-DE",
+    "exact": "Wir haben montags immer frei.",
+    "note": "The derived adverb montags is lowercase — the word boundary excludes it."
+  },
+  {
+    "id": "de-ordinal-date",
+    "transcript": "der Termin ist am 5 mai",
+    "locale": "de-DE",
+    "exact": "Der Termin ist am 5. Mai.",
+    "note": "Duden: a day before a month name is an ordinal and takes a period."
+  },
+  {
+    "id": "de-quotation-marks",
+    "transcript": "er sagte \"das passt schon\"",
+    "locale": "de-DE",
+    "exact": "Er sagte „das passt schon“.",
+    "note": "German quotation marks are „unten“ then “oben”."
+  },
+  {
+    "id": "de-apostrophe-and-dash",
+    "transcript": "mal sehen wie's läuft — ehrlich gesagt",
+    "locale": "de-DE",
+    "exact": "Mal sehen wie’s läuft – ehrlich gesagt.",
+    "note": "Typographic apostrophe ’ and the Halbgeviertstrich –; the em dash is an English convention."
+  },
+  {
+    "id": "de-question-inversion",
+    "transcript": "hast du das schon gemacht",
+    "locale": "de-DE",
+    "exact": "Hast du das schon gemacht?",
+    "note": "German main clauses are verb-second, so a finite verb in first position opens a question."
+  },
+  {
+    "id": "de-tag-question",
+    "transcript": "wir machen das so oder",
+    "locale": "de-DE",
+    "exact": "Wir machen das so oder?",
+    "note": "The German tag question. Matched with hasSuffix, so only tags without a word-final homograph qualify."
+  },
+  {
+    "id": "de-statement-keeps-period",
+    "transcript": "das machen wir morgen",
+    "locale": "de-DE",
+    "exact": "Das machen wir morgen.",
+    "note": "A statement must not be dragged into the question heuristic."
+  },
+  {
+    "id": "de-file-name",
+    "transcript": "schick mir bitte haupt Punkt py",
+    "locale": "de-DE",
+    "exact": "Schick mir bitte haupt.py",
+    "note": "\"Punkt\" joins only when the left neighbour is an identifier part and the right one names a known extension."
+  },
+  {
+    "id": "de-identifier",
+    "transcript": "max Unterstrich retries auf zehn setzen",
+    "locale": "de-DE",
+    "exact": "max_retries auf zehn setzen.",
+    "note": "Identifiers keep their lowercase; the leading token is not a plain word, so it gains no sentence capital."
+  },
+  {
+    "id": "de-underscore-stays-prose",
+    "transcript": "ich will das unterstreichen",
+    "locale": "de-DE",
+    "exact": "Ich will das unterstreichen.",
+    "note": "The join guards keep German function words out of identifiers."
+  },
+  {
+    "id": "de-embedded-english",
+    "transcript": "ich habe den Pull Request gemerged und die Version ist 2.14",
+    "locale": "de-DE",
+    "exact": "Ich habe den Pull Request gemerged und die Version ist 2.14",
+    "note": "Borrowed English tech vocabulary and version numbers survive untouched."
+  },
+  {
+    "id": "de-line-break-command",
+    "transcript": "erste Zeile neue Zeile zweite Zeile",
+    "locale": "de-DE",
+    "exact": "Erste Zeile\nZweite Zeile.",
+    "note": "The dictation command inserts a real newline and capitalizes what follows it."
+  },
+  {
+    "id": "de-line-break-noun-phrase",
+    "transcript": "ich brauche eine neue Zeile im Dokument",
+    "locale": "de-DE",
+    "exact": "Ich brauche eine neue Zeile im Dokument.",
+    "note": "A determiner in front means it is an ordinary noun phrase, not a command."
+  },
+  {
+    "id": "de-terminal-command",
+    "transcript": "git status",
+    "locale": "de-DE",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "Terminal category stays command-safe: no capital, no period, no typography."
+  },
+  {
+    "id": "de-terminal-flags-and-paths",
+    "transcript": "git push Strich Strich force",
+    "locale": "de-DE",
+    "category": "terminal",
+    "exact": "git push --force",
+    "note": "Spoken flags render in the terminal, where \"Strich\" is a flag marker rather than a word."
+  },
+  {
+    "id": "de-terminal-path",
+    "transcript": "cd tilde Schrägstrich code Schrägstrich voicetype",
+    "locale": "de-DE",
+    "category": "terminal",
+    "exact": "cd ~/code/voicetype",
+    "note": "Spoken paths render terminal-only; in prose \"Schrägstrich\" is more often a word."
+  },
+  {
+    "id": "de-ramble-no-translation",
+    "transcript": "ähm also in der Besprechung ging es um drei Sachen erstens muss das Release eine Woche später kommen weil die Tests noch nicht fertig sind zweitens muss die Dokumentation vorher aktualisiert werden und drittens ähm wollen wir nächstes Quartal zwei neue Leute einstellen",
+    "locale": "de-DE",
+    "mustContain": ["Besprechung", "Release", "Dokumentation", "Quartal", "einstellen"],
+    "mustNotContain": ["ähm", "meeting", "documentation", "quarter"],
+    "note": "Anti-translation and anti-summarization: a long German ramble stays German and keeps every clause. Model path: lostDominantScript cannot see a de→en switch (both Latin), so the length guard is the seatbelt here."
+  },
+  {
+    "id": "de-self-correction",
+    "transcript": "wir brauchen fünf nein sechs Exemplare",
+    "locale": "de-DE",
+    "mustContain": ["sechs"],
+    "note": "Self-correction is model territory — the rules floor keeps both numbers, which loses no information. Judge the model run manually."
+  }
+]

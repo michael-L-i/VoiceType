@@ -1,0 +1,187 @@
+[
+  {
+    "id": "hi-filler-pure",
+    "transcript": "उमम् आज मौसम अच्छा है",
+    "locale": "hi-IN",
+    "exact": "आज मौसम अच्छा है।",
+    "note": "A non-lexical filled pause is removed; the sentence gains danda."
+  },
+  {
+    "id": "hi-ambiguous-markers-kept",
+    "transcript": "मतलब यह है कि वो अच्छा विकल्प नहीं है",
+    "locale": "hi-IN",
+    "exact": "मतलब यह है कि वो अच्छा विकल्प नहीं है।",
+    "note": "Meaningful मतलब/वो/अच्छा/नहीं survive the deterministic pass."
+  },
+  {
+    "id": "hi-spoken-danda",
+    "transcript": "आज मौसम अच्छा है पूर्ण विराम",
+    "locale": "hi-IN",
+    "exact": "आज मौसम अच्छा है।",
+    "note": "Established Hindi dictation command पूर्ण विराम renders danda."
+  },
+  {
+    "id": "hi-spoken-commas",
+    "transcript": "सेब अल्पविराम केला अल्पविराम आम",
+    "locale": "hi-IN",
+    "exact": "सेब, केला, आम।",
+    "note": "Spoken Hindi comma names render with normal Hindi punctuation spacing."
+  },
+  {
+    "id": "hi-spoken-question",
+    "transcript": "तुम कब आओगे प्रश्न चिह्न",
+    "locale": "hi-IN",
+    "exact": "तुम कब आओगे?",
+    "note": "Spoken प्रश्न चिह्न renders ASCII question mark, as standard Hindi does."
+  },
+  {
+    "id": "hi-spoken-idempotent",
+    "transcript": "आज मौसम अच्छा है। पूर्ण विराम",
+    "locale": "hi-IN",
+    "exact": "आज मौसम अच्छा है।",
+    "note": "An already-rendered danda plus its spoken name does not double."
+  },
+  {
+    "id": "hi-dictated-newline",
+    "transcript": "पहली पंक्ति नई पंक्ति दूसरी पंक्ति",
+    "locale": "hi-IN",
+    "exact": "पहली पंक्ति\nदूसरी पंक्ति।",
+    "note": "नई पंक्ति survives the shared whitespace pass as a real line break."
+  },
+  {
+    "id": "hi-question-prefix",
+    "transcript": "कहाँ जा रहे हो",
+    "locale": "hi-IN",
+    "exact": "कहाँ जा रहे हो?",
+    "note": "A direct wh-question opener gains a question mark."
+  },
+  {
+    "id": "hi-polar-question",
+    "transcript": "क्या तुम तैयार हो",
+    "locale": "hi-IN",
+    "exact": "क्या तुम तैयार हो?",
+    "note": "Sentence-initial polar marker क्या gains a question mark."
+  },
+  {
+    "id": "hi-final-kya-question",
+    "transcript": "तुम तैयार हो क्या",
+    "locale": "hi-IN",
+    "exact": "तुम तैयार हो क्या?",
+    "note": "Colloquial sentence-final क्या is an unambiguous question marker."
+  },
+  {
+    "id": "hi-ambiguous-na-not-question",
+    "transcript": "यह काम कर दो ना",
+    "locale": "hi-IN",
+    "exact": "यह काम कर दो ना।",
+    "note": "ना can soften a request, so it never forces a deterministic question."
+  },
+  {
+    "id": "hi-terminal-danda",
+    "transcript": "यह ठीक है",
+    "locale": "hi-IN",
+    "exact": "यह ठीक है।",
+    "note": "An unpunctuated Hindi statement ends with Devanagari danda."
+  },
+  {
+    "id": "hi-ascii-period-to-danda",
+    "transcript": "पहला वाक्य. दूसरा वाक्य",
+    "locale": "hi-IN",
+    "exact": "पहला वाक्य। दूसरा वाक्य।",
+    "note": "Clear sentence periods adjacent to Devanagari normalize to danda."
+  },
+  {
+    "id": "hi-abbreviation-period",
+    "transcript": "डॉ. शर्मा आज आए",
+    "locale": "hi-IN",
+    "exact": "डॉ. शर्मा आज आए।",
+    "note": "A common dotted Hindi abbreviation is protected from sentence-period normalization."
+  },
+  {
+    "id": "hi-typographic-quotes",
+    "transcript": "उसने कहा, \" मैं तैयार हूँ \" .",
+    "locale": "hi-IN",
+    "exact": "उसने कहा, “मैं तैयार हूँ”।",
+    "note": "Balanced Hindi prose quotes become curly, lose inner padding, and close with danda."
+  },
+  {
+    "id": "hi-parentheses",
+    "transcript": "नियम ( महत्वपूर्ण ) है",
+    "locale": "hi-IN",
+    "exact": "नियम (महत्वपूर्ण) है।",
+    "note": "Hindi follows the no-inner-padding convention for parentheses."
+  },
+  {
+    "id": "hi-number-format",
+    "transcript": "कुल 12,34,567.89 रुपये हैं",
+    "locale": "hi-IN",
+    "exact": "कुल 12,34,567.89 रुपये हैं।",
+    "note": "Indian grouping and decimal separators are masked through shared punctuation spacing."
+  },
+  {
+    "id": "hi-currency-percent",
+    "transcript": "राशि ₹ 12,34,567 है और वृद्धि 28 % है",
+    "locale": "hi-IN",
+    "exact": "राशि ₹12,34,567 है और वृद्धि 28% है।",
+    "note": "Current Hindi CLDR-style currency and percent spacing is deterministic."
+  },
+  {
+    "id": "hi-file-name",
+    "transcript": "main डॉट पाई खोलो",
+    "locale": "hi-IN",
+    "exact": "main.py खोलो।",
+    "note": "Explicit Hindi technical dot plus a known extension renders a compact ASCII file name."
+  },
+  {
+    "id": "hi-identifier",
+    "transcript": "max अंडरस्कोर retries बदलो",
+    "locale": "hi-IN",
+    "exact": "max_retries बदलो।",
+    "note": "Explicit अंडरस्कोर joins only its marked identifier neighbors."
+  },
+  {
+    "id": "hi-dot-prose-guard",
+    "transcript": "लाल डॉट लगाओ",
+    "locale": "hi-IN",
+    "exact": "लाल डॉट लगाओ।",
+    "note": "डॉट without a known technical continuation remains ordinary prose."
+  },
+  {
+    "id": "hi-leading-embedded-latin",
+    "transcript": "git एक कमांड है",
+    "locale": "hi-IN",
+    "exact": "git एक कमांड है।",
+    "note": "Hindi has no case; a leading embedded Latin command is not capitalized."
+  },
+  {
+    "id": "hi-terminal-flag",
+    "transcript": "npm run build डैश डैश verbose",
+    "locale": "hi-IN",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "Terminal-only Hindi डैश dictation renders a long flag with no trailing punctuation."
+  },
+  {
+    "id": "hi-terminal-path",
+    "transcript": "cd टिल्ड स्लैश projects स्लैश VoiceType",
+    "locale": "hi-IN",
+    "category": "terminal",
+    "exact": "cd ~/projects/VoiceType",
+    "note": "Hindi technical path words render compactly in the terminal."
+  },
+  {
+    "id": "hi-ramble-no-translation",
+    "transcript": "उमम् आज की बैठक में हमने तीन बातें तय कीं पहली बात यह कि नया संस्करण अगले सोमवार को जारी नहीं होगा क्योंकि परीक्षण अभी पूरा नहीं हुआ दूसरी बात यह कि सहायता दस्तावेज़ को दोबारा जाँचना है और तीसरी बात यह कि ग्राहक दल को समय बदलने की सूचना आज ही भेजनी है",
+    "locale": "hi-IN",
+    "mustContain": ["आज की बैठक", "अगले सोमवार", "सहायता दस्तावेज़", "ग्राहक दल", "आज ही भेजनी है"],
+    "mustNotContain": ["उमम्", "meeting", "Monday", "customer"],
+    "note": "Long anti-summary/anti-translation ramble keeps every Hindi clause in order while removing only the pure pause."
+  },
+  {
+    "id": "hi-self-correction-model-territory",
+    "transcript": "बैठक बुधवार को नहीं मेरा मतलब गुरुवार को रखो",
+    "locale": "hi-IN",
+    "mustContain": ["बुधवार", "गुरुवार"],
+    "note": "Rules fail conservative and keep both repair phrases; the prompt tells the model to retain गुरुवार only when the correction is clear."
+  }
+]

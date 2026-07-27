@@ -1,0 +1,217 @@
+[
+  {
+    "id": "uk-filler-prolonged",
+    "transcript": "е-е-е, ми починаємо обговорення",
+    "locale": "uk-UA",
+    "exact": "Ми починаємо обговорення.",
+    "note": "Only an explicitly prolonged nonlexical hesitation is removed."
+  },
+  {
+    "id": "uk-ambiguous-fillers-kept",
+    "transcript": "ну це значить багато для цього типу даних",
+    "locale": "uk-UA",
+    "mustContain": ["Ну", "значить", "типу"],
+    "note": "Contextual lookalikes remain content in the deterministic floor."
+  },
+  {
+    "id": "uk-spoken-colon",
+    "transcript": "увага двокрапка починаємо",
+    "locale": "uk-UA",
+    "exact": "Увага: починаємо.",
+    "note": "The unambiguous Apple-style spoken punctuation command renders exactly."
+  },
+  {
+    "id": "uk-spoken-question",
+    "transcript": "це справді працює знак питання",
+    "locale": "uk-UA",
+    "exact": "Це справді працює?",
+    "note": "The multiword punctuation name is unambiguous; bare крапка/кома remain excluded."
+  },
+  {
+    "id": "uk-spoken-quotes",
+    "transcript": "він сказав відкриті лапки усе готово закриті лапки",
+    "locale": "uk-UA",
+    "exact": "Він сказав «усе готово».",
+    "note": "Spoken quote commands use Ukrainian outer guillemets."
+  },
+  {
+    "id": "uk-spoken-punctuation-idempotent",
+    "transcript": "це готово? знак питання",
+    "locale": "uk-UA",
+    "exact": "Це готово?",
+    "note": "An already-rendered mark plus its spoken name does not double."
+  },
+  {
+    "id": "uk-punctuation-spacing",
+    "transcript": "готово !  так ,працює",
+    "locale": "uk-UA",
+    "exact": "Готово! Так, працює.",
+    "note": "No space before sentence punctuation and one space after it."
+  },
+  {
+    "id": "uk-decimal-comma",
+    "transcript": "ціна 3,14,а похибка мала",
+    "locale": "uk-UA",
+    "exact": "Ціна 3,14, а похибка мала.",
+    "note": "The Ukrainian decimal comma survives the shared comma-spacing pass."
+  },
+  {
+    "id": "uk-apostrophe",
+    "transcript": "п ' ять обʼєктів готові",
+    "locale": "uk-UA",
+    "exact": "П’ять об’єктів готові.",
+    "note": "Present in-word apostrophes are joined and normalized to the Ukrainian typographic form."
+  },
+  {
+    "id": "uk-missing-apostrophe-conservative",
+    "transcript": "обєкт готовий",
+    "locale": "uk-UA",
+    "exact": "Обєкт готовий.",
+    "note": "Inserting a missing apostrophe is lexical judgment and remains model work."
+  },
+  {
+    "id": "uk-typed-quotes",
+    "transcript": "він назвав це \"новий проєкт\"",
+    "locale": "uk-UA",
+    "exact": "Він назвав це «новий проєкт».",
+    "note": "Paired ASCII quotes around Cyrillic prose become Ukrainian guillemets."
+  },
+  {
+    "id": "uk-ascii-code-quotes-preserved",
+    "transcript": "значення \"ready\" не змінюй",
+    "locale": "uk-UA",
+    "exact": "Значення \"ready\" не змінюй.",
+    "note": "ASCII code strings without Cyrillic content stay byte-for-byte quoted."
+  },
+  {
+    "id": "uk-numeric-date",
+    "transcript": "зустріч 7. 8. 2026",
+    "locale": "uk-UA",
+    "exact": "Зустріч 7.8.2026",
+    "note": "Date-like dot groups are compact; the shared file-tail guard conservatively leaves the numeric tail bare."
+  },
+  {
+    "id": "uk-number-currency-spacing",
+    "transcript": "це коштує 1 250 грн",
+    "locale": "uk-UA",
+    "exact": "Це коштує 1\u00a0250\u00a0грн.",
+    "note": "Existing thousands grouping and the amount/currency boundary become nonbreaking."
+  },
+  {
+    "id": "uk-abbreviation-capitalization",
+    "transcript": "див. наступний розділ",
+    "locale": "uk-UA",
+    "exact": "Див. наступний розділ.",
+    "note": "An abbreviation period does not falsely capitalize the following common noun."
+  },
+  {
+    "id": "uk-ellipsis",
+    "transcript": "можливо... але перевірмо",
+    "locale": "uk-UA",
+    "exact": "Можливо… але перевірмо.",
+    "note": "Three typed dots normalize to the Ukrainian ellipsis without being collapsed to one period."
+  },
+  {
+    "id": "uk-explicit-question-opener",
+    "transcript": "чи готовий реліз",
+    "locale": "uk-UA",
+    "exact": "Чи готовий реліз?",
+    "note": "The explicit yes/no interrogative opener gains a question mark."
+  },
+  {
+    "id": "uk-intonation-question-conservative",
+    "transcript": "ти готовий",
+    "locale": "uk-UA",
+    "exact": "Ти готовий.",
+    "note": "An intonation-only question cannot be inferred safely from text and remains a statement in rules."
+  },
+  {
+    "id": "uk-spoken-file",
+    "transcript": "відкрий main крапка пі",
+    "locale": "uk-UA",
+    "exact": "Відкрий main.py",
+    "note": "Structurally anchored крапка plus a known extension renders a file name."
+  },
+  {
+    "id": "uk-spoken-file-letter-names",
+    "transcript": "відкрий index крапка джей ес",
+    "locale": "uk-UA",
+    "exact": "Відкрий index.js",
+    "note": "A Ukrainian ASR spelling of separate Latin letter names is resolved only after the file-extension anchor."
+  },
+  {
+    "id": "uk-spoken-identifier",
+    "transcript": "змінна user андерскор id",
+    "locale": "uk-UA",
+    "exact": "Змінна user_id",
+    "note": "A spoken technical joiner renders a snake-case identifier."
+  },
+  {
+    "id": "uk-spoken-email",
+    "transcript": "напиши user равлик example крапка com",
+    "locale": "uk-UA",
+    "exact": "Напиши user@example.com",
+    "note": "The TLD-anchored email shape makes равлик and крапка safe to render."
+  },
+  {
+    "id": "uk-symbol-prose-guard",
+    "transcript": "це важлива крапка на карті і мінус цього плану",
+    "locale": "uk-UA",
+    "mustContain": ["крапка на карті", "мінус цього плану"],
+    "note": "Ordinary noun senses of symbol words remain prose."
+  },
+  {
+    "id": "uk-mixed-tech",
+    "transcript": "перевір APIClient і main.py у новому об’єкті",
+    "locale": "uk-UA",
+    "exact": "Перевір APIClient і main.py у новому об’єкті.",
+    "note": "Embedded English identifiers and files preserve spelling and ASCII punctuation."
+  },
+  {
+    "id": "uk-long-no-translation",
+    "transcript": "е-е сьогодні ми обговорили запуск нового релізу спочатку перевірили APIClient потім домовилися оновити документацію до п’ятниці а після цього вирішили ще раз протестувати оплату бо помилка з’являється лише для суми 3,14 грн і її не можна пропустити",
+    "locale": "uk-UA",
+    "mustContain": ["обговорили запуск", "APIClient", "оновити документацію", "суми 3,14\u00a0грн", "не можна пропустити"],
+    "mustNotContain": ["сегодня", "обсудили", "документацию", "ошибка"],
+    "note": "Long anti-translation/anti-summarization case retains every Ukrainian clause and embedded identifier."
+  },
+  {
+    "id": "uk-self-correction-model-territory",
+    "transcript": "перенеси зустріч на середу ні точніше на четвер",
+    "locale": "uk-UA",
+    "mustContain": ["середу", "точніше", "четвер"],
+    "note": "Rules preserve both attempts; the prompt tells the model to keep only the last one."
+  },
+  {
+    "id": "uk-terminal-flag",
+    "transcript": "git commit мінус ем fix",
+    "locale": "uk-UA",
+    "category": "terminal",
+    "exact": "git commit -m fix",
+    "note": "A Ukrainian-spoken Latin letter name becomes a short shell flag only after an explicit мінус marker."
+  },
+  {
+    "id": "uk-terminal-long-flag",
+    "transcript": "git log мінус мінус oneline",
+    "locale": "uk-UA",
+    "category": "terminal",
+    "exact": "git log --oneline",
+    "note": "Terminal-only symbol rendering produces a long flag without capitalization or punctuation."
+  },
+  {
+    "id": "uk-terminal-path",
+    "transcript": "cd тильда слеш projects слеш VoiceType",
+    "locale": "uk-UA",
+    "category": "terminal",
+    "exact": "cd ~/projects/VoiceType",
+    "note": "Spoken Ukrainian path components render compactly in a terminal."
+  },
+  {
+    "id": "uk-terminal-decimal-safe",
+    "transcript": "echo 3,14",
+    "locale": "uk-UA",
+    "category": "terminal",
+    "exact": "echo 3,14",
+    "note": "The paired decimal mask/restore rules both run in terminal context, so no placeholder leaks and no argument is split."
+  }
+]

@@ -1,0 +1,250 @@
+[
+  {
+    "id": "nb-filler-leading",
+    "transcript": "øh jeg tror vi bør vente til mandag",
+    "locale": "nb-NO",
+    "exact": "Jeg tror vi bør vente til mandag.",
+    "note": "A documented non-lexical Norwegian hesitation sound is removed."
+  },
+  {
+    "id": "nb-filler-mid",
+    "transcript": "vi bør ehm vente til mandag",
+    "locale": "nb-NO",
+    "exact": "Vi bør vente til mandag.",
+    "note": "A mid-sentence hesitation is removed without losing content."
+  },
+  {
+    "id": "nb-ambiguous-fillers-kept",
+    "transcript": "altså dette er egentlig bare sånn det virker",
+    "locale": "nb-NO",
+    "exact": "Altså dette er egentlig bare sånn det virker.",
+    "note": "All of these words can carry real meaning; deterministic cleanup preserves them."
+  },
+  {
+    "id": "nb-backchannel-kept",
+    "transcript": "mhm det høres riktig ut",
+    "locale": "nb-NO",
+    "exact": "Mhm det høres riktig ut.",
+    "note": "mhm can express agreement and is not a never-content filler."
+  },
+  {
+    "id": "nb-decimal-comma-and-percent",
+    "transcript": "temperaturen er 21,5 grader og rabatten er 10%",
+    "locale": "nb-NO",
+    "exact": "Temperaturen er 21,5 grader og rabatten er 10 %.",
+    "note": "The decimal comma survives shared spacing; Norwegian writes a space before percent."
+  },
+  {
+    "id": "nb-currency-and-unit-spacing",
+    "transcript": "pakken veier 5kg og koster €25",
+    "locale": "nb-NO",
+    "exact": "Pakken veier 5 kg og koster € 25.",
+    "note": "Språkrådet requires a space between a number and units or currency designators."
+  },
+  {
+    "id": "nb-large-number-spacing-preserved",
+    "transcript": "budsjettet er 1 250 000 kr",
+    "locale": "nb-NO",
+    "exact": "Budsjettet er 1 250 000 kr.",
+    "note": "Correct Norwegian three-digit grouping uses spaces and survives unchanged."
+  },
+  {
+    "id": "nb-date-lowercase-month",
+    "transcript": "vi møtes 17. Mai 2026",
+    "locale": "nb-NO",
+    "exact": "Vi møtes 17. mai 2026.",
+    "note": "Norwegian dates are day-month-year and month names are lowercase."
+  },
+  {
+    "id": "nb-iso-date-preserved",
+    "transcript": "fristen i systemet er 2026-05-17",
+    "locale": "nb-NO",
+    "exact": "Fristen i systemet er 2026-05-17.",
+    "note": "ISO year-month-day is also a Norwegian standard and must not be rewritten."
+  },
+  {
+    "id": "nb-abbreviation-no-false-capital",
+    "transcript": "vi trenger f.eks. kaffe og te",
+    "locale": "nb-NO",
+    "exact": "Vi trenger f.eks. kaffe og te.",
+    "note": "An abbreviation period is not a sentence boundary."
+  },
+  {
+    "id": "nb-time-abbreviation",
+    "transcript": "møtet starter kl. ni",
+    "locale": "nb-NO",
+    "exact": "Møtet starter kl. ni.",
+    "note": "The period in kl. does not capitalize the following word."
+  },
+  {
+    "id": "nb-ellipsis-preserved",
+    "transcript": "jeg vet ikke... kanskje i morgen",
+    "locale": "nb-NO",
+    "exact": "Jeg vet ikke… kanskje i morgen.",
+    "note": "The Norwegian omission/hesitation mark is preserved rather than collapsed to one period."
+  },
+  {
+    "id": "nb-content-question",
+    "transcript": "hvor er nærmeste togstasjon",
+    "locale": "nb-NO",
+    "exact": "Hvor er nærmeste togstasjon?",
+    "note": "An interrogative opener gets a question mark."
+  },
+  {
+    "id": "nb-yes-no-question",
+    "transcript": "kan vi møtes i morgen",
+    "locale": "nb-NO",
+    "exact": "Kan vi møtes i morgen?",
+    "note": "Norwegian yes/no questions put the finite auxiliary first."
+  },
+  {
+    "id": "nb-tag-question",
+    "transcript": "du kommer i morgen ikke sant",
+    "locale": "nb-NO",
+    "exact": "Du kommer i morgen ikke sant?",
+    "note": "The reliable multi-word tag gains a question mark."
+  },
+  {
+    "id": "nb-noninitial-question",
+    "transcript": "vi er klare. hvor skal vi begynne",
+    "locale": "nb-NO",
+    "exact": "Vi er klare. Hvor skal vi begynne?",
+    "note": "The local rule sees a content question after the first sentence, unlike the shared first-token heuristic."
+  },
+  {
+    "id": "nb-subject-omitted-message-not-question",
+    "transcript": "kommer i morgen",
+    "locale": "nb-NO",
+    "exact": "Kommer i morgen.",
+    "note": "A common subject-omitted message is not guessed to be a question."
+  },
+  {
+    "id": "nb-spoken-file-and-identifier",
+    "transcript": "åpne main punktum py og sett maks understrek forsøk til fem",
+    "locale": "nb-NO",
+    "exact": "Åpne main.py og sett maks_forsøk til fem.",
+    "note": "A known extension and an explicitly marked identifier render compactly."
+  },
+  {
+    "id": "nb-spoken-email",
+    "transcript": "send det til ola krøllalfa eksempel punktum no",
+    "locale": "nb-NO",
+    "exact": "Send det til ola@eksempel.no",
+    "note": "krøllalfa is unambiguously @; punktum joins only before a known TLD."
+  },
+  {
+    "id": "nb-spoken-path",
+    "transcript": "åpne src skråstrek index punktum ts",
+    "locale": "nb-NO",
+    "exact": "Åpne src/index.ts",
+    "note": "An explicitly spoken path and known extension render without prose heuristics."
+  },
+  {
+    "id": "nb-symbol-rendering-idempotent",
+    "transcript": "feilen ligger i main.py og variabelen heter max_retries",
+    "locale": "nb-NO",
+    "exact": "Feilen ligger i main.py og variabelen heter max_retries",
+    "note": "Already-rendered file names and identifiers are idempotent."
+  },
+  {
+    "id": "nb-symbol-words-stay-prose",
+    "transcript": "nå setter vi punktum for saken og ordet bindestrek brukes her",
+    "locale": "nb-NO",
+    "mustContain": [
+      "setter vi punktum for saken",
+      "ordet bindestrek brukes"
+    ],
+    "mustNotContain": [
+      "vi. for",
+      "ordet-brukes"
+    ],
+    "note": "Ambiguous spoken punctuation names remain ordinary words outside a safe code shape."
+  },
+  {
+    "id": "nb-embedded-english",
+    "transcript": "vi bruker Docker og Kubernetes i produksjon og feilen ligger i main.py",
+    "locale": "nb-NO",
+    "mustContain": [
+      "Docker",
+      "Kubernetes",
+      "main.py"
+    ],
+    "mustNotContain": [
+      "docker",
+      "Main.py"
+    ],
+    "note": "English product names and existing file names retain spelling and case."
+  },
+  {
+    "id": "nb-guillemets-preserved",
+    "transcript": "hun skrev «Dette virker bra»",
+    "locale": "nb-NO",
+    "exact": "Hun skrev «Dette virker bra».",
+    "note": "Norwegian outward guillemets are preserved; quote selection remains model territory."
+  },
+  {
+    "id": "nb-terminal-command",
+    "transcript": "git status",
+    "locale": "nb-NO",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "A shell command gains neither capitalization nor terminal punctuation."
+  },
+  {
+    "id": "nb-terminal-flags",
+    "transcript": "npm run build bindestrek bindestrek verbose",
+    "locale": "nb-NO",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "A Norwegian-spoken long flag renders only in terminal context."
+  },
+  {
+    "id": "nb-terminal-path",
+    "transcript": "cd tilde skråstrek prosjekter",
+    "locale": "nb-NO",
+    "category": "terminal",
+    "exact": "cd ~/prosjekter",
+    "note": "A home-relative path renders without changing command casing."
+  },
+  {
+    "id": "nb-terminal-decimal-byte-safety",
+    "transcript": "echo 21,5",
+    "locale": "nb-NO",
+    "category": "terminal",
+    "exact": "echo 21,5",
+    "note": "The paired decimal mask preserves a comma inside terminal text byte-for-byte."
+  },
+  {
+    "id": "nb-long-ramble-no-translation",
+    "transcript": "øh altså møtet i morges handlet egentlig om tre ting ehm for det første må vi utsette lanseringen en uke fordi testene ikke er ferdige for det andre må dokumentasjonen oppdateres før vi går live og for det tredje vil vi ansette to nye utviklere neste kvartal",
+    "locale": "nb-NO",
+    "mustContain": [
+      "møtet i morges",
+      "utsette lanseringen",
+      "dokumentasjonen",
+      "to nye utviklere neste kvartal"
+    ],
+    "mustNotContain": [
+      "meeting",
+      "launch the",
+      "developers",
+      "1.",
+      "2.",
+      "\n",
+      " øh ",
+      " ehm "
+    ],
+    "note": "A long ramble stays full-length Bokmål flowing prose; rules remove only unambiguous hesitation sounds."
+  },
+  {
+    "id": "nb-self-correction-conservative-floor",
+    "transcript": "vi trenger fem nei seks eksemplarer",
+    "locale": "nb-NO",
+    "mustContain": [
+      "fem",
+      "nei",
+      "seks"
+    ],
+    "note": "The deterministic floor keeps all information; the contextual model prompt resolves the correction."
+  }
+]

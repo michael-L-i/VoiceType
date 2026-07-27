@@ -1,0 +1,267 @@
+[
+  {
+    "id": "pt-spoken-question-mark",
+    "transcript": "você vem amanhã ponto de interrogação",
+    "locale": "pt-BR",
+    "exact": "Você vem amanhã?",
+    "note": "Spoken punctuation: 'ponto de interrogação' has no ordinary-prose reading, so it renders unconditionally."
+  },
+  {
+    "id": "pt-spoken-question-mark-idempotent",
+    "transcript": "você vem amanhã? ponto de interrogação",
+    "locale": "pt-BR",
+    "exact": "Você vem amanhã?",
+    "note": "Idempotence: the mark the engine already emitted is absorbed instead of doubled."
+  },
+  {
+    "id": "pt-spoken-exclamation-and-semicolon",
+    "transcript": "primeiro item ponto e vírgula segundo item ponto de exclamação",
+    "locale": "pt-BR",
+    "exact": "Primeiro item; segundo item!",
+    "note": "Multi-word spoken marks render; shared Latin spacing puts them tight against the word."
+  },
+  {
+    "id": "pt-spoken-quotes",
+    "transcript": "ele disse abre aspas não vou fecha aspas e saiu",
+    "locale": "pt-BR",
+    "exact": "Ele disse “não vou” e saiu.",
+    "note": "Curly double quotes are Portuguese typography; 'abre/fecha aspas' is an imperative, never a noun phrase."
+  },
+  {
+    "id": "pt-spoken-ellipsis",
+    "transcript": "eu não sei reticências talvez amanhã",
+    "locale": "pt-BR",
+    "exact": "Eu não sei… talvez amanhã.",
+    "note": "Reticências render as a single … glued to the preceding word, and survive the repeated-mark collapse."
+  },
+  {
+    "id": "pt-spoken-new-line",
+    "transcript": "primeiro tópico nova linha segundo tópico",
+    "locale": "pt-BR",
+    "exact": "Primeiro tópico\nsegundo tópico.",
+    "note": "Spoken line breaks run after the shared spacing pass, which would otherwise flatten the newline."
+  },
+  {
+    "id": "pt-ambiguous-punctuation-nouns-kept",
+    "transcript": "o ponto de vista dele sobre a barra do bar mudou dois pontos importantes",
+    "locale": "pt-BR",
+    "exact": "O ponto de vista dele sobre a barra do bar mudou dois pontos importantes.",
+    "note": "Ambiguity policy: bare 'ponto', 'barra' and 'dois pontos' are everyday nouns and must never render as marks."
+  },
+  {
+    "id": "pt-fillers-removed-markers-kept",
+    "transcript": "hum então tipo assim a gente vai ver isso amanhã né",
+    "locale": "pt-BR",
+    "mustContain": ["Então", "tipo", "assim", "né"],
+    "mustNotContain": ["hum"],
+    "note": "Only never-content disfluencies go; the conversational markers are content words and stay (LLM territory)."
+  },
+  {
+    "id": "pt-tag-question-ne",
+    "transcript": "isso ficou caro né",
+    "locale": "pt-BR",
+    "exact": "Isso ficou caro né?",
+    "note": "'né' is a tag question, so the sentence ends in '?' rather than '.'."
+  },
+  {
+    "id": "pt-bone-is-not-a-tag",
+    "transcript": "ele comprou um boné",
+    "locale": "pt-BR",
+    "exact": "Ele comprou um boné.",
+    "note": "The 'né' rule is word-bounded: 'boné' is not a tag question."
+  },
+  {
+    "id": "pt-multiword-interrogative-opener",
+    "transcript": "por que o build está quebrado",
+    "locale": "pt-BR",
+    "exact": "Por que o build está quebrado?",
+    "note": "'por que' is two words, so the single-token probe can't see it; the pack rule handles it."
+  },
+  {
+    "id": "pt-sera-que-opener",
+    "transcript": "será que ele vai responder hoje",
+    "locale": "pt-BR",
+    "exact": "Será que ele vai responder hoje?",
+    "note": "'será que' is unmistakably interrogative."
+  },
+  {
+    "id": "pt-interrogative-plus-verb",
+    "transcript": "onde está o arquivo de configuração",
+    "locale": "pt-BR",
+    "exact": "Onde está o arquivo de configuração?",
+    "note": "'onde' is also a relative conjunction, so the rule needs the finite verb after it to call this a question."
+  },
+  {
+    "id": "pt-subordinating-conjunction-stays-a-statement",
+    "transcript": "quando eu era criança eu morava lá",
+    "locale": "pt-BR",
+    "exact": "Quando eu era criança eu morava lá.",
+    "note": "Portuguese does not accent its interrogatives, so 'quando' opening a clause is a statement — the mirror of the case above."
+  },
+  {
+    "id": "pt-como-combinado-stays-a-statement",
+    "transcript": "como combinado segue o relatório",
+    "locale": "pt-BR",
+    "exact": "Como combinado segue o relatório.",
+    "note": "The same test for 'como', which doubles as 'as'."
+  },
+  {
+    "id": "pt-porque-is-not-a-question",
+    "transcript": "porque eu quero terminar isso hoje",
+    "locale": "pt-BR",
+    "exact": "Porque eu quero terminar isso hoje.",
+    "note": "'porque' (one word) is a cause, and 'por isso'/'por favor' are statements — both were wrongly listed as question openers before."
+  },
+  {
+    "id": "pt-por-isso-is-not-a-question",
+    "transcript": "por isso eu vim mais cedo",
+    "locale": "pt-BR",
+    "exact": "Por isso eu vim mais cedo.",
+    "note": "Same fix seen from the other side: a bare 'por' opener must not append a question mark."
+  },
+  {
+    "id": "pt-circumflex-sentence-final-que",
+    "transcript": "você quer fazer isso por que",
+    "locale": "pt-BR",
+    "exact": "Você quer fazer isso por quê.",
+    "note": "Rule of the four porquês: a stressed 'quê' at the end of a period takes the circumflex."
+  },
+  {
+    "id": "pt-decimal-comma",
+    "transcript": "a taxa subiu para 3 vírgula 5 por cento",
+    "locale": "pt-BR",
+    "exact": "A taxa subiu para 3,5 por cento.",
+    "note": "Decimal separator is a comma in Portuguese; digits on both sides make the spoken 'vírgula' unambiguous."
+  },
+  {
+    "id": "pt-currency-spacing",
+    "transcript": "o orçamento ficou em R$1200",
+    "locale": "pt-BR",
+    "exact": "O orçamento ficou em R$ 1200.",
+    "note": "The currency symbol is separated from the amount by a space."
+  },
+  {
+    "id": "pt-ordinal-indicators",
+    "transcript": "moro no 3o andar e a reunião é na 2a sala",
+    "locale": "pt-BR",
+    "exact": "Moro no 3º andar e a reunião é na 2ª sala.",
+    "note": "A digit glued to a lone o/a is an ordinal indicator, not a letter."
+  },
+  {
+    "id": "pt-range-is-not-an-ordinal",
+    "transcript": "leva de 2 a 3 dias",
+    "locale": "pt-BR",
+    "exact": "Leva de 2 a 3 dias.",
+    "note": "The ordinal rule needs the letter glued to the digit, so a spaced range survives."
+  },
+  {
+    "id": "pt-lowercase-month-and-weekday",
+    "transcript": "a reunião ficou para Março e o deploy é na Terça-feira",
+    "locale": "pt-BR",
+    "exact": "A reunião ficou para março e o deploy é na terça-feira.",
+    "note": "Acordo Ortográfico de 1990, Base XIX: months and weekdays are lowercase."
+  },
+  {
+    "id": "pt-rio-de-janeiro-survives",
+    "transcript": "o evento vai ser no Rio de Janeiro em Janeiro",
+    "locale": "pt-BR",
+    "exact": "O evento vai ser no Rio de Janeiro em janeiro.",
+    "note": "The toponym keeps its capital; the date does not."
+  },
+  {
+    "id": "pt-file-name",
+    "transcript": "abre o arquivo main ponto py e roda de novo",
+    "locale": "pt-BR",
+    "exact": "Abre o arquivo main.py e roda de novo.",
+    "note": "'ponto' joins only when the next word names a real file extension, which is what makes it safe in Portuguese."
+  },
+  {
+    "id": "pt-identifier-underline",
+    "transcript": "renomeia para max underline retries",
+    "locale": "pt-BR",
+    "exact": "Renomeia para max_retries",
+    "note": "'underline' is what Brazilian developers say; the trigger word is consumed, never kept. No terminal period — the shared rule leaves a sentence ending in an identifier bare."
+  },
+  {
+    "id": "pt-email-address",
+    "transcript": "manda pro pedro ponto silva arroba gmail ponto com",
+    "locale": "pt-BR",
+    "exact": "Manda pro pedro.silva@gmail.com",
+    "note": "'arroba' renders only when the run ends in a real TLD; an address ending never gains a period."
+  },
+  {
+    "id": "pt-embedded-english-untouched",
+    "transcript": "o pull request quebrou o build do CI ontem",
+    "locale": "pt-BR",
+    "exact": "O pull request quebrou o build do CI ontem.",
+    "note": "Embedded English technical vocabulary passes through unchanged and unaccented."
+  },
+  {
+    "id": "pt-terminal-command",
+    "transcript": "git status",
+    "locale": "pt-BR",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "Terminal category stays command-safe: no capital, no period, and every pack rule sits out."
+  },
+  {
+    "id": "pt-terminal-flag",
+    "transcript": "git commit traço m corrigir o build",
+    "locale": "pt-BR",
+    "category": "terminal",
+    "exact": "git commit -m corrigir o build",
+    "note": "'traço' is a flag marker inside a terminal, matching the bias the model prompt applies."
+  },
+  {
+    "id": "pt-terminal-path",
+    "transcript": "cd til barra projetos barra voicetype",
+    "locale": "pt-BR",
+    "category": "terminal",
+    "exact": "cd ~/projetos/voicetype",
+    "note": "'til barra' and 'barra' render a path only inside a terminal; in prose 'barra' stays a word."
+  },
+  {
+    "id": "pt-terminal-dot-slash-path",
+    "transcript": "python ponto barra scripts barra deploy ponto py",
+    "locale": "pt-BR",
+    "category": "terminal",
+    "exact": "python ./scripts/deploy.py",
+    "note": "Chained path rendering; runs after the shared spacing pass, which would otherwise glue 'python' to the './'."
+  },
+  {
+    "id": "pt-accented-file-name",
+    "transcript": "salva como relatório ponto md por favor",
+    "locale": "pt-BR",
+    "exact": "Salva como relatório.md por favor.",
+    "note": "The joinable-token class is Unicode, so an accented Portuguese file name joins too."
+  },
+  {
+    "id": "pt-spoken-brackets-in-prose",
+    "transcript": "o total abre parênteses sem impostos fecha parênteses subiu",
+    "locale": "pt-BR",
+    "exact": "O total (sem impostos) subiu.",
+    "note": "The imperative 'abre …' is unmistakable; 'entre parênteses' is prose and is left alone (see the pack tests)."
+  },
+  {
+    "id": "pt-arroba-is-not-always-an-address",
+    "transcript": "um boi de vinte arrobas",
+    "locale": "pt-BR",
+    "exact": "Um boi de vinte arrobas.",
+    "note": "'arroba' is also a unit of weight; without a TLD anchor there is no address."
+  },
+  {
+    "id": "pt-ramble-no-translation",
+    "transcript": "hum então a reunião de hoje tratou basicamente de três coisas primeiro o lançamento vai atrasar uma semana porque os testes ainda não terminaram segundo a documentação precisa ser atualizada antes do lançamento e terceiro hum a gente vai contratar dois engenheiros no próximo trimestre",
+    "locale": "pt-BR",
+    "mustContain": ["reunião", "lançamento", "documentação", "engenheiros", "próximo trimestre"],
+    "mustNotContain": ["meeting", "release", "engineers", "1.", "2."],
+    "note": "Anti-translation and anti-summarization: a long Portuguese ramble stays Portuguese, keeps every clause, and never becomes a list."
+  },
+  {
+    "id": "pt-self-correction",
+    "transcript": "manda cinco não seis cópias para o cliente",
+    "locale": "pt-BR",
+    "mustContain": ["seis"],
+    "note": "Self-correction needs meaning, so the rules floor keeps both numbers — the known accepted limitation, same as English."
+  }
+]

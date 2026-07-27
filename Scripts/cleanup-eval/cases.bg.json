@@ -1,0 +1,174 @@
+[
+  {
+    "id": "bg-fillers-prolonged",
+    "transcript": "ъъъ, днес ще изпратя доклада, ъм, след срещата",
+    "locale": "bg-BG",
+    "exact": "Днес ще изпратя доклада, след срещата.",
+    "note": "Only unmistakable prolonged hesitation sounds are removed."
+  },
+  {
+    "id": "bg-ambiguous-fillers-kept",
+    "transcript": "ами това значи нещо нали",
+    "locale": "bg-BG",
+    "exact": "Ами това значи нещо нали.",
+    "note": "Ами, значи, and нали all carry meaning and remain deterministic content."
+  },
+  {
+    "id": "bg-spoken-comma",
+    "transcript": "първо запетая второ запетая трето",
+    "locale": "bg-BG",
+    "exact": "Първо, второ, трето.",
+    "note": "The unambiguous spoken punctuation name renders with Bulgarian spacing."
+  },
+  {
+    "id": "bg-spoken-colon",
+    "transcript": "статус двоеточие готово",
+    "locale": "bg-BG",
+    "exact": "Статус: готово.",
+    "note": "A spoken prose colon supplies the following space that shared path-safe spacing omits."
+  },
+  {
+    "id": "bg-spoken-question",
+    "transcript": "това вярно ли е въпросителен знак",
+    "locale": "bg-BG",
+    "exact": "Това вярно ли е?",
+    "note": "An explicit spoken question mark renders without doubling."
+  },
+  {
+    "id": "bg-spoken-idempotent",
+    "transcript": "готово? въпросителен знак",
+    "locale": "bg-BG",
+    "exact": "Готово?",
+    "note": "An engine-rendered mark beside its spoken name remains single."
+  },
+  {
+    "id": "bg-question-opener",
+    "transcript": "къде е последният доклад",
+    "locale": "bg-BG",
+    "exact": "Къде е последният доклад?",
+    "note": "A direct interrogative opener gains a question mark."
+  },
+  {
+    "id": "bg-question-final-li",
+    "transcript": "така ли",
+    "locale": "bg-BG",
+    "exact": "Така ли?",
+    "note": "Sentence-final ли is unambiguously interrogative."
+  },
+  {
+    "id": "bg-embedded-li-statement",
+    "transcript": "не знам има ли достатъчно време",
+    "locale": "bg-BG",
+    "exact": "Не знам има ли достатъчно време.",
+    "note": "A contextual ли clause inside a statement is not blindly treated as a direct question."
+  },
+  {
+    "id": "bg-decimal-comma",
+    "transcript": "стойността е 3,14",
+    "locale": "bg-BG",
+    "exact": "Стойността е 3,14.",
+    "note": "The Bulgarian decimal comma is protected from shared comma spacing."
+  },
+  {
+    "id": "bg-currency-spacing",
+    "transcript": "цената е 1 234 567,56EUR",
+    "locale": "bg-BG",
+    "exact": "Цената е 1 234 567,56 EUR.",
+    "note": "Digit groups and a following currency code use nonbreaking spaces."
+  },
+  {
+    "id": "bg-quotation-marks",
+    "transcript": "той каза \"готово\"",
+    "locale": "bg-BG",
+    "exact": "Той каза „готово“.",
+    "note": "Paired straight quotes become standard Bulgarian low-high quotes."
+  },
+  {
+    "id": "bg-elision-apostrophe",
+    "transcript": "наш'та среща е утре",
+    "locale": "bg-BG",
+    "exact": "Наш’та среща е утре.",
+    "note": "A straight apostrophe between Cyrillic letters becomes the Bulgarian typographic apostrophe."
+  },
+  {
+    "id": "bg-abbreviation-period",
+    "transcript": "срещата е в 10 ч. утре",
+    "locale": "bg-BG",
+    "exact": "Срещата е в 10 ч. утре.",
+    "note": "An abbreviation period does not spuriously capitalize the following word."
+  },
+  {
+    "id": "bg-file-extension",
+    "transcript": "отвори main точка py",
+    "locale": "bg-BG",
+    "exact": "Отвори main.py",
+    "note": "Ambiguous точка renders only in the guarded known-extension pattern."
+  },
+  {
+    "id": "bg-snake-file",
+    "transcript": "преименувай на test долна черта client точка py",
+    "locale": "bg-BG",
+    "exact": "Преименувай на test_client.py",
+    "note": "A Bulgarian multiword underscore trigger joins an identifier and combines with a file extension."
+  },
+  {
+    "id": "bg-code-parens",
+    "transcript": "извикай print отваряща скоба x запетая y затваряща скоба",
+    "locale": "bg-BG",
+    "exact": "Извикай print(x, y)",
+    "note": "Spoken parentheses and an inner comma form a compact call."
+  },
+  {
+    "id": "bg-symbol-prose-guard",
+    "transcript": "това е отправна точка за проекта и долна черта на графиката",
+    "locale": "bg-BG",
+    "mustContain": ["отправна точка", "долна черта"],
+    "mustNotContain": [".за", "_на"],
+    "note": "Everyday lexical uses of symbol words remain prose."
+  },
+  {
+    "id": "bg-mixed-tech",
+    "transcript": "провери config.json и APIClient преди да отвориш test долна черта client точка py",
+    "locale": "bg-BG",
+    "exact": "Провери config.json и APIClient преди да отвориш test_client.py",
+    "note": "Existing Latin identifiers survive while explicitly dictated code renders."
+  },
+  {
+    "id": "bg-date-and-version",
+    "transcript": "срокът е 26.07.2026 г. а версията е 2.0",
+    "locale": "bg-BG",
+    "exact": "Срокът е 26.07.2026 г. а версията е 2.0",
+    "note": "Numeric dates, year abbreviations, and dotted versions are preserved rather than treated as decimals."
+  },
+  {
+    "id": "bg-terminal-flag",
+    "transcript": "npm run build тире тире verbose",
+    "locale": "bg-BG",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "Terminal dictation renders a spoken long flag without capitalization or final punctuation."
+  },
+  {
+    "id": "bg-terminal-path",
+    "transcript": "cd тилда наклонена черта projects наклонена черта VoiceType",
+    "locale": "bg-BG",
+    "category": "terminal",
+    "exact": "cd ~/projects/VoiceType",
+    "note": "Bulgarian spoken path components join only under terminal bias."
+  },
+  {
+    "id": "bg-ramble-faithfulness",
+    "transcript": "ъъъ днес на срещата обсъдихме три неща първо пускането на новата версия трябва да се отложи с една седмица защото тестовете още не са готови второ документацията трябва да се обнови преди публикуването и трето ъм през следващото тримесечие искаме да наемем двама нови инженери без да съкращаваме текущия план",
+    "locale": "bg-BG",
+    "mustContain": ["срещата", "новата версия", "документацията", "следващото тримесечие", "двама нови инженери", "текущия план"],
+    "mustNotContain": ["ъъъ", " ъм ", "meeting", "documentation", "engineers", "\n"],
+    "note": "Long Bulgarian dictation keeps every clause, stays Bulgarian, and remains flowing prose."
+  },
+  {
+    "id": "bg-self-correction-model-territory",
+    "transcript": "изпрати шест не пет копия до сряда всъщност до четвъртък",
+    "locale": "bg-BG",
+    "mustContain": ["пет копия", "четвъртък"],
+    "note": "Rules preserve both attempts; the model guidance should retain only the corrected number and day."
+  }
+]
