@@ -1,0 +1,194 @@
+[
+  {
+    "id": "el-filler-prolonged",
+    "transcript": "εμμ νομίζω ότι είναι έτοιμο",
+    "locale": "el-GR",
+    "exact": "Νομίζω ότι είναι έτοιμο.",
+    "note": "Only an unmistakably prolonged hesitation is removed."
+  },
+  {
+    "id": "el-eu-and-discourse-kept",
+    "transcript": "η ΕΕ, λοιπόν, αποφάσισε",
+    "locale": "el-GR",
+    "exact": "Η ΕΕ, λοιπόν, αποφάσισε.",
+    "note": "ΕΕ means the EU and λοιπόν can organize discourse; neither is a blind filler."
+  },
+  {
+    "id": "el-ambiguous-fillers-kept",
+    "transcript": "δηλαδή βασικά αυτό εννοείς",
+    "locale": "el-GR",
+    "exact": "Δηλαδή βασικά αυτό εννοείς.",
+    "note": "Context-bearing discourse words are model territory and survive deterministic cleanup."
+  },
+  {
+    "id": "el-spoken-period",
+    "transcript": "είναι έτοιμο βάλε τελεία",
+    "locale": "el-GR",
+    "exact": "Είναι έτοιμο.",
+    "note": "The explicit spoken command renders a period."
+  },
+  {
+    "id": "el-spoken-period-idempotent",
+    "transcript": "είναι έτοιμο. βάλε τελεία",
+    "locale": "el-GR",
+    "exact": "Είναι έτοιμο.",
+    "note": "An already-rendered mark plus the spoken command does not double."
+  },
+  {
+    "id": "el-spoken-question",
+    "transcript": "πού είσαι ερωτηματικό",
+    "locale": "el-GR",
+    "exact": "Πού είσαι;",
+    "note": "The documented Greek dictation command renders U+003B."
+  },
+  {
+    "id": "el-question-prefix",
+    "transcript": "ποιος έρχεται",
+    "locale": "el-GR",
+    "exact": "Ποιος έρχεται;",
+    "note": "A conservative interrogative-pronoun opener gains the Greek question mark."
+  },
+  {
+    "id": "el-question-two-sentences",
+    "transcript": "πού είσαι; τι κάνεις",
+    "locale": "el-GR",
+    "exact": "Πού είσαι; Τι κάνεις;",
+    "note": "Existing Greek question punctuation re-arms sentence capitalization."
+  },
+  {
+    "id": "el-causal-why-not-question",
+    "transcript": "γιατί δεν είχα χρόνο",
+    "locale": "el-GR",
+    "exact": "Γιατί δεν είχα χρόνο.",
+    "note": "Sentence-initial γιατί can mean because; it is deliberately excluded from the blind question heuristic."
+  },
+  {
+    "id": "el-ascii-question-normalized",
+    "transcript": "πού είσαι?",
+    "locale": "el-GR",
+    "exact": "Πού είσαι;",
+    "note": "ASCII question-mark drift after Greek prose becomes U+003B."
+  },
+  {
+    "id": "el-spoken-quotes",
+    "transcript": "είπε άνοιγμα εισαγωγικών ναι κλείσιμο εισαγωγικών",
+    "locale": "el-GR",
+    "exact": "Είπε «ναι».",
+    "note": "Explicit quote commands render tightly spaced Greek guillemets."
+  },
+  {
+    "id": "el-spoken-newline",
+    "transcript": "πρώτη γραμμή νέα γραμμή δεύτερη γραμμή",
+    "locale": "el-GR",
+    "exact": "Πρώτη γραμμή\nΔεύτερη γραμμή.",
+    "note": "The spoken line-break command survives shared whitespace normalization."
+  },
+  {
+    "id": "el-decimal-comma",
+    "transcript": "η τιμή είναι 3,14",
+    "locale": "el-GR",
+    "exact": "Η τιμή είναι 3,14.",
+    "note": "A Greek decimal comma stays attached to its digits."
+  },
+  {
+    "id": "el-thousands-and-currency",
+    "transcript": "το ποσό είναι 1.234,56 ευρώ",
+    "locale": "el-GR",
+    "exact": "Το ποσό είναι 1.234,56 ευρώ.",
+    "note": "Ordinary Greek thousands and decimal separators stay intact with a euro amount."
+  },
+  {
+    "id": "el-version-preserved",
+    "transcript": "η έκδοση είναι 3.14",
+    "locale": "el-GR",
+    "exact": "Η έκδοση είναι 3.14",
+    "note": "A dot is not blindly rewritten because this can be a version number."
+  },
+  {
+    "id": "el-date-preserved",
+    "transcript": "η συνάντηση είναι στις 10 Ιανουαρίου 2026",
+    "locale": "el-GR",
+    "exact": "Η συνάντηση είναι στις 10 Ιανουαρίου 2026.",
+    "note": "A day + inflected month name + year remains stable."
+  },
+  {
+    "id": "el-apostrophe",
+    "transcript": "γι'αυτό συμφωνώ",
+    "locale": "el-GR",
+    "exact": "Γι’ αυτό συμφωνώ.",
+    "note": "Greek elision takes a right apostrophe followed by a space."
+  },
+  {
+    "id": "el-abbreviation",
+    "transcript": "χρησιμοποιούμε Python, Swift κ.λπ. και συνεχίζουμε",
+    "locale": "el-GR",
+    "exact": "Χρησιμοποιούμε Python, Swift κ.λπ. και συνεχίζουμε.",
+    "note": "An abbreviation period does not falsely capitalize the following word."
+  },
+  {
+    "id": "el-ano-teleia",
+    "transcript": "ήθελε να φύγει · δεν μπορούσε",
+    "locale": "el-GR",
+    "exact": "Ήθελε να φύγει· δεν μπορούσε.",
+    "note": "U+0387 normalizes to preferred U+00B7 with Greek prose spacing."
+  },
+  {
+    "id": "el-file-name",
+    "transcript": "άνοιξε το main τελεία py",
+    "locale": "el-GR",
+    "exact": "Άνοιξε το main.py",
+    "note": "Bare τελεία renders only in the safe known-extension context."
+  },
+  {
+    "id": "el-snake-identifier",
+    "transcript": "όρισε max κάτω παύλα retries σε πέντε",
+    "locale": "el-GR",
+    "exact": "Όρισε max_retries σε πέντε.",
+    "note": "The explicit Greek underscore phrase joins an identifier."
+  },
+  {
+    "id": "el-embedded-english",
+    "transcript": "το VoiceType ανοίγει το config.json",
+    "locale": "el-GR",
+    "exact": "Το VoiceType ανοίγει το config.json",
+    "note": "Embedded brands and existing ASCII file names remain untouched."
+  },
+  {
+    "id": "el-url-question-preserved",
+    "transcript": "δες https://example.com?q=1",
+    "locale": "el-GR",
+    "exact": "Δες https://example.com?q=1",
+    "note": "Question-mark normalization is Greek-script guarded and leaves URL query syntax intact."
+  },
+  {
+    "id": "el-terminal-flag",
+    "transcript": "git commit παύλα m fix",
+    "locale": "el-GR",
+    "category": "terminal",
+    "exact": "git commit -m fix",
+    "note": "The terminal-only symbol bias renders a flag without capitalization or punctuation."
+  },
+  {
+    "id": "el-terminal-path",
+    "transcript": "cat περισπωμένη κάθετος projects κάθετος notes.txt",
+    "locale": "el-GR",
+    "category": "terminal",
+    "exact": "cat ~/projects/notes.txt",
+    "note": "Greek spoken path symbols render only under terminal-safe rules."
+  },
+  {
+    "id": "el-ramble-no-translation",
+    "transcript": "εμμ σήμερα συζητήσαμε πρώτα την καθυστέρηση της έκδοσης επειδή οι δοκιμές δεν έχουν τελειώσει μετά την ενημέρωση της τεκμηρίωσης και τέλος την πρόσληψη δύο νέων μηχανικών για την επόμενη ομάδα",
+    "locale": "el-GR",
+    "mustContain": ["καθυστέρηση της έκδοσης", "οι δοκιμές δεν έχουν τελειώσει", "ενημέρωση της τεκμηρίωσης", "δύο νέων μηχανικών"],
+    "mustNotContain": ["release", "tests", "documentation", "engineers"],
+    "note": "Long anti-translation/anti-summarization case: rules remove only the initial hesitation and preserve every Greek clause."
+  },
+  {
+    "id": "el-self-correction-conservative",
+    "transcript": "η συνάντηση είναι την Τρίτη όχι την Τετάρτη",
+    "locale": "el-GR",
+    "mustContain": ["την Τρίτη", "όχι την Τετάρτη"],
+    "note": "Self-correction requires model context; the deterministic floor keeps both versions."
+  }
+]
