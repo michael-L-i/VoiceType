@@ -11,6 +11,15 @@ extension LanguagePack {
             name: "en: spoken camel case joins an identifier",
             stage: .early,
             transform: { text, _ in englishRenderingCamelCase(text) }),
+        // The repeated preposition identifies the exact phrase being
+        // retracted without guessing from meaning:
+        // "to Bob, no wait, to Alice" -> "to Alice".
+        CleanupRule.regex(
+            name: "en: repeated-preposition no-wait correction",
+            stage: .early,
+            pattern: #"\b(to|from|at|on|in|for|with|by)[ \t]+[\p{L}\p{N}][^,\n]{0,39},[ \t]*no[ \t]+wait,[ \t]*\1[ \t]+"#,
+            template: "$1 ",
+            options: [.caseInsensitive]),
     ]
 
     /// Render an explicit `camel case` command and consume only the identifier

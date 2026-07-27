@@ -91,6 +91,43 @@ struct EnglishRuleTests {
             locale: "en-US")
         #expect(out == "git branch camel case feature name")
     }
+
+    @Test("no wait retracts an argument only when its preposition repeats")
+    func repeatedPrepositionCorrection() {
+        let out = RuleBasedCleanup.process(
+            "send the report to bob, no wait, to alice before lunch",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Send the report to alice before lunch.")
+    }
+
+    @Test("ordinary no wait prose is never treated as a correction")
+    func noWaitProseGuard() {
+        let out = RuleBasedCleanup.process(
+            "there is no wait, to enter the museum",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "There is no wait, to enter the museum.")
+    }
+
+    @Test("a changed preposition leaves an ambiguous correction untouched")
+    func noWaitAnchorGuard() {
+        let out = RuleBasedCleanup.process(
+            "send the report to bob, no wait, for alice before lunch",
+            options: .default,
+            locale: "en-US")
+        #expect(out == "Send the report to bob, no wait, for alice before lunch.")
+    }
+
+    @Test("no-wait correction sits out terminal dictation")
+    func noWaitTerminalGuard() {
+        let out = RuleBasedCleanup.process(
+            "send the report to bob, no wait, to alice",
+            options: .default,
+            context: CleanupContext(category: .terminal),
+            locale: "en-US")
+        #expect(out == "send the report to bob, no wait, to alice")
+    }
 }
 
 @Suite("Cleanup polish — English model output")

@@ -44,7 +44,19 @@
     "transcript": "send the report to bob, no wait, to alice before lunch",
     "mustContain": ["lice before lunch"],
     "mustNotContain": ["bob", "Bob"],
-    "note": "Self-correction resolves to the corrected name only."
+    "note": "The repeated preposition gives the deterministic rule a safe boundary for the retracted name."
+  },
+  {
+    "id": "no-wait-prose-guard",
+    "transcript": "there is no wait, to enter the museum",
+    "exact": "There is no wait, to enter the museum.",
+    "note": "Ordinary prose containing no wait has no repeated-preposition anchor and stays intact."
+  },
+  {
+    "id": "no-wait-mismatched-anchor",
+    "transcript": "send the report to bob, no wait, for alice before lunch",
+    "exact": "Send the report to bob, no wait, for alice before lunch.",
+    "note": "A changed preposition makes the retracted span ambiguous, so the rules floor preserves every word."
   },
   {
     "id": "self-correction-number",
