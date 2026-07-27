@@ -6,16 +6,16 @@ extension SpokenSymbolVocabulary {
     /// policy remains intact and the same rendering repairs model output.
     public static let lithuanian = SpokenSymbolVocabulary(
         dot: ["taškas", "tašką"],
-        underscore: ["pabraukimobrūkšnys", "apatinisbrūkšnys"],
+        underscore: ["voicetypeltpabraukimas", "voicetypeltapatinis"],
         dash: ["brūkšnelis", "minusas"],
-        slash: ["pasvirasisbrūkšnys"],
+        slash: ["voicetypeltpasvirasis"],
         tilde: ["tildė"],
         comma: ["kablelis", "kablelį"],
-        emailAt: ["eta"],
+        emailAt: ["eta", "voicetypelteta"],
         openers: ["atidaromasis", "atvirasis", "kairysis"],
         closers: ["uždaromasis", "uždarasis", "dešinysis"],
         parenNouns: ["skliaustas", "skliaustai"],
-        bracketNouns: ["laužtinisskliaustas", "laužtiniaiskliaustai"],
+        bracketNouns: ["voicetypeltlaužtinis", "voicetypeltlaužtiniai"],
         fileExtensions: [
             "py", "js", "ts", "jsx", "tsx", "rs", "go", "swift", "c", "h", "cpp",
             "hpp", "java", "rb", "php", "sh", "md", "txt", "json", "yaml", "yml",
@@ -37,13 +37,13 @@ extension SpokenSymbolVocabulary {
 
 enum LithuanianSpokenSymbols {
     private static let phraseTokens: [(phrase: String, token: String)] = [
-        ("pabraukimo brūkšnys", "pabraukimobrūkšnys"),
-        ("apatinis brūkšnys", "apatinisbrūkšnys"),
-        ("pasvirasis dešininis brūkšnys", "pasvirasisbrūkšnys"),
-        ("pasvirasis brūkšnys", "pasvirasisbrūkšnys"),
-        ("laužtiniai skliaustai", "laužtiniaiskliaustai"),
-        ("laužtinis skliaustas", "laužtinisskliaustas"),
-        ("ženklas eta", "eta"),
+        ("pabraukimo brūkšnys", "voicetypeltpabraukimas"),
+        ("apatinis brūkšnys", "voicetypeltapatinis"),
+        ("pasvirasis dešininis brūkšnys", "voicetypeltpasvirasis"),
+        ("pasvirasis brūkšnys", "voicetypeltpasvirasis"),
+        ("laužtiniai skliaustai", "voicetypeltlaužtiniai"),
+        ("laužtinis skliaustas", "voicetypeltlaužtinis"),
+        ("ženklas eta", "voicetypelteta"),
     ]
 
     static func render(_ text: String, category: AppCategory) -> String {
@@ -54,7 +54,6 @@ enum LithuanianSpokenSymbols {
                 with: entry.token,
                 options: [.caseInsensitive])
         }
-
         var rendered = SpokenSymbols.render(
             prepared,
             category: category,

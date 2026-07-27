@@ -86,6 +86,8 @@ extension LanguagePack {
 private enum LithuanianCleanupRules {
     private static let decimalComma = "\u{E100}"
     private static let abbreviationPeriod = "\u{E101}"
+    private static let codeStart = "\u{E102}"
+    private static let codeEnd = "\u{E103}"
     private static let nonbreakingSpace = "\u{00A0}"
 
     static let spokenSymbolWords: Set<String> = [
@@ -113,6 +115,12 @@ private enum LithuanianCleanupRules {
             maskDecimalCommas(in: text)
         },
         CleanupRule(
+            name: "protect leading code-editor syntax",
+            stage: .early
+        ) { text, context in
+            protectCodeEditorSyntax(in: text, context: context)
+        },
+        CleanupRule(
             name: "protect Lithuanian abbreviation periods",
             stage: .early
         ) { text, _ in
@@ -125,11 +133,22 @@ private enum LithuanianCleanupRules {
         ) { text, _ in
             text.replacingOccurrences(of: decimalComma, with: ",")
         },
+        CleanupRule.regex(
+            name: "collapse duplicated Lithuanian spoken terminal marks",
+            stage: .afterPunctuation,
+            pattern: #"([.!?])\s*[.!?]"#,
+            template: "$1"),
         CleanupRule(
             name: "restore Lithuanian abbreviation periods",
             stage: .final
         ) { text, _ in
             text.replacingOccurrences(of: abbreviationPeriod, with: ".")
+        },
+        CleanupRule(
+            name: "restore leading code-editor syntax",
+            stage: .final
+        ) { text, _ in
+            restoreCodeEditorSyntax(in: text)
         },
         CleanupRule(
             name: "apply Lithuanian prose typography",
@@ -154,6 +173,32 @@ private enum LithuanianCleanupRules {
             template: decimalComma,
             options: [.caseInsensitive])
         return out
+    }
+
+    /// The shared prose pass capitalizes and punctuates every code-editor input.
+    /// Mask only a leading, lowercase programming keyword and the end of that
+    /// same snippet. Lithuanian comments and documentation still receive prose
+    /// cleanup, while `let value = "x"` stays executable source.
+    private static func protectCodeEditorSyntax(
+        in text: String,
+        context: CleanupContext
+    ) -> String {
+        guard context.category == .codeEditor else { return text }
+        let pattern = #"^(?:let|var|func|class|struct|enum|protocol|extension|import|return|if|else|for|while|switch|case|guard|throw|try|await)\b"#
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              regex.firstMatch(
+                in: text,
+                range: NSRange(text.startIndex..., in: text)) != nil else {
+            return text
+        }
+        return codeStart + text + codeEnd
+    }
+
+    private static func restoreCodeEditorSyntax(in text: String) -> String {
+        text
+            .replacingOccurrences(of: codeStart, with: "")
+            .replacingOccurrences(of: codeEnd + ".", with: "")
+            .replacingOccurrences(of: codeEnd, with: "")
     }
 
     /// The shared capitalization pass treats every period-ended token as a
@@ -216,6 +261,14 @@ private enum LithuanianCleanupRules {
             template: "„$1“")
         out = replace(
             out,
+            pattern: #"„\s+"#,
+            template: "„")
+        out = replace(
+            out,
+            pattern: #"\s+“"#,
+            template: "“")
+        out = replace(
+            out,
             pattern: #"\b(\d{4})\s*-\s*(\d{2})\s*-\s*(\d{2})\b"#,
             template: "$1-$2-$3")
         out = replace(
@@ -224,21 +277,21 @@ private enum LithuanianCleanupRules {
             template: nonbreakingSpace)
         out = replace(
             out,
-            pattern: #"(\d)[ \u{00A0}]*(?=[%€])"#,
+            pattern: #"(\d)[ \#(nonbreakingSpace)]*(?=[%€])"#,
             template: "$1" + nonbreakingSpace)
         out = replace(
             out,
-            pattern: #"(\d)[ \u{00A0}]*(Eur)\b"#,
+            pattern: #"(\d)[ \#(nonbreakingSpace)]*(Eur)\b"#,
             template: "$1" + nonbreakingSpace + "$2",
             options: [.caseInsensitive])
         out = replace(
             out,
-            pattern: #"(\d)[ \u{00A0}]*(m\.|d\.|val\.|min\.|sek\.)"#,
+            pattern: #"(\d)[ \#(nonbreakingSpace)]*(m\.|d\.|val\.|min\.|sek\.)"#,
             template: "$1" + nonbreakingSpace + "$2",
             options: [.caseInsensitive])
         out = replace(
             out,
-            pattern: #"(\d)[ \u{00A0}]*(kg|mg|km|cm|mm|ml|g|m|l|h)\b"#,
+            pattern: #"(\d)[ \#(nonbreakingSpace)]*(kg|mg|km|cm|mm|ml|g|m|l|h)\b"#,
             template: "$1" + nonbreakingSpace + "$2",
             options: [.caseInsensitive])
         out = replace(
