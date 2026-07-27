@@ -91,6 +91,7 @@ extension LanguagePack {
 enum RomanianCleanup {
     private static let decimalCommaMarker = "VTRoDecimalComma"
     private static let abbreviationDotMarker = "VTRoAbbreviationDot"
+    private static let cliticHyphenMarker = "VTRoCliticHyphen"
 
     static let rules: [CleanupRule] = [
         CleanupRule(name: "normalize Romanian comma-below diacritics",
@@ -141,26 +142,38 @@ enum RomanianCleanup {
             name: "join Romanian unstressed pronoun auxiliaries",
             stage: .afterPunctuation,
             pattern: #"\b(m|te|l|ne|v|mi|ți)\s+(am|ai|a|ați|au)\b"#,
-            template: "$1-$2",
+            template: "$1" + cliticHyphenMarker + "$2",
             options: [.caseInsensitive]),
         CleanupRule.regex(
             name: "join Romanian negative auxiliaries",
             stage: .afterPunctuation,
             pattern: #"\bn\s+(am|ai|a|avem|aveți|au|ar)\b"#,
-            template: "n-$1",
+            template: "n" + cliticHyphenMarker + "$1",
             options: [.caseInsensitive]),
         CleanupRule.regex(
             name: "join Romanian reflexive auxiliaries",
             stage: .afterPunctuation,
             pattern: #"\bs\s+(a|au|ar)\b"#,
-            template: "s-$1",
+            template: "s" + cliticHyphenMarker + "$1",
             options: [.caseInsensitive]),
         CleanupRule.regex(
             name: "join Romanian prepositional compounds",
             stage: .afterPunctuation,
             pattern: #"\b(într|dintr|printr)\s+(un|o)\b"#,
-            template: "$1-$2",
+            template: "$1" + cliticHyphenMarker + "$2",
             options: [.caseInsensitive]),
+
+        CleanupRule.regex(
+            name: "attach Romanian ellipses to preceding text",
+            stage: .afterPunctuation,
+            pattern: #"\s+…"#,
+            template: "…"),
+
+        CleanupRule.regex(
+            name: "deduplicate rendered Romanian terminal marks",
+            stage: .afterPunctuation,
+            pattern: #"([?!;…])\s+\1"#,
+            template: "$1"),
 
         // Romanian currency notation puts the amount before the symbol/code.
         // Use NBSP so the amount and unit cannot split across lines.
@@ -176,6 +189,12 @@ enum RomanianCleanup {
             stage: .final,
             pattern: abbreviationDotMarker,
             template: "."),
+
+        CleanupRule.regex(
+            name: "restore Romanian clitic hyphens",
+            stage: .final,
+            pattern: cliticHyphenMarker,
+            template: "-"),
 
         CleanupRule.regex(
             name: "restore Romanian decimal commas",
