@@ -1,0 +1,146 @@
+[
+  {
+    "id": "mt-fillers",
+    "transcript": "ee illum em se nibdew qq ix-xogħol",
+    "locale": "mt-MT",
+    "exact": "Illum se nibdew ix-xogħol.",
+    "note": "Corpus-attested non-lexical hesitation tokens are removed."
+  },
+  {
+    "id": "mt-ambiguous-markers-kept",
+    "transcript": "mela allura jiġifieri nibdew minn hawn",
+    "locale": "mt-MT",
+    "mustContain": ["Mela", "allura", "jiġifieri"],
+    "note": "Meaningful Maltese discourse markers are never deterministic fillers."
+  },
+  {
+    "id": "mt-mm-unit-kept",
+    "transcript": "il-wisa' huwa 10 mm",
+    "locale": "mt-MT",
+    "exact": "Il-wisa’ huwa 10 mm.",
+    "note": "Although mm can annotate a filled pause, it is a real measurement unit and must survive."
+  },
+  {
+    "id": "mt-spoken-punctuation",
+    "transcript": "għada niltaqgħu virgola jekk jogħġbok punt finali",
+    "locale": "mt-MT",
+    "exact": "Għada niltaqgħu, jekk jogħġbok.",
+    "note": "Unambiguous spoken comma and full-stop phrases render."
+  },
+  {
+    "id": "mt-spoken-punctuation-idempotent",
+    "transcript": "tajjeb, virgola nibdew",
+    "locale": "mt-MT",
+    "exact": "Tajjeb, nibdew.",
+    "note": "A mark already emitted by ASR does not double when its spoken name remains."
+  },
+  {
+    "id": "mt-question-prefix",
+    "transcript": "x’inhu l-pjan",
+    "locale": "mt-MT",
+    "exact": "X’inhu l-pjan?",
+    "note": "A fixed unambiguous interrogative opener gains a question mark."
+  },
+  {
+    "id": "mt-ambiguous-opener-statement",
+    "transcript": "fejn mort ilbieraħ kien sabiħ",
+    "locale": "mt-MT",
+    "exact": "Fejn mort ilbieraħ kien sabiħ.",
+    "note": "Fejn can introduce a subordinate nominal clause, so it is not a blind question trigger."
+  },
+  {
+    "id": "mt-number-currency",
+    "transcript": "il-baġit huwa EUR 12,345.67",
+    "locale": "mt-MT",
+    "exact": "Il-baġit huwa EUR12,345.67.",
+    "note": "Maltese grouping comma, decimal point, currency spacing, and sentence period all survive."
+  },
+  {
+    "id": "mt-date",
+    "transcript": "niltaqgħu fit-2 ta' lulju 2026",
+    "locale": "mt-MT",
+    "exact": "Niltaqgħu fit-2 ta’ Lulju 2026.",
+    "note": "A clear Maltese date gets the standard apostrophe and capitalized month."
+  },
+  {
+    "id": "mt-apostrophe-hyphen",
+    "transcript": "dan huwa l - eżempju ta' Mark",
+    "locale": "mt-MT",
+    "exact": "Dan huwa l-eżempju ta’ Mark.",
+    "note": "Existing article hyphens and genuine apostrophes receive standard spacing and glyphs."
+  },
+  {
+    "id": "mt-quotes",
+    "transcript": "qal \"għada niġi\"",
+    "locale": "mt-MT",
+    "exact": "Qal “għada niġi”.",
+    "note": "Balanced prose quotes normalize to the Maltese standard pair."
+  },
+  {
+    "id": "mt-file-name",
+    "transcript": "iftaħ main punt py",
+    "locale": "mt-MT",
+    "exact": "Iftaħ main.py",
+    "note": "Context-aware punt renders a known file extension without making bare punt globally destructive."
+  },
+  {
+    "id": "mt-identifier",
+    "transcript": "issettja max underscore retries għal ħamsa",
+    "locale": "mt-MT",
+    "exact": "Issettja max_retries għal ħamsa.",
+    "note": "An explicit code-switched underscore trigger joins an identifier."
+  },
+  {
+    "id": "mt-punt-prose-guard",
+    "transcript": "il-punt ewlieni huwa ċar",
+    "locale": "mt-MT",
+    "exact": "Il-punt ewlieni huwa ċar.",
+    "note": "Punt in ordinary Maltese prose remains a noun."
+  },
+  {
+    "id": "mt-terminal-command",
+    "transcript": "git status sing sing short",
+    "locale": "mt-MT",
+    "category": "terminal",
+    "exact": "git status --short",
+    "note": "A Maltese spoken hyphen renders a long flag without capitalization or terminal punctuation."
+  },
+  {
+    "id": "mt-terminal-path",
+    "transcript": "cd tilde slash projects slash VoiceType",
+    "locale": "mt-MT",
+    "category": "terminal",
+    "exact": "cd ~/projects/VoiceType",
+    "note": "Code-switched technical symbol words render a shell path."
+  },
+  {
+    "id": "mt-terminal-filler-token",
+    "transcript": "printf em",
+    "locale": "mt-MT",
+    "category": "terminal",
+    "exact": "printf em",
+    "note": "A filler-shaped literal token is protected in terminal dictation."
+  },
+  {
+    "id": "mt-embedded-english",
+    "transcript": "qed nuża VoiceType biex naġġorna config.json illum",
+    "locale": "mt-MT",
+    "exact": "Qed nuża VoiceType biex naġġorna config.json illum.",
+    "note": "Embedded English product names and ASCII file names survive untouched."
+  },
+  {
+    "id": "mt-long-no-translation",
+    "transcript": "ee illum fil-laqgħa tkellimna dwar tliet affarijiet l-ewwel irridu nlestu t-testijiet qabel il-ħruġ tat-tieni verżjoni imbagħad irridu naġġornaw id-dokumentazzjoni u fl-aħħar għandna nikkuntattjaw lit-tim tal-appoġġ biex ħadd ma jitlef l-informazzjoni importanti",
+    "locale": "mt-MT",
+    "mustContain": ["fil-laqgħa", "t-testijiet", "id-dokumentazzjoni", "lit-tim tal-appoġġ", "l-informazzjoni importanti"],
+    "mustNotContain": ["meeting", "tests before", "documentation and", "support team"],
+    "note": "Long anti-translation and anti-summarization ramble keeps every Maltese clause."
+  },
+  {
+    "id": "mt-self-correction",
+    "transcript": "għandna bżonn ħames le sitt kopji qabel il-laqgħa",
+    "locale": "mt-MT",
+    "mustContain": ["ħames", "sitt kopji"],
+    "note": "Self-correction is model territory; the deterministic floor preserves both versions."
+  }
+]
