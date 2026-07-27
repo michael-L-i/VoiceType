@@ -1,0 +1,181 @@
+[
+  {
+    "id": "sl-filler",
+    "transcript": "eee, danes končamo poročilo",
+    "locale": "sl-SI",
+    "exact": "Danes končamo poročilo.",
+    "note": "The non-lexical filled pause is removed with its comma."
+  },
+  {
+    "id": "sl-ambiguous-fillers-kept",
+    "transcript": "no pa začnimo ker mislim da je načrt dober",
+    "locale": "sl-SI",
+    "mustContain": ["No pa začnimo", "mislim"],
+    "note": "no, pa, and mislim can carry meaning and are never deterministic fillers."
+  },
+  {
+    "id": "sl-question-ali",
+    "transcript": "ali lahko začneva",
+    "locale": "sl-SI",
+    "exact": "Ali lahko začneva?",
+    "note": "The standard yes/no particle is an explicit question opener."
+  },
+  {
+    "id": "sl-question-interrogative",
+    "transcript": "kdaj prideš",
+    "locale": "sl-SI",
+    "exact": "Kdaj prideš?",
+    "note": "An explicit interrogative adverb gains a question mark."
+  },
+  {
+    "id": "sl-ambiguous-question-particle",
+    "transcript": "a zdaj greva",
+    "locale": "sl-SI",
+    "exact": "A zdaj greva.",
+    "note": "Colloquial a is also a conjunction, so the rules floor does not guess."
+  },
+  {
+    "id": "sl-decimal-comma",
+    "transcript": "vrednost je 3 , 14",
+    "locale": "sl-SI",
+    "exact": "Vrednost je 3,14.",
+    "note": "A decimal comma stays attached on both sides."
+  },
+  {
+    "id": "sl-abbreviation",
+    "transcript": "to je npr. prvi primer",
+    "locale": "sl-SI",
+    "exact": "To je npr. prvi primer.",
+    "note": "An abbreviation period does not falsely start a new sentence."
+  },
+  {
+    "id": "sl-multipart-abbreviation",
+    "transcript": "gre za t. i. slepi preizkus",
+    "locale": "sl-SI",
+    "exact": "Gre za t. i. slepi preizkus.",
+    "note": "Internal periods in a spaced multi-part abbreviation stay intact."
+  },
+  {
+    "id": "sl-ellipsis",
+    "transcript": "počakaj ... potem nadaljuj",
+    "locale": "sl-SI",
+    "exact": "Počakaj ... potem nadaljuj.",
+    "note": "The shared repeated-mark cleanup must not collapse a Slovenian ellipsis."
+  },
+  {
+    "id": "sl-quotes",
+    "transcript": "beseda \"test\" ostane nespremenjena",
+    "locale": "sl-SI",
+    "exact": "Beseda »test« ostane nespremenjena.",
+    "note": "Straight prose quotes become Slovenian computer-set guillemets."
+  },
+  {
+    "id": "sl-percent-spacing",
+    "transcript": "rast je 5%",
+    "locale": "sl-SI",
+    "exact": "Rast je 5 %.",
+    "note": "A non-breaking space separates a number from the percent sign."
+  },
+  {
+    "id": "sl-temperature-spacing",
+    "transcript": "zunaj je 18 ° C",
+    "locale": "sl-SI",
+    "exact": "Zunaj je 18 °C.",
+    "note": "Temperature typography uses a non-breaking space before the °C symbol."
+  },
+  {
+    "id": "sl-clock-time",
+    "transcript": "dobimo se ob 8:30",
+    "locale": "sl-SI",
+    "exact": "Dobimo se ob 8.30.",
+    "note": "Time-of-day anchored by ob uses a dot between hour and minute."
+  },
+  {
+    "id": "sl-date",
+    "transcript": "podpisano dne 1.5.2026",
+    "locale": "sl-SI",
+    "exact": "Podpisano dne 1. 5. 2026.",
+    "note": "A date anchored by dne gains the required spaces after ordinal dots."
+  },
+  {
+    "id": "sl-file",
+    "transcript": "odpri main pika swift",
+    "locale": "sl-SI",
+    "exact": "Odpri main.swift",
+    "note": "Guarded pika rendering joins only a known file extension."
+  },
+  {
+    "id": "sl-identifier",
+    "transcript": "nastavi uporabnik podčrtaj id",
+    "locale": "sl-SI",
+    "exact": "Nastavi uporabnik_id",
+    "note": "An explicit podčrtaj joins the two identifier parts."
+  },
+  {
+    "id": "sl-email",
+    "transcript": "pošlji na ime pika priimek afna primer pika si",
+    "locale": "sl-SI",
+    "exact": "Pošlji na ime.priimek@primer.si",
+    "note": "The Slovenian spoken email vocabulary renders an ASCII address."
+  },
+  {
+    "id": "sl-symbol-prose-guard",
+    "transcript": "to je pika na i",
+    "locale": "sl-SI",
+    "exact": "To je pika na i.",
+    "note": "The ordinary noun pika remains prose outside a guarded technical pattern."
+  },
+  {
+    "id": "sl-parentheses",
+    "transcript": "pokliči print odpri oklepaj x vejica y zapri oklepaj",
+    "locale": "sl-SI",
+    "exact": "Pokliči print(x, y)",
+    "note": "Explicit Slovenian parenthesis and comma names render a function call."
+  },
+  {
+    "id": "sl-embedded-technical-text",
+    "transcript": "uporabljam VoiceType in datoteko APIClient.swift",
+    "locale": "sl-SI",
+    "exact": "Uporabljam VoiceType in datoteko APIClient.swift",
+    "note": "Embedded brand, identifier casing, and ASCII file punctuation survive."
+  },
+  {
+    "id": "sl-terminal-command",
+    "transcript": "git status",
+    "locale": "sl-SI",
+    "category": "terminal",
+    "exact": "git status",
+    "note": "A command receives no capitalization or terminal punctuation."
+  },
+  {
+    "id": "sl-terminal-flag",
+    "transcript": "npm run build vezaj vezaj verbose",
+    "locale": "sl-SI",
+    "category": "terminal",
+    "exact": "npm run build --verbose",
+    "note": "Spoken Slovenian flag markers render safely in terminal context."
+  },
+  {
+    "id": "sl-terminal-path",
+    "transcript": "cd tilda poševnica projekti poševnica voice",
+    "locale": "sl-SI",
+    "category": "terminal",
+    "exact": "cd ~/projekti/voice",
+    "note": "Spoken path separators render without prose cleanup."
+  },
+  {
+    "id": "sl-long-faithful-ramble",
+    "transcript": "eee glede izdaje naslednji teden mislim da moramo ohraniti prvotni načrt ker je dvojina v uporabniškem vmesniku zdaj pravilna poleg tega je Ana popravila datoteko Localizable.strings in ekipa je preverila še plačilni tok zato ne krajšaj tega sporočila in ne prevajaj imen ali tehničnih izrazov",
+    "locale": "sl-SI",
+    "mustContain": ["izdaje naslednji teden", "dvojina", "Ana", "Localizable.strings", "plačilni tok", "ne prevajaj"],
+    "mustNotContain": ["release next week", "dual", "payment flow"],
+    "note": "Long Slovenian dictation keeps every clause, its dual reference, name, and technical token without translation or summarization."
+  },
+  {
+    "id": "sl-self-correction",
+    "transcript": "sestanek bo v petek ne v soboto popoldne",
+    "locale": "sl-SI",
+    "mustContain": ["v petek", "v soboto popoldne"],
+    "note": "Self-correction is model territory; the deterministic floor faithfully retains both attempts."
+  }
+]
