@@ -2,12 +2,16 @@ import AppKit
 import SwiftUI
 import Observation
 
-/// Owns the floating recording HUD panel. The pill is **hidden at rest** and
-/// pops up at the bottom of the screen the moment you start dictating,
-/// expanding into a live waveform, then hides again once idle. The panel is a
-/// non-activating, click-through, all-spaces floating pill: critically it
-/// never becomes key, so the app you're dictating into keeps focus and the
-/// injected text lands there — not on the HUD.
+/// Owns the floating recording HUD panel. The pill sits at the bottom of the
+/// screen: a small resting sliver (or nothing at all, per the "resting
+/// indicator" setting) that expands into a live waveform the moment you start
+/// dictating, then settles back once idle. The panel is a non-activating,
+/// click-through, all-spaces floating pill: critically it never becomes key, so
+/// the app you're dictating into keeps focus and the injected text lands there
+/// — not on the HUD.
+///
+/// The panel itself is **never ordered out** — resting is drawn, not hidden.
+/// See `apply()` for why that distinction is the whole ballgame.
 @MainActor
 final class RecordingHUDController {
     /// Fixed canvas large enough to hold the widest/tallest pill state (the error
@@ -45,13 +49,18 @@ final class RecordingHUDController {
         panel.isOpaque = false
         panel.hasShadow = false
         panel.hidesOnDeactivate = false
+        // The panel is never ordered out, so it also has to survive ⌘H and
+        // "Hide Others" — otherwise AppKit pulls it off screen and we lose the
+        // all-Spaces membership that staying on screen exists to protect.
+        panel.canHide = false
         panel.ignoresMouseEvents = true
         panel.contentView = hosting
         assertPlacement()
 
         observeSpaceChanges()
         observeState()
-        // Nothing to show yet — the pill only appears once dictation starts.
+        // Put the panel on screen straight away and leave it there for the
+        // lifetime of the app — at rest it simply draws nothing.
         apply()
     }
 
@@ -85,6 +94,15 @@ final class RecordingHUDController {
     /// re-arms an event tap the system killed.
     private func assertPlacement() {
         panel.level = Self.overlayLevel
+        // Write a *different* mask first. The whole premise above is that
+        // AppKit's cached `collectionBehavior` has diverged from the window
+        // server's — and a setter handed the value it already believes it holds
+        // is free to swallow the write before it ever reaches the server, which
+        // is the one thing this repair needs to happen. Toggling `.ignoresCycle`
+        // is the smallest difference that forces the write through; it leaves
+        // the Spaces flags untouched in the intermediate mask, so there is no
+        // window the server could use to re-home the panel mid-repair.
+        panel.collectionBehavior = Self.overlayBehavior.subtracting(.ignoresCycle)
         panel.collectionBehavior = Self.overlayBehavior
     }
 
@@ -118,20 +136,28 @@ final class RecordingHUDController {
         }
     }
 
+    /// Re-fit and re-assert the panel on every state change so it tracks the
+    /// active screen and stays above other windows.
+    ///
+    /// The panel is **never ordered out**. Resting is a drawing decision, made
+    /// by `RecordingHUDView` (it fades the pill to nothing, honouring the
+    /// "resting indicator" setting) — not a window decision. Ordering out is
+    /// what broke the pill: a `.canJoinAllSpaces` window's per-Space membership
+    /// is established when it is *ordered in*, across the Spaces that exist at
+    /// that instant. Hidden, it belongs to no Space at all; and a later
+    /// `orderFrontRegardless()` issued from a background app can re-home it onto
+    /// a single Space instead of all of them. That is the reported failure
+    /// exactly: it works for a day or two, then new Spaces appear (every window
+    /// sent to full screen mints one) and the pill is pinned to whichever Space
+    /// is frontmost — often Chrome's — and never shows up where you actually
+    /// are.
+    ///
+    /// A panel that never leaves the screen keeps its membership alive, which is
+    /// how this worked before the pill learned to hide. It costs nothing: the
+    /// panel is transparent, borderless and click-through, so an "invisible"
+    /// panel and an ordered-out one are indistinguishable to the user.
     private func apply() {
-        // At rest the pill is fully hidden; it appears the moment you start
-        // dictating and stays up through processing/injection, then hides again
-        // once idle. Re-fit and re-assert front on every change so it tracks the
-        // active screen and stays above other windows while visible.
-        //
-        // Repair placement first — including on the way to hidden, so the panel
-        // sits idle in a healthy state and the next dictation pops up on the
-        // current Space immediately.
         assertPlacement()
-        guard DictationStateKind(coordinator.state) != .idle else {
-            panel.orderOut(nil)
-            return
-        }
         reposition()
         panel.orderFrontRegardless()
     }
