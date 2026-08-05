@@ -11,7 +11,7 @@ import Observation
 /// — not on the HUD.
 ///
 /// The panel itself is **never ordered out** — resting is drawn, not hidden.
-/// See `apply()` for why that distinction is the whole ballgame.
+/// See `present()` for why that distinction is the whole ballgame.
 @MainActor
 final class RecordingHUDController {
     /// Fixed canvas large enough to hold the widest/tallest pill state (the error
@@ -31,6 +31,7 @@ final class RecordingHUDController {
     private let panel: NSPanel
     private let hosting: NSHostingView<RecordingHUDView>
     private var spaceChangeObserver: (any NSObjectProtocol)?
+    private var screenChangeObserver: (any NSObjectProtocol)?
 
     init(coordinator: DictationCoordinator) {
         self.coordinator = coordinator
@@ -58,15 +59,19 @@ final class RecordingHUDController {
         assertPlacement()
 
         observeSpaceChanges()
+        observeScreenChanges()
         observeState()
         // Put the panel on screen straight away and leave it there for the
         // lifetime of the app — at rest it simply draws nothing.
-        apply()
+        present()
     }
 
     deinit {
         if let spaceChangeObserver {
             NSWorkspace.shared.notificationCenter.removeObserver(spaceChangeObserver)
+        }
+        if let screenChangeObserver {
+            NotificationCenter.default.removeObserver(screenChangeObserver)
         }
     }
 
@@ -118,7 +123,22 @@ final class RecordingHUDController {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in self?.assertPlacement() }
+            Task { @MainActor in self?.present() }
+        }
+    }
+
+    /// Plugging in a display, unplugging one, waking from sleep or moving the
+    /// Dock all move the bottom-centre of "the active screen" out from under the
+    /// panel. The frame is only otherwise recomputed on a state change, so
+    /// without this the pill sits at coordinates that no longer describe
+    /// anywhere visible — which looks exactly like it vanished.
+    private func observeScreenChanges() {
+        screenChangeObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didChangeScreenParametersNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.present() }
         }
     }
 
@@ -130,14 +150,18 @@ final class RecordingHUDController {
             _ = coordinator.state
         } onChange: { [weak self] in
             Task { @MainActor in
-                self?.apply()
+                self?.present()
                 self?.observeState()
             }
         }
     }
 
-    /// Re-fit and re-assert the panel on every state change so it tracks the
-    /// active screen and stays above other windows.
+    /// Put the panel where it belongs and make sure it is on screen. Every event
+    /// that could have disturbed it funnels through here — a dictation state
+    /// change, a Space switch, a display change — because "keep it there" means
+    /// re-showing it, not just re-configuring it. Ordering an already-visible
+    /// panel front is free, and it is the only thing that recovers a panel
+    /// something else pulled off screen.
     ///
     /// The panel is **never ordered out**. Resting is a drawing decision, made
     /// by `RecordingHUDView` (it fades the pill to nothing, honouring the
@@ -156,7 +180,7 @@ final class RecordingHUDController {
     /// how this worked before the pill learned to hide. It costs nothing: the
     /// panel is transparent, borderless and click-through, so an "invisible"
     /// panel and an ordered-out one are indistinguishable to the user.
-    private func apply() {
+    private func present() {
         assertPlacement()
         reposition()
         panel.orderFrontRegardless()
