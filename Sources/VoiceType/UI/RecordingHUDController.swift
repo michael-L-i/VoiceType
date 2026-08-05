@@ -11,7 +11,7 @@ import Observation
 /// — not on the HUD.
 ///
 /// The panel itself is **never ordered out** — resting is drawn, not hidden.
-/// See `apply()` for why that distinction is the whole ballgame.
+/// See `present()` for why that distinction is the whole ballgame.
 @MainActor
 final class RecordingHUDController {
     /// Fixed canvas large enough to hold the widest/tallest pill state (the error
@@ -20,17 +20,37 @@ final class RecordingHUDController {
     private static let panelSize = CGSize(width: 320, height: 100)
 
     /// Window level + collection behavior that make the pill a true overlay:
-    /// above ordinary windows, present on **every** Space, and out of the
-    /// app-switcher/Exposé cycle. Kept as one constant because it has to be
+    /// above ordinary windows and present on **every** Space, including the ones
+    /// full-screen windows live on. Kept as one constant because it has to be
     /// re-applied, not just set once — see `assertPlacement()`.
+    ///
+    /// These two flags and *nothing else*. We previously also set `.stationary`,
+    /// which belongs to the exclusive group `.managed` / `.transient` /
+    /// `.stationary`, whose default is `.managed` — "this window participates in
+    /// the Spaces and Exposé window management system". `.stationary` opts *out*
+    /// of that management ("unaffected by Exposé, stays visible and stationary,
+    /// like the desktop window"), while carrying the panel from Space to Space
+    /// is precisely that management's job. Asking to join all Spaces while
+    /// opting out of the machinery that moves windows between them is at best
+    /// contradictory.
+    ///
+    /// Not proven to be the culprit, and stated honestly: `Scripts/
+    /// probe-hud-spaces.swift` run against a build that *did* set `.stationary`
+    /// still reported membership in all 16 Spaces. This matches VoiceInk's
+    /// recorder panel — the closest working reference for this exact problem,
+    /// which sets these two and no more — rather than fixing a measured fault.
+    /// Prefer the configuration of an implementation that demonstrably works
+    /// over one we invented; the cost is that the pill can now show up in
+    /// Mission Control, which for a transparent sliver is nothing.
     private static let overlayLevel: NSWindow.Level = .statusBar
     private static let overlayBehavior: NSWindow.CollectionBehavior =
-        [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
+        [.canJoinAllSpaces, .fullScreenAuxiliary]
 
     private let coordinator: DictationCoordinator
     private let panel: NSPanel
     private let hosting: NSHostingView<RecordingHUDView>
     private var spaceChangeObserver: (any NSObjectProtocol)?
+    private var screenChangeObserver: (any NSObjectProtocol)?
 
     init(coordinator: DictationCoordinator) {
         self.coordinator = coordinator
@@ -58,15 +78,19 @@ final class RecordingHUDController {
         assertPlacement()
 
         observeSpaceChanges()
+        observeScreenChanges()
         observeState()
         // Put the panel on screen straight away and leave it there for the
         // lifetime of the app — at rest it simply draws nothing.
-        apply()
+        present()
     }
 
     deinit {
         if let spaceChangeObserver {
             NSWorkspace.shared.notificationCenter.removeObserver(spaceChangeObserver)
+        }
+        if let screenChangeObserver {
+            NotificationCenter.default.removeObserver(screenChangeObserver)
         }
     }
 
@@ -98,11 +122,12 @@ final class RecordingHUDController {
         // AppKit's cached `collectionBehavior` has diverged from the window
         // server's — and a setter handed the value it already believes it holds
         // is free to swallow the write before it ever reaches the server, which
-        // is the one thing this repair needs to happen. Toggling `.ignoresCycle`
-        // is the smallest difference that forces the write through; it leaves
-        // the Spaces flags untouched in the intermediate mask, so there is no
-        // window the server could use to re-home the panel mid-repair.
-        panel.collectionBehavior = Self.overlayBehavior.subtracting(.ignoresCycle)
+        // is the one thing this repair needs to happen. `.ignoresCycle` is the
+        // ideal throwaway bit: it only governs ⌘` window cycling, which a
+        // non-activating panel that can never become key is already outside of,
+        // so the intermediate mask is inert — and it leaves the Spaces flags
+        // untouched, giving the server no window to re-home the panel mid-repair.
+        panel.collectionBehavior = Self.overlayBehavior.union(.ignoresCycle)
         panel.collectionBehavior = Self.overlayBehavior
     }
 
@@ -118,7 +143,22 @@ final class RecordingHUDController {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in self?.assertPlacement() }
+            Task { @MainActor in self?.present() }
+        }
+    }
+
+    /// Plugging in a display, unplugging one, waking from sleep or moving the
+    /// Dock all move the bottom-centre of "the active screen" out from under the
+    /// panel. The frame is only otherwise recomputed on a state change, so
+    /// without this the pill sits at coordinates that no longer describe
+    /// anywhere visible — which looks exactly like it vanished.
+    private func observeScreenChanges() {
+        screenChangeObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didChangeScreenParametersNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.present() }
         }
     }
 
@@ -130,14 +170,18 @@ final class RecordingHUDController {
             _ = coordinator.state
         } onChange: { [weak self] in
             Task { @MainActor in
-                self?.apply()
+                self?.present()
                 self?.observeState()
             }
         }
     }
 
-    /// Re-fit and re-assert the panel on every state change so it tracks the
-    /// active screen and stays above other windows.
+    /// Put the panel where it belongs and make sure it is on screen. Every event
+    /// that could have disturbed it funnels through here — a dictation state
+    /// change, a Space switch, a display change — because "keep it there" means
+    /// re-showing it, not just re-configuring it. Ordering an already-visible
+    /// panel front is free, and it is the only thing that recovers a panel
+    /// something else pulled off screen.
     ///
     /// The panel is **never ordered out**. Resting is a drawing decision, made
     /// by `RecordingHUDView` (it fades the pill to nothing, honouring the
@@ -156,7 +200,7 @@ final class RecordingHUDController {
     /// how this worked before the pill learned to hide. It costs nothing: the
     /// panel is transparent, borderless and click-through, so an "invisible"
     /// panel and an ordered-out one are indistinguishable to the user.
-    private func apply() {
+    private func present() {
         assertPlacement()
         reposition()
         panel.orderFrontRegardless()
