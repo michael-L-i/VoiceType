@@ -396,18 +396,35 @@ final class DictationCoordinator {
         state = .recording
     }
 
-    private func finishRecording() {
-        guard state == .recording else { return }
-        sounds.stop(enabled: settings.soundFeedback)
-        let audio = capture.stop()
-        inputLevel = 0
+    /// True from the moment a dictation is ended until the capture's tail grace
+    /// has elapsed and its audio is in hand. The state is still `.recording`
+    /// across that window (the mic genuinely is), so this is what keeps a second
+    /// keystroke — easy in toggle mode — from ending the same dictation twice.
+    private var isFinishing = false
 
-        // Ignore accidental taps with essentially no speech.
-        guard audio.duration >= 0.25, audio.rms > 0.002 else {
-            state = .idle
-            return
+    private func finishRecording() {
+        guard state == .recording, !isFinishing else { return }
+        isFinishing = true
+        // Cue immediately: the user needs to know the keystroke registered, even
+        // though the mic stays open a moment longer to catch the tail.
+        sounds.stop(enabled: settings.soundFeedback)
+
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let audio = await self.capture.stop()
+            self.isFinishing = false
+            // Escape, or a capture failure, may have ended this dictation while
+            // the tail was still landing.
+            guard self.state == .recording else { return }
+            self.inputLevel = 0
+
+            // Ignore accidental taps with essentially no speech.
+            guard audio.duration >= 0.25, audio.rms > 0.002 else {
+                self.state = .idle
+                return
+            }
+            self.runPipeline(on: audio)
         }
-        runPipeline(on: audio)
     }
 
     /// Capture died mid-flight (device vanished, session error, buffer
@@ -425,7 +442,9 @@ final class DictationCoordinator {
         guard state == .recording else { return }
         sounds.stop(enabled: settings.soundFeedback)
         inputLevel = 0
-        state = .idle
+        // Say so rather than sliding back to idle: the utterance is gone, and a
+        // silent reset is indistinguishable from "it just didn't hear me".
+        setError(L("Audio device changed. Try again."))
     }
 
     /// The capture session couldn't start at all (no input device / setup
@@ -740,22 +759,26 @@ final class DictationCoordinator {
     /// (bypassing the resolver), raw — no cleanup, no injection, no history.
     func stopTest(_ kind: TranscriptionEngineKind) {
         guard activeTestKind == kind, testStates[kind] == .recording else { return }
-        let audio = capture.stop()
-        inputLevel = 0
-        activeTestKind = nil
-
-        guard audio.duration >= 0.25, audio.rms > 0.002 else {
-            testStates[kind] = .failed(L("Didn't catch any speech. Try again."))
-            return
-        }
-        guard let transcriber = EngineFactory.makeTranscriber(kind) else {
-            testStates[kind] = .failed(L("This engine isn't available."))
-            return
-        }
+        // Moving off `.recording` now also blocks a second stop while the
+        // capture's tail grace runs.
         testStates[kind] = .transcribing
         let locale = settings.locale
-        testTask = Task { [weak self] in
+        testTask = Task { @MainActor [weak self] in
             guard let self else { return }
+            let audio = await self.capture.stop()
+            // cancelTest() may have closed the panel while the tail landed.
+            guard self.activeTestKind == kind else { return }
+            self.activeTestKind = nil
+            self.inputLevel = 0
+
+            guard audio.duration >= 0.25, audio.rms > 0.002 else {
+                self.testStates[kind] = .failed(L("Didn't catch any speech. Try again."))
+                return
+            }
+            guard let transcriber = EngineFactory.makeTranscriber(kind) else {
+                self.testStates[kind] = .failed(L("This engine isn't available."))
+                return
+            }
             do {
                 let result = try await transcriber.transcribe(audio, locale: locale)
                 let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -23,6 +23,25 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
     /// Target sample rate for speech models.
     static let targetSampleRate: Double = 16_000
 
+    /// How long the mic keeps running after the user ends a dictation.
+    ///
+    /// Ending capture the instant the key is hit throws away real speech, from
+    /// two directions at once:
+    ///
+    /// 1. **Delivery latency.** A capture session hands us audio in packets,
+    ///    behind the hardware. Audio the mic had already digitized at the moment
+    ///    of the keystroke has not reached our delegate yet — tens of ms on the
+    ///    built-in mic, considerably more over Bluetooth — and a snapshot taken
+    ///    right then simply doesn't contain it.
+    /// 2. **Human timing.** People start reaching for the key while finishing
+    ///    the last word, so the end of the final phrase lands *after* the press.
+    ///
+    /// Either way the tail arrives clipped, and a clipped final word is worse
+    /// than a missing one: the recognizer usually drops the whole trailing
+    /// clause rather than emitting a fragment. The grace costs this much added
+    /// time-to-text and buys back words the user actually said.
+    static let tailGrace: TimeInterval = 0.3
+
     private let session = AVCaptureSession()
     private let output = AVCaptureAudioDataOutput()
     /// Serializes all session mutations (configure/start/stop) off the caller.
@@ -146,24 +165,43 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
         session.addInput(input)
     }
 
-    /// Stop capture and return the accumulated mono 16 kHz buffer. Returns
-    /// immediately — session teardown happens on the session queue.
-    func stop() -> PCMBuffer {
+    /// Stop capture and return the accumulated mono 16 kHz buffer.
+    ///
+    /// Suspends for `tailGrace` first so the end of the utterance actually makes
+    /// it into the buffer (see the constant). The capture stays live and
+    /// cancellable across that window; session teardown then happens on the
+    /// session queue, so this still never blocks on hardware.
+    func stop() async -> PCMBuffer {
         guard isRunning else { return PCMBuffer(samples: [], sampleRate: Self.targetSampleRate) }
+        // The watchdog has done its job: silence it before the grace window so a
+        // recording that ends on a quiet tail can't be read as a dead input.
         stopWatchdog()
+
+        // Deliberately still `isRunning`: capture really is live here, and
+        // Escape must be able to abort it out from under us.
+        try? await Task.sleep(nanoseconds: UInt64(Self.tailGrace * 1_000_000_000))
+        guard isRunning else {
+            // cancel() won the race and already tore the capture down.
+            return PCMBuffer(samples: [], sampleRate: Self.targetSampleRate)
+        }
         isRunning = false
 
-        lock.lock()
-        accumulating = false
-        let captured = samples
-        samples.removeAll(keepingCapacity: false)
-        lock.unlock()
+        // Barrier on the delivery queue: every buffer the session has already
+        // handed off is appended before we read `samples`. Without it, audio
+        // in flight on that queue is lost to scheduling luck alone.
+        sampleQueue.sync {}
 
-        sessionQueue.async { [weak self] in
-            guard let self, self.session.isRunning else { return }
-            self.session.stopRunning()
+        // Scoped locking: `lock()`/`unlock()` are unavailable from an async
+        // context (a suspension between them would be a deadlock waiting to
+        // happen), and this method now has one.
+        let captured: [Float] = lock.withLock {
+            accumulating = false
+            defer { samples.removeAll(keepingCapacity: false) }
+            return samples
         }
 
+        tearDownSession()
+        onLevel?(0)
         Log.audio.info("capture stopped: \(captured.count, privacy: .public) samples")
         return PCMBuffer(samples: captured, sampleRate: Self.targetSampleRate)
     }
@@ -179,13 +217,19 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
         samples.removeAll(keepingCapacity: false)
         lock.unlock()
 
+        tearDownSession()
+        onLevel?(0)
+        Log.audio.info("capture cancelled")
+    }
+
+    /// Hand session teardown to the session queue. Kept out of `stop()` so the
+    /// escaping closure is formed in a synchronous context — from an async one
+    /// it captures a non-Sendable `self` and trips concurrency checking.
+    private func tearDownSession() {
         sessionQueue.async { [weak self] in
             guard let self, self.session.isRunning else { return }
             self.session.stopRunning()
         }
-
-        onLevel?(0)
-        Log.audio.info("capture cancelled")
     }
 
     // MARK: - Watchdog
