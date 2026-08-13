@@ -71,6 +71,7 @@ public enum CleanupGuard {
         return looksLikeSummary(raw: raw, cleaned: cleaned, pack: pack)
             || looksFabricated(raw: raw, cleaned: cleaned, pack: pack)
             || droppedOpening(raw: raw, cleaned: cleaned, pack: pack)
+            || droppedEnding(raw: raw, cleaned: cleaned, pack: pack)
             || introducedForeignScript(raw: raw, cleaned: cleaned)
             || lostDominantScript(raw: raw, cleaned: cleaned)
             || droppedScriptOpening(raw: raw, cleaned: cleaned, pack: pack)
@@ -214,6 +215,45 @@ public enum CleanupGuard {
             }
         }
         let surviving = probe.filter { opening.contains($0) }.count
+        return Double(surviving) < 0.5 * Double(probe.count)
+    }
+
+    /// The tail counterpart of `droppedOpening`, and the one the user feels
+    /// most: the model treats the closing thought as a sign-off it may trim
+    /// ("…and that's basically it, let me know") and simply stops early. The
+    /// retention ratio can't see it — on a five-sentence dictation, losing the
+    /// last one still retains ~80% of the words.
+    ///
+    /// Probe: the distinctive words among the LAST eight raw words. If fewer
+    /// than half survive near the END of the output, the ending was dropped.
+    /// Positional for the same reason the opening check is: matching anywhere
+    /// lets an unrelated earlier word stand in for the missing tail.
+    ///
+    /// Tripping on a legitimately-removed trailing hesitation is acceptable —
+    /// the fallback is the rules floor, which fails conservative by keeping the
+    /// words rather than inventing an ending.
+    public static func droppedEnding(raw: String, cleaned: String,
+                                     pack: LanguagePack? = nil) -> Bool {
+        let pack = pack ?? .english
+        guard contentWordCount(raw, pack: pack) >= pack.guardPolicy.minimumContentWords else {
+            return false
+        }
+        let probe = words(raw).suffix(8).filter { word in
+            word.count >= 2
+                && !pack.fillers.contains(word)
+                && !pack.spokenSymbolWords.contains(word)
+                && !pack.stopwords.contains(word)
+        }
+        guard probe.count >= 2 else { return false }
+        var ending = Set<String>()
+        for token in words(cleaned).suffix(12) {
+            ending.insert(token)
+            for fragment in token.split(whereSeparator: { symbolSeparators.contains($0) })
+            where fragment.count >= 2 {
+                ending.insert(String(fragment))
+            }
+        }
+        let surviving = probe.filter { ending.contains($0) }.count
         return Double(surviving) < 0.5 * Double(probe.count)
     }
 
