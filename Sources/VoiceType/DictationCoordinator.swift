@@ -427,9 +427,11 @@ final class DictationCoordinator {
         }
     }
 
-    /// Capture died mid-flight (device vanished, session error, buffer
-    /// watchdog). Route changes no longer land here — the capture session
-    /// absorbs those — so this is a genuine failure, not AirPods connecting.
+    /// Capture died mid-flight and could not be brought back. Ordinary route
+    /// churn no longer lands here: the capture session absorbs most of it, and
+    /// what it doesn't, the capture rebuilds its input through while keeping the
+    /// recording. Reaching this means several rebuilds in a row failed — a mic
+    /// that is genuinely gone, not AirPods connecting.
     private func handleAudioConfigurationChange() {
         // A test recording owns the capture too; the capture cancels itself, so
         // just sync our state and bail.
