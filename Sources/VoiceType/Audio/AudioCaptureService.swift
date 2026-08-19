@@ -187,16 +187,23 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
             object: session,
             queue: .main) { [weak self] _ in
                 guard let self else { return }
-                let wasRunning: Bool = self.lock.withLock {
-                    self.interruptedSince = nil
-                    self.health?.noteInputOpened(at: self.now)
-                    return self.active
-                }
                 Log.audio.info("capture session interruption ended")
-                guard wasRunning else { return }
+                guard self.lock.withLock({ self.active }) else {
+                    self.lock.withLock { self.interruptedSince = nil }
+                    return
+                }
                 self.sessionQueue.async { [weak self] in
-                    guard let self, self.lock.withLock({ self.active }), !self.session.isRunning else { return }
-                    self.session.startRunning()
+                    guard let self, self.lock.withLock({ self.active }) else { return }
+                    if !self.session.isRunning { self.session.startRunning() }
+                    // Both flags flip together, once the device is genuinely
+                    // back: clearing the interruption any earlier would let the
+                    // health timer see a stale stall and start a rebuild racing
+                    // this restart, and re-arming any earlier would charge the
+                    // restart's own duration against the grace.
+                    self.lock.withLock {
+                        self.interruptedSince = nil
+                        self.health?.noteInputOpened(at: self.now)
+                    }
                 }
             })
     }
