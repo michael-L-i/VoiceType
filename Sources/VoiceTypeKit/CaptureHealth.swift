@@ -92,10 +92,15 @@ public struct CaptureHealthMonitor: Sendable, Equatable {
         phase = .awaitingFirstBuffer(since: now, grace: policy.recoveryGrace)
     }
 
-    /// Restart the startup clock without spending recovery budget — for a pause
-    /// the system told us about (a capture-session interruption), where the gap
-    /// is explained and only the wait afterwards is ours to judge.
-    public mutating func noteResumed(at now: TimeInterval) {
+    /// The input has just been opened — the session started, a rebuilt input
+    /// came up, or an interruption ended. Restarts the clock without spending
+    /// recovery budget.
+    ///
+    /// This is what keeps a slow device from being blamed for its own slowness:
+    /// opening a Bluetooth mic can take seconds, and if that time were counted
+    /// against the wait for the first buffer, the grace would already be spent
+    /// by the moment audio could first arrive.
+    public mutating func noteInputOpened(at now: TimeInterval) {
         phase = .awaitingFirstBuffer(since: now, grace: policy.recoveryGrace)
     }
 

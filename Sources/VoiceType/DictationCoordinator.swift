@@ -198,7 +198,13 @@ final class DictationCoordinator {
         let mic = Permissions.microphoneStatus()
         let speech = Permissions.speechStatus()
         let ax = Permissions.accessibilityStatus()
-        if mic != microphonePermission { microphonePermission = mic }
+        if mic != microphonePermission {
+            microphonePermission = mic
+            // The capture skips prewarming until it is allowed to touch a mic,
+            // so the moment consent lands is the moment to get the session set
+            // up — otherwise the first dictation pays for it.
+            if mic == .granted { capture.prewarm() }
+        }
         if speech != speechPermission { speechPermission = speech }
         if ax != accessibilityPermission { accessibilityPermission = ax }
         syncHotkeyWithPermissions()

@@ -118,7 +118,7 @@ final class CaptureHealthTests: XCTestCase {
     func testResumeAfterInterruptionDoesNotSpendBudget() {
         var monitor = CaptureHealthMonitor(policy: policy, startedAt: 0)
         monitor.noteBuffer(at: 1.0)
-        monitor.noteResumed(at: 5.0)
+        monitor.noteInputOpened(at: 5.0)
         XCTAssertEqual(monitor.recoveryCount, 0)
         // The system told us why the gap happened; only the wait after the
         // resume is ours to judge.

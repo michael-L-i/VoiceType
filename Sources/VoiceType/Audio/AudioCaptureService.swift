@@ -189,7 +189,7 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
                 guard let self else { return }
                 let wasRunning: Bool = self.lock.withLock {
                     self.interruptedSince = nil
-                    self.health?.noteResumed(at: self.now)
+                    self.health?.noteInputOpened(at: self.now)
                     return self.active
                 }
                 Log.audio.info("capture session interruption ended")
@@ -318,6 +318,12 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
             do {
                 try self.configureInput()
                 if !self.session.isRunning { self.session.startRunning() }
+                // Re-arm the clock now the device is actually open. On
+                // Bluetooth `startRunning()` can itself take seconds, and the
+                // wait for the first buffer only begins here — charging that
+                // setup time against the grace would spend it before a single
+                // sample could have arrived.
+                self.lock.withLock { self.health?.noteInputOpened(at: self.now) }
                 Log.audio.info("capture session started")
             } catch {
                 Log.audio.error("capture start failed: \(error.localizedDescription, privacy: .public)")
@@ -526,6 +532,10 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
                 if attempt > 1, self.session.isRunning { self.session.stopRunning() }
                 try self.configureInput(force: true)
                 if !self.session.isRunning { self.session.startRunning() }
+                // Same reasoning as `start()`: the rebuild's own duration must
+                // not be charged against the grace it is being judged on, or a
+                // slow-but-working restart would trigger the next one.
+                self.lock.withLock { self.health?.noteInputOpened(at: self.now) }
                 Log.audio.info("capture input rebuilt")
             } catch {
                 // Leave it to the health monitor: the grace it just started will
