@@ -121,6 +121,50 @@ struct CleanupGuardTests {
             cleaned: "There are three problems with the current design. First, the sidebar takes up way too much space on small screens."))
     }
 
+    @Test("a dropped closing sentence is flagged even though most words survive")
+    func flagsDroppedEnding() {
+        // The retention ratio can't catch this: ~80% of the words are still
+        // there, and only the last thought is gone.
+        #expect(CleanupGuard.droppedEnding(
+            raw: "we should ship the fix on monday and then watch the crash rate for a day anyway that's my take let me know what you think",
+            cleaned: "We should ship the fix on Monday and then watch the crash rate for a day."))
+        #expect(CleanupGuard.looksUnfaithful(
+            raw: "we should ship the fix on monday and then watch the crash rate for a day anyway that's my take let me know what you think",
+            cleaned: "We should ship the fix on Monday and then watch the crash rate for a day."))
+    }
+
+    @Test("intact endings are not flagged")
+    func allowsIntactEnding() {
+        #expect(!CleanupGuard.droppedEnding(
+            raw: "I was thinking about the launch next week and whether we should delay it um you know",
+            cleaned: "I was thinking about the launch next week and whether we should delay it."))
+        // A self-correction at the end legitimately drops one probe word.
+        #expect(!CleanupGuard.droppedEnding(
+            raw: "send the report to the team before lunch on tuesday no wait on wednesday",
+            cleaned: "Send the report to the team before lunch on Wednesday."))
+    }
+
+    @Test("short inputs are exempt from the ending probe")
+    func shortEndingExempt() {
+        #expect(!CleanupGuard.droppedEnding(raw: "I want two, no three", cleaned: "I want three"))
+    }
+
+    @Test("code rendering at the end is not a dropped ending")
+    func endingCodeJoinSafe() {
+        #expect(!CleanupGuard.droppedEnding(
+            raw: "rename the parse data function to something clearer and then open utils dot t s",
+            cleaned: "rename the parseData function to something clearer and then open utils.ts"))
+    }
+
+    @Test("a probe word colliding with an earlier unrelated word still counts as dropped")
+    func endingPositional() {
+        // "release" appears early too; survival has to be positional or the
+        // vanished closing clause reads as intact.
+        #expect(CleanupGuard.droppedEnding(
+            raw: "the release is blocked on the migration script and the staging soak so we should tell everyone the release slips to friday",
+            cleaned: "The release is blocked on the migration script and the staging soak."))
+    }
+
     @Test("fillers and symbols are excluded from the raw content count")
     func contentWordCount() {
         #expect(CleanupGuard.contentWordCount("um uh open paren hello world close paren") == 2)
@@ -128,9 +172,12 @@ struct CleanupGuardTests {
 
     @Test("every few-shot example passes the guard")
     func fewShotExamplesPass() {
+        // The whole guard, not just the ratio: these pairs are the closest
+        // thing we have to a corpus of *correct* cleanups, so any probe that
+        // flags one is a false positive we'd otherwise ship.
         for pair in CleanupExamples.fewShot + CleanupExamples.terminalFewShot {
-            #expect(!CleanupGuard.looksLikeSummary(raw: pair.spoken, cleaned: pair.cleaned),
-                    "example flagged as summary: \(pair.spoken)")
+            #expect(!CleanupGuard.looksUnfaithful(raw: pair.spoken, cleaned: pair.cleaned),
+                    "example flagged as unfaithful: \(pair.spoken)")
         }
     }
 }

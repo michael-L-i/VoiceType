@@ -198,7 +198,13 @@ final class DictationCoordinator {
         let mic = Permissions.microphoneStatus()
         let speech = Permissions.speechStatus()
         let ax = Permissions.accessibilityStatus()
-        if mic != microphonePermission { microphonePermission = mic }
+        if mic != microphonePermission {
+            microphonePermission = mic
+            // The capture skips prewarming until it is allowed to touch a mic,
+            // so the moment consent lands is the moment to get the session set
+            // up — otherwise the first dictation pays for it.
+            if mic == .granted { capture.prewarm() }
+        }
         if speech != speechPermission { speechPermission = speech }
         if ax != accessibilityPermission { accessibilityPermission = ax }
         syncHotkeyWithPermissions()
@@ -396,23 +402,42 @@ final class DictationCoordinator {
         state = .recording
     }
 
-    private func finishRecording() {
-        guard state == .recording else { return }
-        sounds.stop(enabled: settings.soundFeedback)
-        let audio = capture.stop()
-        inputLevel = 0
+    /// True from the moment a dictation is ended until the capture's tail grace
+    /// has elapsed and its audio is in hand. The state is still `.recording`
+    /// across that window (the mic genuinely is), so this is what keeps a second
+    /// keystroke — easy in toggle mode — from ending the same dictation twice.
+    private var isFinishing = false
 
-        // Ignore accidental taps with essentially no speech.
-        guard audio.duration >= 0.25, audio.rms > 0.002 else {
-            state = .idle
-            return
+    private func finishRecording() {
+        guard state == .recording, !isFinishing else { return }
+        isFinishing = true
+        // Cue immediately: the user needs to know the keystroke registered, even
+        // though the mic stays open a moment longer to catch the tail.
+        sounds.stop(enabled: settings.soundFeedback)
+
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let audio = await self.capture.stop()
+            self.isFinishing = false
+            // Escape, or a capture failure, may have ended this dictation while
+            // the tail was still landing.
+            guard self.state == .recording else { return }
+            self.inputLevel = 0
+
+            // Ignore accidental taps with essentially no speech.
+            guard audio.duration >= 0.25, audio.rms > 0.002 else {
+                self.state = .idle
+                return
+            }
+            self.runPipeline(on: audio)
         }
-        runPipeline(on: audio)
     }
 
-    /// Capture died mid-flight (device vanished, session error, buffer
-    /// watchdog). Route changes no longer land here — the capture session
-    /// absorbs those — so this is a genuine failure, not AirPods connecting.
+    /// Capture died mid-flight and could not be brought back. Ordinary route
+    /// churn no longer lands here: the capture session absorbs most of it, and
+    /// what it doesn't, the capture rebuilds its input through while keeping the
+    /// recording. Reaching this means several rebuilds in a row failed — a mic
+    /// that is genuinely gone, not AirPods connecting.
     private func handleAudioConfigurationChange() {
         // A test recording owns the capture too; the capture cancels itself, so
         // just sync our state and bail.
@@ -425,7 +450,9 @@ final class DictationCoordinator {
         guard state == .recording else { return }
         sounds.stop(enabled: settings.soundFeedback)
         inputLevel = 0
-        state = .idle
+        // Say so rather than sliding back to idle: the utterance is gone, and a
+        // silent reset is indistinguishable from "it just didn't hear me".
+        setError(L("Audio device changed. Try again."))
     }
 
     /// The capture session couldn't start at all (no input device / setup
@@ -740,22 +767,26 @@ final class DictationCoordinator {
     /// (bypassing the resolver), raw — no cleanup, no injection, no history.
     func stopTest(_ kind: TranscriptionEngineKind) {
         guard activeTestKind == kind, testStates[kind] == .recording else { return }
-        let audio = capture.stop()
-        inputLevel = 0
-        activeTestKind = nil
-
-        guard audio.duration >= 0.25, audio.rms > 0.002 else {
-            testStates[kind] = .failed(L("Didn't catch any speech. Try again."))
-            return
-        }
-        guard let transcriber = EngineFactory.makeTranscriber(kind) else {
-            testStates[kind] = .failed(L("This engine isn't available."))
-            return
-        }
+        // Moving off `.recording` now also blocks a second stop while the
+        // capture's tail grace runs.
         testStates[kind] = .transcribing
         let locale = settings.locale
-        testTask = Task { [weak self] in
+        testTask = Task { @MainActor [weak self] in
             guard let self else { return }
+            let audio = await self.capture.stop()
+            // cancelTest() may have closed the panel while the tail landed.
+            guard self.activeTestKind == kind else { return }
+            self.activeTestKind = nil
+            self.inputLevel = 0
+
+            guard audio.duration >= 0.25, audio.rms > 0.002 else {
+                self.testStates[kind] = .failed(L("Didn't catch any speech. Try again."))
+                return
+            }
+            guard let transcriber = EngineFactory.makeTranscriber(kind) else {
+                self.testStates[kind] = .failed(L("This engine isn't available."))
+                return
+            }
             do {
                 let result = try await transcriber.transcribe(audio, locale: locale)
                 let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
