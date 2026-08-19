@@ -126,6 +126,24 @@ final class CaptureHealthTests: XCTestCase {
         XCTAssertEqual(monitor.verdict(at: 7.6), .recover)
     }
 
+    func testOpeningTheDeviceKeepsTheColdStartGrace() {
+        // startRunning() blocked for 3s opening a headset. The first buffer is
+        // still a first buffer: it gets the full cold-start grace from here,
+        // not the shorter one a rebuild would get.
+        var monitor = CaptureHealthMonitor(policy: policy, startedAt: 0)
+        monitor.noteInputOpened(at: 3.0)
+        XCTAssertEqual(monitor.verdict(at: 6.0), .healthy)
+        XCTAssertEqual(monitor.verdict(at: 7.1), .recover)
+    }
+
+    func testOpeningARebuiltInputKeepsTheShorterGrace() {
+        var monitor = CaptureHealthMonitor(policy: policy, startedAt: 0)
+        monitor.noteRecoveryStarted(at: 0)
+        monitor.noteInputOpened(at: 1.0)
+        XCTAssertEqual(monitor.verdict(at: 3.4), .healthy)
+        XCTAssertEqual(monitor.verdict(at: 3.6), .recover)
+    }
+
     func testDefaultPolicyToleratesARealisticBluetoothColdStart() {
         let monitor = CaptureHealthMonitor(startedAt: 0)
         XCTAssertEqual(monitor.verdict(at: 3.0), .healthy,

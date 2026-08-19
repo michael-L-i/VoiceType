@@ -100,8 +100,17 @@ public struct CaptureHealthMonitor: Sendable, Equatable {
     /// opening a Bluetooth mic can take seconds, and if that time were counted
     /// against the wait for the first buffer, the grace would already be spent
     /// by the moment audio could first arrive.
+    ///
+    /// The wait keeps whatever grace it was already entitled to — a cold start
+    /// stays a cold start after the device finishes opening, and only a stream
+    /// that was already flowing (so: an interruption) drops to the shorter one.
     public mutating func noteInputOpened(at now: TimeInterval) {
-        phase = .awaitingFirstBuffer(since: now, grace: policy.recoveryGrace)
+        switch phase {
+        case let .awaitingFirstBuffer(_, grace):
+            phase = .awaitingFirstBuffer(since: now, grace: grace)
+        case .streaming:
+            phase = .awaitingFirstBuffer(since: now, grace: policy.recoveryGrace)
+        }
     }
 
     /// The verdict at `now`. Non-mutating in effect — call it as often as you
