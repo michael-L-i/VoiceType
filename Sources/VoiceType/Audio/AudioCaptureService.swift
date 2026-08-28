@@ -108,7 +108,8 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
     /// Registered against the CoreAudio system object; see `observeDefaultInput`.
     private var defaultInputListener: AudioObjectPropertyListenerBlock?
 
-    /// Live input level (0...1), published on the main actor for the UI meter.
+    /// Live input level (0...1, dB-scaled so normal speech reads mid-range),
+    /// published on the main actor for the UI meter.
     var onLevel: (@Sendable (Float) -> Void)?
     /// Capture died mid-flight and could not be rebuilt. Fired on the main
     /// queue after the capture has already been cancelled.
@@ -578,11 +579,14 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
         let ptr = data.assumingMemoryBound(to: Float.self)
         let chunk = Array(UnsafeBufferPointer(start: ptr, count: frames))
 
-        // Cheap level meter off the same chunk.
+        // Cheap level meter off the same chunk. Conversational speech only
+        // peaks around 0.05–0.2 linear, which barely registers on a linear
+        // meter, so map through dB: ≤ -50 dB (room noise) → 0, -8 dB → 1.
         if let onLevel {
             var peak: Float = 0
             for v in chunk { let a = abs(v); if a > peak { peak = a } }
-            onLevel(min(1, peak))
+            let db = 20 * log10(max(peak, .leastNormalMagnitude))
+            onLevel(max(0, min(1, (db + 50) / 42)))
         }
 
         let arrivedAt = now
