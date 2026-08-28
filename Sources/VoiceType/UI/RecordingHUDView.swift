@@ -48,6 +48,15 @@ struct RecordingHUDView: View {
                 .overlay(
                     Capsule(style: .continuous).strokeBorder(.white.opacity(0.35), lineWidth: 1)
                 )
+                .overlay {
+                    // While the utterance is processed, the busy signal moves to
+                    // the edge: a fast gradient comet lapping the capsule.
+                    if kind == .working {
+                        BorderTraceOverlay(cornerRadius: nil, lineWidth: 1.5,
+                                           period: 1.0, window: 0.3)
+                            .transition(.opacity)
+                    }
+                }
                 .shadow(color: .black.opacity(0.22), radius: 14, y: 6)
         )
         .fixedSize()
@@ -118,7 +127,9 @@ struct RecordingHUDView: View {
         if case .recording = coordinator.state {
             return coordinator.inputLevel
         }
-        return 0.45
+        // Working: the bars settle to their floor and hold still — the border
+        // comet carries the "busy" signal instead of the interior.
+        return 0
     }
 
     private var errorMessage: String? {

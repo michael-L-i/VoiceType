@@ -9,8 +9,9 @@ import SwiftUI
 /// brand gradient (like `RadialGauge`). Apply it as an `.overlay` on the card you
 /// want it to hug, matching the card's `cornerRadius`.
 struct BorderTraceOverlay: View {
-    /// Match the host card's corner radius so the comet rides its rounded edge.
-    var cornerRadius: CGFloat = VT.Radius.card
+    /// Match the host card's corner radius so the comet rides its rounded edge;
+    /// `nil` hugs a capsule (radius = half the height).
+    var cornerRadius: CGFloat? = VT.Radius.card
     var lineWidth: CGFloat = 2.5
     /// Seconds for one full lap of the border.
     var period: Double = 1.6
@@ -35,7 +36,7 @@ struct BorderTraceOverlay: View {
 /// the top edge. `trimmedPath` lets us assemble both pieces into one stroked path
 /// with a continuous gradient and round caps.
 private struct CometShape: Shape {
-    var cornerRadius: CGFloat
+    var cornerRadius: CGFloat?
     var progress: CGFloat
     var window: CGFloat
 
@@ -45,7 +46,8 @@ private struct CometShape: Shape {
     }
 
     func path(in rect: CGRect) -> Path {
-        let base = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).path(in: rect)
+        let radius = cornerRadius ?? rect.height / 2
+        let base = RoundedRectangle(cornerRadius: radius, style: .continuous).path(in: rect)
         let end = progress + window
         var p = Path()
         p.addPath(base.trimmedPath(from: progress, to: min(end, 1)))
