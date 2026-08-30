@@ -18,8 +18,8 @@ actor ParakeetRuntime {
     /// if the weights aren't present (caller gates on `modelsExist`).
     func loadedManager() async throws -> AsrManager {
         if let manager { return manager }
-        DownloadUtils.enforceOffline = true
-        defer { DownloadUtils.enforceOffline = false }
+        ModelHub.offlineMode = true
+        defer { ModelHub.offlineMode = false }
         let models = try await AsrModels.loadFromCache(version: parakeetVersion)
         let manager = AsrManager(config: .default)
         try await manager.loadModels(models)
@@ -29,7 +29,7 @@ actor ParakeetRuntime {
 
     /// Download (if needed) and load the model, reporting download progress.
     func download(progress: @escaping @Sendable (Double?) -> Void) async throws {
-        DownloadUtils.enforceOffline = false
+        ModelHub.offlineMode = false
         let models = try await AsrModels.downloadAndLoad(
             version: parakeetVersion,
             progressHandler: { progress($0.fractionCompleted) })
