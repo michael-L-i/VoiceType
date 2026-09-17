@@ -89,6 +89,24 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
     /// Lock-guarded mirror of `isRunning`, readable from the health timer and
     /// the sample queue.
     private var active = false
+    private var generation = UUID()
+    private var ready = false
+
+    /// Delivered on main, scoped to the recording that produced the event.
+    var onReadinessChange: (@Sendable (Bool) -> Void)?
+
+    private func publishReadiness(_ value: Bool) {
+        let id: UUID? = lock.withLock {
+            guard active, ready != value else { return nil }
+            ready = value
+            return generation
+        }
+        guard let id else { return }
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.lock.withLock({ self.active && self.generation == id && self.ready == value }) else { return }
+            self.onReadinessChange?(value)
+        }
+    }
     /// Lock-guarded health state; nil while no capture is in flight.
     private var health: CaptureHealthMonitor?
     /// Lock-guarded: set while a rebuild is queued or running, so a burst of
@@ -179,7 +197,8 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
             object: session,
             queue: .main) { [weak self] _ in
                 guard let self else { return }
-                self.lock.withLock { if self.interruptedSince == nil { self.interruptedSince = self.now } }
+                self.lock.withLock { if self.active, self.interruptedSince == nil { self.interruptedSince = self.now } }
+                self.publishReadiness(false)
                 Log.audio.info("capture session interrupted")
             })
 
@@ -312,6 +331,8 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
         guard !isRunning else { return }
         lock.withLock {
             samples.removeAll(keepingCapacity: true)
+            generation = UUID()
+            ready = false
             accumulating = true
             active = true
             recoveryInFlight = false
@@ -319,10 +340,11 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
             health = CaptureHealthMonitor(startedAt: now)
         }
         isRunning = true
+        let id = lock.withLock { generation }
         startHealthTimer()
 
         sessionQueue.async { [weak self] in
-            guard let self else { return }
+            guard let self, self.lock.withLock({ self.active && self.generation == id }) else { return }
             do {
                 try self.configureInput()
                 if !self.session.isRunning { self.session.startRunning() }
@@ -331,12 +353,14 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
                 // wait for the first buffer only begins here — charging that
                 // setup time against the grace would spend it before a single
                 // sample could have arrived.
-                self.lock.withLock { self.health?.noteInputOpened(at: self.now) }
+                self.lock.withLock {
+                    if self.generation == id { self.health?.noteInputOpened(at: self.now) }
+                }
                 Log.audio.info("capture session started")
             } catch {
                 Log.audio.error("capture start failed: \(error.localizedDescription, privacy: .public)")
                 DispatchQueue.main.async {
-                    guard self.isRunning else { return }
+                    guard self.isRunning, self.lock.withLock({ self.generation == id }) else { return }
                     self.cancel()
                     self.onStartFailure?()
                 }
@@ -382,6 +406,7 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
     /// session queue, so this still never blocks on hardware.
     func stop() async -> PCMBuffer {
         guard isRunning else { return PCMBuffer(samples: [], sampleRate: Self.targetSampleRate) }
+        let id = lock.withLock { generation }
         // The health monitor has done its job: silence it before the grace
         // window so a recording that ends on a quiet tail can't be read as a
         // dead input and rebuilt out from under us.
@@ -390,7 +415,7 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
         // Deliberately still `isRunning`: capture really is live here, and
         // Escape must be able to abort it out from under us.
         try? await Task.sleep(nanoseconds: UInt64(Self.tailGrace * 1_000_000_000))
-        guard isRunning else {
+        guard isRunning, lock.withLock({ generation == id }) else {
             // cancel() won the race and already tore the capture down.
             return PCMBuffer(samples: [], sampleRate: Self.targetSampleRate)
         }
@@ -498,11 +523,13 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
             // The meter would otherwise freeze at the last level it saw, which
             // reads as "still listening" while we are not.
             onLevel?(0)
+            publishReadiness(false)
             rebuildInput(attempt: attempt)
         case .fail:
+            let id = lock.withLock { generation }
             Log.audio.error("capture could not be recovered; aborting")
             DispatchQueue.main.async { [weak self] in
-                guard let self, self.isRunning else { return }
+                guard let self, self.isRunning, self.lock.withLock({ self.generation == id }) else { return }
                 self.cancel()
                 self.onConfigurationChange?()
             }
@@ -513,7 +540,7 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
     /// timeout — for signals that already prove the input is gone.
     private func requestRecovery(reason: String) {
         let attempt: Int? = lock.withLock {
-            guard active, !recoveryInFlight, health != nil else { return nil }
+            guard active, !recoveryInFlight, let monitor = health, monitor.recoveryCount < CaptureHealthPolicy.default.maxRecoveries else { return nil }
             health?.noteRecoveryStarted(at: now)
             recoveryInFlight = true
             return health?.recoveryCount
@@ -521,6 +548,7 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
         guard let attempt else { return }
         Log.audio.info("rebuilding input: \(reason, privacy: .public) (attempt \(attempt, privacy: .public))")
         onLevel?(0)
+        publishReadiness(false)
         rebuildInput(attempt: attempt)
     }
 
@@ -531,10 +559,11 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
     /// attempts stop and restart the session outright — slower, and it re-opens
     /// the hardware from scratch, which is what a genuinely wedged device needs.
     private func rebuildInput(attempt: Int) {
+        let id = lock.withLock { generation }
         sessionQueue.async { [weak self] in
             guard let self else { return }
-            defer { self.lock.withLock { self.recoveryInFlight = false } }
-            guard self.lock.withLock({ self.active }) else { return }
+            defer { self.lock.withLock { if self.generation == id { self.recoveryInFlight = false } } }
+            guard self.lock.withLock({ self.active && self.generation == id }) else { return }
 
             do {
                 if attempt > 1, self.session.isRunning { self.session.stopRunning() }
@@ -543,7 +572,9 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
                 // Same reasoning as `start()`: the rebuild's own duration must
                 // not be charged against the grace it is being judged on, or a
                 // slow-but-working restart would trigger the next one.
-                self.lock.withLock { self.health?.noteInputOpened(at: self.now) }
+                self.lock.withLock {
+                    if self.generation == id { self.health?.noteInputOpened(at: self.now) }
+                }
                 Log.audio.info("capture input rebuilt")
             } catch {
                 // Leave it to the health monitor: the grace it just started will
@@ -579,21 +610,21 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
         let ptr = data.assumingMemoryBound(to: Float.self)
         let chunk = Array(UnsafeBufferPointer(start: ptr, count: frames))
 
-        // Cheap level meter off the same chunk. Conversational speech only
-        // peaks around 0.05–0.2 linear, which barely registers on a linear
-        // meter, so map through dB: ≤ -50 dB (room noise) → 0, -8 dB → 1.
-        if let onLevel {
-            var peak: Float = 0
-            for v in chunk { let a = abs(v); if a > peak { peak = a } }
-            let db = 20 * log10(max(peak, .leastNormalMagnitude))
-            onLevel(max(0, min(1, (db + 50) / 42)))
-        }
-
+        // Reject invalid samples, and distinguish exact digital silence from
+        // ordinary pauses (which still contain microphone noise).
+        guard chunk.allSatisfy({ $0.isFinite }) else { return }
+        let peak = chunk.reduce(Float(0)) { max($0, abs($1)) }
         let arrivedAt = now
-        lock.withLock {
-            if accumulating { samples.append(contentsOf: chunk) }
-            health?.noteBuffer(at: arrivedAt)
+        let accepted = lock.withLock {
+            guard accumulating else { return false }
+            samples.append(contentsOf: chunk)
+            health?.noteBuffer(at: arrivedAt, hasSignal: peak > 0)
+            return true
         }
+        guard accepted else { return }
+        if lock.withLock({ health?.isReady == true }) { publishReadiness(true) }
+        let db = 20 * log10(max(peak, .leastNormalMagnitude))
+        onLevel?(max(0, min(1, (db + 50) / 42)))
     }
 
     // MARK: - Resampling

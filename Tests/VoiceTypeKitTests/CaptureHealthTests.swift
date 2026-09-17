@@ -57,6 +57,53 @@ final class CaptureHealthTests: XCTestCase {
         XCTAssertEqual(monitor.recoveryCount, 0, "asking should never spend budget")
     }
 
+    func testZeroFilledBuffersCannotKeepADeadMicrophoneHealthy() {
+        var monitor = CaptureHealthMonitor(policy: policy, startedAt: 0)
+        monitor.noteBuffer(at: 0.1)
+        for tick in stride(from: 0.2, through: 5.3, by: 0.1) {
+            monitor.noteBuffer(at: tick, hasSignal: false)
+        }
+        XCTAssertEqual(monitor.verdict(at: 5.3), .recover)
+    }
+
+    func testBriefDigitalSilenceAndQuietSignalDoNotTriggerRecovery() {
+        var monitor = CaptureHealthMonitor(policy: policy, startedAt: 0)
+        for tick in stride(from: 0.1, through: 4.9, by: 0.1) {
+            monitor.noteBuffer(at: tick, hasSignal: false)
+            XCTAssertEqual(monitor.verdict(at: tick), .healthy)
+        }
+        monitor.noteBuffer(at: 5.0, hasSignal: true)
+        monitor.noteBuffer(at: 5.1, hasSignal: false)
+        XCTAssertEqual(monitor.verdict(at: 5.2), .healthy)
+    }
+
+    func testZeroFilledRecoveryIsBounded() {
+        var monitor = CaptureHealthMonitor(policy: policy, startedAt: 0)
+        for attempt in 0...3 {
+            let start = Double(attempt) * 6
+            monitor.noteBuffer(at: start, hasSignal: false)
+            monitor.noteBuffer(at: start + 5.1, hasSignal: false)
+            XCTAssertEqual(monitor.verdict(at: start + 5.1), attempt == 3 ? .fail : .recover)
+            if attempt < 3 { monitor.noteRecoveryStarted(at: start + 5.1) }
+        }
+    }
+
+    func testReadinessRequiresSustainedSignalAndResetsAfterRecovery() {
+        var monitor = CaptureHealthMonitor(policy: policy, startedAt: 0)
+        monitor.noteBuffer(at: 0.1, hasSignal: false)
+        XCTAssertFalse(monitor.isReady)
+        monitor.noteBuffer(at: 1.0)
+        XCTAssertFalse(monitor.isReady)
+        monitor.noteBuffer(at: 1.3)
+        XCTAssertTrue(monitor.isReady)
+        monitor.noteRecoveryStarted(at: 2.5)
+        XCTAssertFalse(monitor.isReady)
+        monitor.noteBuffer(at: 3.0)
+        XCTAssertFalse(monitor.isReady)
+        monitor.noteBuffer(at: 3.3)
+        XCTAssertTrue(monitor.isReady)
+    }
+
     // MARK: - Recovery
 
     func testRecoveryGetsAFreshGraceAndBuffersResumeHealthy() {
