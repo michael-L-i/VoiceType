@@ -204,7 +204,7 @@ enum MalteseCleanupRules {
             guard let range = Range(match.range, in: out) else { continue }
             let token = String(out[range])
             let insertion = token.index(after: token.startIndex)
-            out.replaceSubrange(range, with: token[..<insertion] + protectedCodeToken + token[insertion...])
+            out.replaceSubrange(range, with: String(token[..<insertion]) + protectedCodeToken + String(token[insertion...]))
         }
         return out
     }
