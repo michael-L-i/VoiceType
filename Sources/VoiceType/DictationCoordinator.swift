@@ -13,6 +13,9 @@ final class DictationCoordinator {
     private(set) var state: DictationState = .idle
     private(set) var lastResult: PipelineResult?
     private(set) var inputLevel: Float = 0
+    private(set) var microphoneReady = false
+    private var playedReadyCue = false
+    private var recordingID = UUID()
     private(set) var history = HistoryStore.shared.load()
     private(set) var stats = StatsStore.shared.load()
     private(set) var dailyStats = DailyStatsStore.shared.load()
@@ -95,6 +98,18 @@ final class DictationCoordinator {
 
         capture.onLevel = { [weak self] level in
             Task { @MainActor in self?.inputLevel = level }
+        }
+        capture.onReadinessChange = { [weak self] ready in
+            // AudioCaptureService delivers this on main after checking its
+            // recording generation. Avoid another queued hop into a later take.
+            MainActor.assumeIsolated {
+                guard let self, self.state == .recording, !self.isFinishing else { return }
+                self.microphoneReady = ready
+                if ready, !self.playedReadyCue {
+                    self.playedReadyCue = true
+                    self.sounds.start(enabled: self.settings.soundFeedback)
+                }
+            }
         }
         capture.onConfigurationChange = { [weak self] in
             Task { @MainActor in self?.handleAudioConfigurationChange() }
@@ -386,10 +401,11 @@ final class DictationCoordinator {
             setError(L("Allow microphone access in System Settings."))
             return
         }
-        // Cue before the mic grabs the audio route: on Bluetooth headphones,
-        // starting capture flips the output from A2DP to HFP, and a cue played
-        // mid-flip is swallowed. play() is async, so this costs no latency.
-        sounds.start(enabled: settings.soundFeedback)
+        recordingID = UUID()
+        microphoneReady = false
+        playedReadyCue = false
+        inputLevel = 0
+        isFinishing = false
         // Read the target app now, while the user's intended destination is
         // frontmost: it feeds the cleanup context (terminal vs. prose) and the
         // usage stats, and stays correct even if focus shifts during the
@@ -398,8 +414,8 @@ final class DictationCoordinator {
         // Non-blocking: hardware spin-up happens on the capture's own queue, so
         // this returns instantly and the hotkey event tap is never stalled
         // (a blocked tap callback is how macOS decides to disable the tap).
-        capture.start()
         state = .recording
+        capture.start()
     }
 
     /// True from the moment a dictation is ended until the capture's tail grace
@@ -411,13 +427,15 @@ final class DictationCoordinator {
     private func finishRecording() {
         guard state == .recording, !isFinishing else { return }
         isFinishing = true
+        let id = recordingID
         // Cue immediately: the user needs to know the keystroke registered, even
         // though the mic stays open a moment longer to catch the tail.
         sounds.stop(enabled: settings.soundFeedback)
 
         Task { @MainActor [weak self] in
-            guard let self else { return }
+            guard let self, self.recordingID == id, self.state == .recording else { return }
             let audio = await self.capture.stop()
+            guard self.recordingID == id else { return }
             self.isFinishing = false
             // Escape, or a capture failure, may have ended this dictation while
             // the tail was still landing.
