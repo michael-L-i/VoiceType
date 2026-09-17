@@ -13,8 +13,6 @@ final class DictationCoordinator {
     private(set) var state: DictationState = .idle
     private(set) var lastResult: PipelineResult?
     private(set) var inputLevel: Float = 0
-    private(set) var microphoneReady = false
-    private var playedReadyCue = false
     private var recordingID = UUID()
     private(set) var history = HistoryStore.shared.load()
     private(set) var stats = StatsStore.shared.load()
@@ -98,18 +96,6 @@ final class DictationCoordinator {
 
         capture.onLevel = { [weak self] level in
             Task { @MainActor in self?.inputLevel = level }
-        }
-        capture.onReadinessChange = { [weak self] ready in
-            // AudioCaptureService delivers this on main after checking its
-            // recording generation. Avoid another queued hop into a later take.
-            MainActor.assumeIsolated {
-                guard let self, self.state == .recording, !self.isFinishing else { return }
-                self.microphoneReady = ready
-                if ready, !self.playedReadyCue {
-                    self.playedReadyCue = true
-                    self.sounds.start(enabled: self.settings.soundFeedback)
-                }
-            }
         }
         capture.onConfigurationChange = { [weak self] in
             Task { @MainActor in self?.handleAudioConfigurationChange() }
@@ -401,9 +387,11 @@ final class DictationCoordinator {
             setError(L("Allow microphone access in System Settings."))
             return
         }
+        // Acknowledge the hotkey immediately; the cue is not gated on the
+        // Bluetooth microphone opening or on speech arriving.
+        state = .recording
+        sounds.start(enabled: settings.soundFeedback)
         recordingID = UUID()
-        microphoneReady = false
-        playedReadyCue = false
         inputLevel = 0
         isFinishing = false
         // Read the target app now, while the user's intended destination is
@@ -414,7 +402,6 @@ final class DictationCoordinator {
         // Non-blocking: hardware spin-up happens on the capture's own queue, so
         // this returns instantly and the hotkey event tap is never stalled
         // (a blocked tap callback is how macOS decides to disable the tap).
-        state = .recording
         capture.start()
     }
 

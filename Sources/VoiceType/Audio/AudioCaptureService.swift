@@ -90,23 +90,6 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
     /// the sample queue.
     private var active = false
     private var generation = UUID()
-    private var ready = false
-
-    /// Delivered on main, scoped to the recording that produced the event.
-    var onReadinessChange: (@Sendable (Bool) -> Void)?
-
-    private func publishReadiness(_ value: Bool) {
-        let id: UUID? = lock.withLock {
-            guard active, ready != value else { return nil }
-            ready = value
-            return generation
-        }
-        guard let id else { return }
-        DispatchQueue.main.async { [weak self] in
-            guard let self, self.lock.withLock({ self.active && self.generation == id && self.ready == value }) else { return }
-            self.onReadinessChange?(value)
-        }
-    }
     /// Lock-guarded health state; nil while no capture is in flight.
     private var health: CaptureHealthMonitor?
     /// Lock-guarded: set while a rebuild is queued or running, so a burst of
@@ -198,7 +181,6 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
             queue: .main) { [weak self] _ in
                 guard let self else { return }
                 self.lock.withLock { if self.active, self.interruptedSince == nil { self.interruptedSince = self.now } }
-                self.publishReadiness(false)
                 Log.audio.info("capture session interrupted")
             })
 
@@ -332,7 +314,6 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
         lock.withLock {
             samples.removeAll(keepingCapacity: true)
             generation = UUID()
-            ready = false
             accumulating = true
             active = true
             recoveryInFlight = false
@@ -523,7 +504,6 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
             // The meter would otherwise freeze at the last level it saw, which
             // reads as "still listening" while we are not.
             onLevel?(0)
-            publishReadiness(false)
             rebuildInput(attempt: attempt)
         case .fail:
             let id = lock.withLock { generation }
@@ -548,7 +528,6 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
         guard let attempt else { return }
         Log.audio.info("rebuilding input: \(reason, privacy: .public) (attempt \(attempt, privacy: .public))")
         onLevel?(0)
-        publishReadiness(false)
         rebuildInput(attempt: attempt)
     }
 
@@ -622,7 +601,6 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
             return true
         }
         guard accepted else { return }
-        if lock.withLock({ health?.isReady == true }) { publishReadiness(true) }
         let db = 20 * log10(max(peak, .leastNormalMagnitude))
         onLevel?(max(0, min(1, (db + 50) / 42)))
     }
