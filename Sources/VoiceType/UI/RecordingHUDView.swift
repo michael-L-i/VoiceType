@@ -24,19 +24,12 @@ struct RecordingHUDView: View {
             // Quick but smooth: one spring drives the size and padding so there's
             // no bad intermediate frame entering record.
             .animation(.spring(response: 0.22, dampingFraction: 0.85), value: kind)
-            .animation(.spring(response: 0.22, dampingFraction: 0.85), value: coordinator.microphoneReady)
     }
 
     private var pill: some View {
         HStack(spacing: VT.Space.m) {
             leading
                 .transition(contentTransition)
-            if kind == .recording && !coordinator.microphoneReady {
-                Text(L("Connecting microphone…"))
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(VT.live)
-                    .lineLimit(1)
-            }
             if let errorMessage {
                 Text(errorMessage)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
@@ -69,10 +62,6 @@ struct RecordingHUDView: View {
     @ViewBuilder
     private var leading: some View {
         switch kind {
-        case .recording where !coordinator.microphoneReady:
-            ProgressView()
-                .controlSize(.small)
-                .tint(VT.tint)
         case .recording, .working:
             WaveformView(level: waveformLevel, tint: VT.tint)
         case .error:

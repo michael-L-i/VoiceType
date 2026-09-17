@@ -88,22 +88,6 @@ final class CaptureHealthTests: XCTestCase {
         }
     }
 
-    func testReadinessRequiresSustainedSignalAndResetsAfterRecovery() {
-        var monitor = CaptureHealthMonitor(policy: policy, startedAt: 0)
-        monitor.noteBuffer(at: 0.1, hasSignal: false)
-        XCTAssertFalse(monitor.isReady)
-        monitor.noteBuffer(at: 1.0)
-        XCTAssertFalse(monitor.isReady)
-        monitor.noteBuffer(at: 1.3)
-        XCTAssertTrue(monitor.isReady)
-        monitor.noteRecoveryStarted(at: 2.5)
-        XCTAssertFalse(monitor.isReady)
-        monitor.noteBuffer(at: 3.0)
-        XCTAssertFalse(monitor.isReady)
-        monitor.noteBuffer(at: 3.3)
-        XCTAssertTrue(monitor.isReady)
-    }
-
     // MARK: - Recovery
 
     func testRecoveryGetsAFreshGraceAndBuffersResumeHealthy() {

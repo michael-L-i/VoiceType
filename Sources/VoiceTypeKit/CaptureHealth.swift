@@ -71,10 +71,6 @@ public struct CaptureHealthMonitor: Sendable, Equatable {
     private var phase: Phase
     private var recoveries = 0
     private var emptySignalSince: TimeInterval?
-    private var firstSignalAt: TimeInterval?
-    /// True after 200 ms of signal, avoiding a cue on a transient startup packet.
-    public private(set) var isReady = false
-
     /// Exact digital silence is different from quiet speech or room noise.
     /// Give muted/noise-gated devices five seconds before attempting recovery.
     private let emptySignalTimeout: TimeInterval = 5
@@ -91,16 +87,8 @@ public struct CaptureHealthMonitor: Sendable, Equatable {
     /// Record that a sample buffer arrived. Cheap enough to call per buffer.
     public mutating func noteBuffer(at now: TimeInterval, hasSignal: Bool = true) {
         if hasSignal {
-            if case let .streaming(lastBufferAt) = phase,
-               now - lastBufferAt > policy.stallTimeout {
-                firstSignalAt = nil
-            }
-            if firstSignalAt == nil { firstSignalAt = now }
-            isReady = now - (firstSignalAt ?? now) >= 0.2
             emptySignalSince = nil
         } else {
-            firstSignalAt = nil
-            isReady = false
             if emptySignalSince == nil { emptySignalSince = now }
         }
         phase = .streaming(lastBufferAt: now)
@@ -110,8 +98,6 @@ public struct CaptureHealthMonitor: Sendable, Equatable {
     /// the shorter post-recovery grace and spending one of the budget.
     public mutating func noteRecoveryStarted(at now: TimeInterval) {
         recoveries += 1
-        firstSignalAt = nil
-        isReady = false
         emptySignalSince = nil
         phase = .awaitingFirstBuffer(since: now, grace: policy.recoveryGrace)
     }
