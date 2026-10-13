@@ -12,11 +12,49 @@ private let parakeetVersion: AsrModelVersion = .v3
 actor ParakeetRuntime {
     static let shared = ParakeetRuntime()
     private var manager: AsrManager?
+    /// The warm-up in flight, if any. Transcription waits for it rather than
+    /// running alongside: FluidAudio suspends between model stages, so two
+    /// calls on one manager would interleave.
+    private var warmup: Task<Void, Never>?
 
-    /// A loaded manager, loading from the on-disk cache if needed. Forces offline
-    /// mode so the transcribe path can never trigger a surprise download; throws
-    /// if the weights aren't present (caller gates on `modelsExist`).
+    /// A loaded manager, ready to transcribe.
     func loadedManager() async throws -> AsrManager {
+        await warmup?.value
+        return try await load()
+    }
+
+    /// Load the model and run it once on a second of silence.
+    ///
+    /// Loading is not the whole cost. CoreML compiles the model for the Neural
+    /// Engine and caches the result per macOS build, and it can need to
+    /// recompile even in a long-running process: measured at ~11 s for a
+    /// fresh compile, and seen in the field as 12–22 s stalls on the first
+    /// dictation after a long idle. Running the model is what triggers the
+    /// compile, so it is the warm-up; when nothing needs compiling it costs
+    /// ~50 ms.
+    func prewarm() async {
+        if let warmup { return await warmup.value }
+        let task = Task {
+            let start = Date()
+            do {
+                let manager = try await self.load()
+                var state = try TdtDecoderState()
+                _ = try await manager.transcribe([Float](repeating: 0, count: 16_000),
+                                                 decoderState: &state)
+                Log.engine.info("parakeet warm in \(Int(Date().timeIntervalSince(start) * 1000), privacy: .public)ms")
+            } catch {
+                Log.engine.error("parakeet warm-up failed: \(error.localizedDescription, privacy: .public)")
+            }
+        }
+        warmup = task
+        await task.value
+        warmup = nil
+    }
+
+    /// Load from the on-disk cache if needed. Forces offline mode so the
+    /// transcribe path can never trigger a surprise download; throws if the
+    /// weights aren't present (caller gates on `modelsExist`).
+    private func load() async throws -> AsrManager {
         if let manager { return manager }
         ModelHub.offlineMode = true
         defer { ModelHub.offlineMode = false }
@@ -48,6 +86,11 @@ final class ParakeetEngine: TranscriptionEngine {
     let kind: TranscriptionEngineKind = .parakeet
 
     func isAvailable() async -> Bool { ParakeetModelManager().isInstalled() }
+
+    func prewarm() async {
+        guard ParakeetModelManager().isInstalled() else { return }
+        await ParakeetRuntime.shared.prewarm()
+    }
 
     func transcribe(_ audio: PCMBuffer, locale: String) async throws -> TranscriptionResult {
         guard ParakeetModelManager().isInstalled() else {

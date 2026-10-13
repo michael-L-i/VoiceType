@@ -34,10 +34,43 @@ private enum NemotronVariant {
 actor NemotronRuntime {
     static let shared = NemotronRuntime()
     private var manager: StreamingNemotronMultilingualAsrManager?
+    /// The warm-up in flight, if any. Transcription waits for it: the manager
+    /// is stateful, so a warm-up and an utterance must never share it.
+    private var warmup: Task<Void, Never>?
 
-    /// A loaded manager, loading from the on-disk cache if needed. Throws if the
-    /// weights aren't present (caller gates on `isInstalled`).
+    /// A loaded manager, ready to transcribe.
     func loadedManager() async throws -> StreamingNemotronMultilingualAsrManager {
+        await warmup?.value
+        return try await load()
+    }
+
+    /// Load the model and run it once on a second of silence, so CoreML's
+    /// Neural Engine compile (see `ParakeetRuntime.prewarm`) happens now rather
+    /// than inside the next dictation. `transcribe` resets the manager before
+    /// every utterance, so the warm-up leaves nothing behind.
+    func prewarm() async {
+        if let warmup { return await warmup.value }
+        let task = Task {
+            let start = Date()
+            do {
+                let manager = try await self.load()
+                await manager.reset()
+                _ = try await manager.process(samples: [Float](repeating: 0, count: 16_000))
+                _ = try await manager.finish()
+                await manager.reset()
+                Log.engine.info("nemotron warm in \(Int(Date().timeIntervalSince(start) * 1000), privacy: .public)ms")
+            } catch {
+                Log.engine.error("nemotron warm-up failed: \(error.localizedDescription, privacy: .public)")
+            }
+        }
+        warmup = task
+        await task.value
+        warmup = nil
+    }
+
+    /// Load from the on-disk cache if needed. Throws if the weights aren't
+    /// present (caller gates on `isInstalled`).
+    private func load() async throws -> StreamingNemotronMultilingualAsrManager {
         if let manager { return manager }
         guard let dir = NemotronVariant.variantDirectory() else {
             throw TranscriptionError.unavailable(reason: "Couldn't locate the Nemotron model folder.")
@@ -75,6 +108,11 @@ final class NemotronEngine: TranscriptionEngine {
     let kind: TranscriptionEngineKind = .nemotron
 
     func isAvailable() async -> Bool { NemotronModelManager().isInstalled() }
+
+    func prewarm() async {
+        guard NemotronModelManager().isInstalled() else { return }
+        await NemotronRuntime.shared.prewarm()
+    }
 
     func transcribe(_ audio: PCMBuffer, locale: String) async throws -> TranscriptionResult {
         guard NemotronModelManager().isInstalled() else {

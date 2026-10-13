@@ -27,9 +27,40 @@ private func whisperModelFolder() -> URL? {
 actor WhisperKitRuntime {
     static let shared = WhisperKitRuntime()
     private var pipe: WhisperKit?
+    /// The warm-up in flight, if any. Transcription waits for it rather than
+    /// running alongside it on the same pipeline.
+    private var warmup: Task<Void, Never>?
 
-    /// A loaded pipeline, loading the already-downloaded weights from our folder.
+    /// A loaded pipeline, ready to transcribe.
     func loadedPipe() async throws -> WhisperKit {
+        await warmup?.value
+        return try await load()
+    }
+
+    /// Load the pipeline and run it once on a second of silence, so CoreML's
+    /// Neural Engine compile (see `ParakeetRuntime.prewarm`) happens now rather
+    /// than inside the next dictation. Decoding is capped at a few tokens:
+    /// Whisper can hallucinate a full context's worth of text on silence.
+    func prewarm() async {
+        if let warmup { return await warmup.value }
+        let task = Task {
+            let start = Date()
+            do {
+                let pipe = try await self.load()
+                _ = try await pipe.transcribe(audioArray: [Float](repeating: 0, count: 16_000),
+                                              decodeOptions: DecodingOptions(sampleLength: 4))
+                Log.engine.info("whisper warm in \(Int(Date().timeIntervalSince(start) * 1000), privacy: .public)ms")
+            } catch {
+                Log.engine.error("whisper warm-up failed: \(error.localizedDescription, privacy: .public)")
+            }
+        }
+        warmup = task
+        await task.value
+        warmup = nil
+    }
+
+    /// Load the already-downloaded weights from our folder if needed.
+    private func load() async throws -> WhisperKit {
         if let pipe { return pipe }
         guard let folder = whisperModelFolder() else {
             throw TranscriptionError.unavailable(reason: "Couldn't locate the Whisper model folder.")
@@ -69,6 +100,11 @@ final class WhisperKitEngine: TranscriptionEngine {
     let kind: TranscriptionEngineKind = .whisperKit
 
     func isAvailable() async -> Bool { WhisperKitModelManager().isInstalled() }
+
+    func prewarm() async {
+        guard WhisperKitModelManager().isInstalled() else { return }
+        await WhisperKitRuntime.shared.prewarm()
+    }
 
     // Qualified return type: WhisperKit also exports a `TranscriptionResult`.
     func transcribe(_ audio: PCMBuffer, locale: String) async throws -> VoiceTypeKit.TranscriptionResult {

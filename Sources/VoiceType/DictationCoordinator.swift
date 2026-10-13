@@ -132,7 +132,20 @@ final class DictationCoordinator {
         hotkey.start()
         hotkeyArmedWithTrust = Permissions.accessibilityStatus() == .granted
         refreshPermissionStatuses()
-        Task { await refreshAvailability() }
+        Task {
+            await refreshAvailability()
+            // Load the model now so the first dictation after launch doesn't.
+            // Only here, not on every availability refresh: browsing engines
+            // on the Models page shouldn't load each one into memory.
+            prewarmTranscriber()
+        }
+        // Waking from sleep is the classic cold start: warm the model before
+        // the first dictation needs it rather than during it.
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.prewarmTranscriber() }
+        }
     }
 
     /// Re-establish the global hotkey monitor if Accessibility has become trusted
@@ -403,6 +416,10 @@ final class DictationCoordinator {
         // this returns instantly and the hotkey event tap is never stalled
         // (a blocked tap callback is how macOS decides to disable the tap).
         capture.start()
+        // The model sits idle while the user talks, so wake it now: anything
+        // it needs to reload or recompile overlaps the speech instead of
+        // landing after the key is released.
+        prewarmTranscriber()
     }
 
     /// True from the moment a dictation is ended until the capture's tail grace
@@ -431,6 +448,11 @@ final class DictationCoordinator {
 
             // Ignore accidental taps with essentially no speech.
             guard audio.duration >= 0.25, audio.rms > 0.002 else {
+                Log.pipeline.info("""
+                dictation dropped below the speech gate: \
+                duration=\(String(format: "%.2fs", audio.duration), privacy: .public) \
+                rms=\(String(format: "%.4f", audio.rms), privacy: .public)
+                """)
                 self.state = .idle
                 return
             }
@@ -477,6 +499,38 @@ final class DictationCoordinator {
 
     // MARK: - Pipeline
 
+    /// The transcription engine the next dictation will use, honoring
+    /// availability fallback. Nil only when no transcriber can run at all.
+    private func resolvedTranscriptionKind() -> TranscriptionEngineKind? {
+        guard !availableTranscription.isEmpty else { return nil }
+        return EngineResolver.resolveTranscription(
+            preferred: settings.transcriptionEngine,
+            available: availableTranscription,
+            locale: settings.locale,
+            support: languageSupport)
+    }
+
+    /// Which engine last ran, and when (a dictation or a warm-up). Lets
+    /// `prewarmTranscriber` skip a model that is already hot.
+    private var transcriberLastWarmed: (kind: TranscriptionEngineKind, at: Date)?
+
+    /// How long the model may sit unused before the next dictation re-warms
+    /// it. CoreML can drop its compiled Neural Engine program while idle; a
+    /// re-warm costs ~50 ms when it hasn't, and hides a multi-second
+    /// recompile behind the user's speech when it has.
+    private static let rewarmAfterIdle: TimeInterval = 60
+
+    /// Warm the engine the next dictation will use, unless it ran recently.
+    /// Never during a transcription: the warm-up would share the model with it.
+    private func prewarmTranscriber() {
+        guard !isProcessing, let kind = resolvedTranscriptionKind() else { return }
+        if let last = transcriberLastWarmed, last.kind == kind,
+           Date().timeIntervalSince(last.at) < Self.rewarmAfterIdle { return }
+        guard let engine = EngineFactory.makeTranscriber(kind) else { return }
+        transcriberLastWarmed = (kind, Date())
+        Task { await engine.prewarm() }
+    }
+
     /// Resolve the transcription + cleanup engines for the current settings,
     /// honoring availability fallback. Shared by the live mic path and file
     /// import. Returns nil only when no transcriber can run at all.
@@ -484,12 +538,7 @@ final class DictationCoordinator {
         // Nothing can transcribe: bail here so the caller shows one clear,
         // actionable message instead of letting the engine fail mid-dictation
         // with a message the user can't act on.
-        guard !availableTranscription.isEmpty else { return nil }
-        let tKind = EngineResolver.resolveTranscription(
-            preferred: settings.transcriptionEngine,
-            available: availableTranscription,
-            locale: settings.locale,
-            support: languageSupport)
+        guard let tKind = resolvedTranscriptionKind() else { return nil }
         let cKind = EngineResolver.resolveCleanup(
             preferred: settings.cleanupEngine,
             available: availableCleanup)
@@ -542,6 +591,7 @@ final class DictationCoordinator {
 
                 try Task.checkCancellation()
                 guard self.activeDictationID == dictationID else { return }
+                self.transcriberLastWarmed = (result.transcriptionEngine, Date())
 
                 if result.finalText.isEmpty {
                     self.finish(state: .idle)
@@ -831,6 +881,8 @@ final class DictationCoordinator {
     }
 
     private func setError(_ message: String) {
+        // Messages are app/engine wording, never the user's words.
+        Log.pipeline.error("dictation error: \(message, privacy: .public)")
         state = .error(message)
         isProcessing = false
         scheduleReset()

@@ -99,6 +99,10 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
     private var interruptedSince: TimeInterval?
     /// Lock-guarded unique ID of the device the session is currently built on.
     private var configuredDeviceUID: String?
+    /// Lock-guarded: when `start()` was called, until the first buffer of
+    /// that capture lands. Speech before the first buffer is lost, so this is
+    /// the number that says how much of a first word the mic can clip.
+    private var awaitingFirstBufferSince: TimeInterval?
 
     /// Main-thread view of "a capture is in flight" (set in start, cleared in
     /// stop/cancel). All public methods are called from the main actor.
@@ -319,6 +323,7 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
             recoveryInFlight = false
             interruptedSince = nil
             health = CaptureHealthMonitor(startedAt: now)
+            awaitingFirstBufferSince = now
         }
         isRunning = true
         let id = lock.withLock { generation }
@@ -594,13 +599,23 @@ final class AudioCaptureService: NSObject, AVCaptureAudioDataOutputSampleBufferD
         guard chunk.allSatisfy({ $0.isFinite }) else { return }
         let peak = chunk.reduce(Float(0)) { max($0, abs($1)) }
         let arrivedAt = now
-        let accepted = lock.withLock {
-            guard accumulating else { return false }
+        let (accepted, startedAt): (Bool, TimeInterval?) = lock.withLock {
+            guard accumulating else { return (false, nil) }
             samples.append(contentsOf: chunk)
             health?.noteBuffer(at: arrivedAt, hasSignal: peak > 0)
-            return true
+            defer { awaitingFirstBufferSince = nil }
+            return (true, awaitingFirstBufferSince)
         }
         guard accepted else { return }
+        if let startedAt {
+            // The buffer holds audio from before it arrived, so the gap the
+            // user could have spoken into unheard is arrival minus its length.
+            let held = Double(frames) / Self.targetSampleRate
+            Log.audio.info("""
+            first audio \(Int((arrivedAt - startedAt) * 1000), privacy: .public)ms after start \
+            (buffer holds \(Int(held * 1000), privacy: .public)ms)
+            """)
+        }
         let db = 20 * log10(max(peak, .leastNormalMagnitude))
         onLevel?(max(0, min(1, (db + 50) / 42)))
     }
