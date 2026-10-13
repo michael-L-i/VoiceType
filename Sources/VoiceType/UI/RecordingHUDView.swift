@@ -63,7 +63,8 @@ struct RecordingHUDView: View {
     private var leading: some View {
         switch kind {
         case .recording, .working:
-            WaveformView(level: waveformLevel, tint: VT.tint)
+            WaveformView(level: coordinator.inputLevel, tint: VT.tint,
+                         isProcessing: kind == .working)
         case .error:
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(VT.live)
@@ -112,13 +113,6 @@ struct RecordingHUDView: View {
         case .idle, .done: return 3
         default: return VT.Space.s
         }
-    }
-
-    private var waveformLevel: Float {
-        if case .recording = coordinator.state {
-            return coordinator.inputLevel
-        }
-        return 0.45
     }
 
     private var errorMessage: String? {
