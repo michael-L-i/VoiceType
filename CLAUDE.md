@@ -97,6 +97,8 @@ Keep it simple; don't over-engineer.
 - **Audio capture:** `AudioCaptureService` (AVAudioEngine, mono 16 kHz).
 - **Transcription:** pluggable `TranscriptionEngine`. Default Apple on-device
   `SpeechTranscriber`; `whisper.cpp` local fallback; opt-in Groq cloud.
+  CoreML models can need a ~11 s Neural Engine compile, so engines are
+  `prewarm()`ed at launch, on wake, and on hotkey press — see `docs/LATENCY.md`.
 - **Cleanup pass:** pluggable `CleanupEngine`. Default deterministic
   `RuleBasedCleanup` (instant, symbol-aware — see `SpokenSymbols`); optional
   Apple `FoundationModels` on-device; opt-in Groq cloud. Always degrades to
