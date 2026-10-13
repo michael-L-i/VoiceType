@@ -165,6 +165,16 @@ public protocol TranscriptionEngine: Sendable {
     /// Transcribe one complete utterance. The pipeline calls this once, after
     /// the push-to-talk key is released, with the full captured buffer.
     func transcribe(_ audio: PCMBuffer, locale: String) async throws -> TranscriptionResult
+
+    /// Get the model loaded and ready to run, so the next `transcribe` starts
+    /// immediately instead of paying load or compile costs mid-dictation.
+    /// Best-effort: never throws, never prompts, never touches the network.
+    func prewarm() async
+}
+
+public extension TranscriptionEngine {
+    /// Nothing to warm by default (e.g. a model the OS keeps resident).
+    func prewarm() async {}
 }
 
 // MARK: - Cleanup
