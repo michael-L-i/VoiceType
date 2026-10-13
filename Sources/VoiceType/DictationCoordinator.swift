@@ -132,7 +132,13 @@ final class DictationCoordinator {
         hotkey.start()
         hotkeyArmedWithTrust = Permissions.accessibilityStatus() == .granted
         refreshPermissionStatuses()
-        Task { await refreshAvailability() }
+        Task {
+            await refreshAvailability()
+            // Load the model now so the first dictation after launch doesn't.
+            // Only here, not on every availability refresh: browsing engines
+            // on the Models page shouldn't load each one into memory.
+            prewarmTranscriber()
+        }
         // Waking from sleep is the classic cold start: warm the model before
         // the first dictation needs it rather than during it.
         NSWorkspace.shared.notificationCenter.addObserver(
@@ -954,9 +960,6 @@ final class DictationCoordinator {
         // A persisted engine/language pair can be incompatible (set before this
         // rule existed, or support facts changed) — repair it once facts arrive.
         switchEngineForLanguageIfNeeded()
-        // Launch, an engine switch, or a fresh download: load the model now so
-        // the first dictation doesn't. A no-op if it is already warm.
-        prewarmTranscriber()
     }
 
     // MARK: - Language compatibility
